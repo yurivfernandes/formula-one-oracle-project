@@ -1,10 +1,11 @@
 
 import { Link } from "react-router-dom";
-import { Flag, ArrowLeft, Trophy, Users } from "lucide-react";
+import { Flag, ArrowLeft, Trophy, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DriversStandings from "@/components/DriversStandings";
 import ConstructorsStandings from "@/components/ConstructorsStandings";
+import RaceByRaceStandings from "@/components/RaceByRaceStandings";
 
 const Championship = () => {
   return (
@@ -55,7 +56,7 @@ const Championship = () => {
 
         {/* Championship Tables */}
         <Tabs defaultValue="drivers" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-red-800/30">
+          <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30">
             <TabsTrigger 
               value="drivers" 
               className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
@@ -70,6 +71,13 @@ const Championship = () => {
               <Users className="mr-2 h-4 w-4" />
               Construtores
             </TabsTrigger>
+            <TabsTrigger 
+              value="racebyrace"
+              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              Corrida a Corrida
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="drivers" className="mt-8">
@@ -78,6 +86,10 @@ const Championship = () => {
           
           <TabsContent value="constructors" className="mt-8">
             <ConstructorsStandings />
+          </TabsContent>
+
+          <TabsContent value="racebyrace" className="mt-8">
+            <RaceByRaceStandings />
           </TabsContent>
         </Tabs>
       </div>
