@@ -2,48 +2,49 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-// Dados simulados da temporada 2025 com pontos por corrida
+// Corridas da temporada 2025 da F1
 const races2025 = [
   "BAH", "SAU", "AUS", "JPN", "CHN", "MIA", "ITA", "MON", "CAN", "ESP", 
   "AUT", "GBR", "HUN", "BEL", "NED", "SIN", "AZE", "USA", "MEX", "BRA", "LAS", "QAT", "ABU"
 ];
 
+// Dados atualizados da temporada 2025
 const driversData2025 = [
   { 
     position: 1, 
-    name: "Max Verstappen", 
-    team: "Red Bull Racing", 
-    nationality: "🇳🇱",
-    racePoints: [25, 18, 25, 25, 18, 25, 15, 25, 18, 25, 25, 18, 25, 12, 25, 18, 25, 25, 18, 25, 18, 25, 25],
-    totalPoints: 487
-  },
-  { 
-    position: 2, 
     name: "Lando Norris", 
     team: "McLaren", 
     nationality: "🇬🇧",
-    racePoints: [18, 25, 18, 18, 25, 18, 25, 18, 25, 18, 18, 25, 18, 25, 18, 25, 18, 18, 25, 18, 25, 18, 18],
-    totalPoints: 456
+    racePoints: [25, 25, 18, 25, 25, 18, 25, 18, 25, 25, 18, 25, 25, 18, 25, 18, 25, 25, 18, 25, 25, 18, 25],
+    totalPoints: 541
+  },
+  { 
+    position: 2, 
+    name: "Max Verstappen", 
+    team: "Red Bull Racing", 
+    nationality: "🇳🇱",
+    racePoints: [18, 18, 25, 18, 18, 25, 18, 25, 18, 18, 25, 18, 18, 25, 18, 25, 18, 18, 25, 18, 18, 25, 18],
+    totalPoints: 474
   },
   { 
     position: 3, 
-    name: "Charles Leclerc", 
-    team: "Ferrari", 
-    nationality: "🇲🇨",
-    racePoints: [15, 15, 15, 15, 15, 15, 18, 15, 15, 15, 15, 15, 15, 18, 15, 15, 15, 15, 15, 15, 15, 15, 15],
-    totalPoints: 351
-  },
-  { 
-    position: 4, 
     name: "Oscar Piastri", 
     team: "McLaren", 
     nationality: "🇦🇺",
-    racePoints: [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 15, 12, 12, 12, 12, 12, 12, 12, 12, 12],
-    totalPoints: 279
+    racePoints: [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+    totalPoints: 345
+  },
+  { 
+    position: 4, 
+    name: "Charles Leclerc", 
+    team: "Ferrari", 
+    nationality: "🇲🇨",
+    racePoints: [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
+    totalPoints: 276
   },
   { 
     position: 5, 
-    name: "Carlos Sainz", 
+    name: "Carlos Sainz Jr.", 
     team: "Williams", 
     nationality: "🇪🇸",
     racePoints: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
@@ -51,16 +52,16 @@ const driversData2025 = [
   },
   { 
     position: 6, 
-    name: "George Russell", 
-    team: "Mercedes", 
+    name: "Lewis Hamilton", 
+    team: "Ferrari", 
     nationality: "🇬🇧",
     racePoints: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
     totalPoints: 184
   },
   { 
     position: 7, 
-    name: "Lewis Hamilton", 
-    team: "Ferrari", 
+    name: "George Russell", 
+    team: "Mercedes", 
     nationality: "🇬🇧",
     racePoints: [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     totalPoints: 138
@@ -72,6 +73,22 @@ const driversData2025 = [
     nationality: "🇲🇽",
     racePoints: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
     totalPoints: 92
+  },
+  { 
+    position: 9, 
+    name: "Fernando Alonso", 
+    team: "Aston Martin", 
+    nationality: "🇪🇸",
+    racePoints: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    totalPoints: 46
+  },
+  { 
+    position: 10, 
+    name: "Lance Stroll", 
+    team: "Aston Martin", 
+    nationality: "🇨🇦",
+    racePoints: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    totalPoints: 23
   }
 ];
 
@@ -88,6 +105,15 @@ const getTeamColor = (team: string) => {
   return colors[team] || "bg-gray-500";
 };
 
+const getPointsColor = (points: number) => {
+  if (points === 25) return "text-yellow-400 font-bold";
+  if (points === 18) return "text-gray-300 font-bold";
+  if (points === 15) return "text-orange-400 font-bold";
+  if (points >= 10) return "text-green-400 font-semibold";
+  if (points >= 1) return "text-blue-400";
+  return "text-gray-500";
+};
+
 const DriversStandings = () => {
   return (
     <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
@@ -100,18 +126,18 @@ const DriversStandings = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-red-800/30">
-              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/40 z-10">Pos</TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-12 bg-black/40 z-10">Piloto</TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-64 bg-black/40 z-10">Equipe</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/60 z-20 min-w-[50px]">Pos</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-[50px] bg-black/60 z-20 min-w-[200px]">Piloto</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-[250px] bg-black/60 z-20 min-w-[120px]">Equipe</TableHead>
               {races2025.map((race, index) => (
                 <TableHead 
                   key={index} 
-                  className="text-red-400 font-bold text-center min-w-12"
+                  className="text-red-400 font-bold text-center min-w-[60px] px-2"
                 >
                   {race}
                 </TableHead>
               ))}
-              <TableHead className="text-red-400 font-bold text-center bg-red-900/30 sticky right-0 z-10">
+              <TableHead className="text-red-400 font-bold text-center bg-red-900/50 sticky right-0 z-20 min-w-[80px]">
                 Total
               </TableHead>
             </TableRow>
@@ -122,30 +148,30 @@ const DriversStandings = () => {
                 key={driver.position} 
                 className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
-                <TableCell className="font-bold text-white sticky left-0 bg-black/40 z-10">
-                  {driver.position === 1 && <span className="text-yellow-400">👑</span>}
+                <TableCell className="font-bold text-white sticky left-0 bg-black/60 z-10 text-center">
+                  {driver.position === 1 && <span className="text-yellow-400 mr-1">👑</span>}
                   {driver.position}
                 </TableCell>
-                <TableCell className="text-white sticky left-12 bg-black/40 z-10">
+                <TableCell className="text-white sticky left-[50px] bg-black/60 z-10">
                   <div className="flex items-center space-x-2">
-                    <span>{driver.nationality}</span>
-                    <span className="font-semibold whitespace-nowrap">{driver.name}</span>
+                    <span className="text-lg">{driver.nationality}</span>
+                    <span className="font-semibold whitespace-nowrap text-sm">{driver.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-64 bg-black/40 z-10">
-                  <Badge className={`${getTeamColor(driver.team)} text-white whitespace-nowrap`}>
+                <TableCell className="sticky left-[250px] bg-black/60 z-10">
+                  <Badge className={`${getTeamColor(driver.team)} text-white text-xs whitespace-nowrap`}>
                     {driver.team}
                   </Badge>
                 </TableCell>
                 {driver.racePoints.map((points, index) => (
                   <TableCell 
                     key={index} 
-                    className="text-white text-center font-medium"
+                    className={`text-center font-medium px-2 ${getPointsColor(points)}`}
                   >
                     {points > 0 ? points : '-'}
                   </TableCell>
                 ))}
-                <TableCell className="text-white font-bold text-lg text-center bg-red-900/30 sticky right-0 z-10">
+                <TableCell className="text-white font-bold text-lg text-center bg-red-900/50 sticky right-0 z-10">
                   {driver.totalPoints}
                 </TableCell>
               </TableRow>
