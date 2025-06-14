@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
@@ -8,114 +7,130 @@ const races2025 = [
   "AUT", "GBR", "HUN", "BEL", "NED", "SIN", "AZE", "USA", "MEX", "BRA", "LAS", "QAT", "ABU"
 ];
 
-// Dados da temporada 2025 da F1 (após 10 de 23 corridas)
+// Dados da temporada 2025 da F1 (após 10 de 23 corridas) - DADOS SIMULADOS
 const driversData2025 = [
   { 
     position: 1, 
     name: "Max Verstappen", 
     team: "Red Bull Racing", 
     nationality: "🇳🇱",
-    racePoints: [25, 18, 12, 25, 18, 25, 10, 15, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 191
+    racePoints: [25, 18, 25, 18, 25, 25, 12, 15, 25, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 206
   },
   { 
     position: 2, 
-    name: "Charles Leclerc", 
-    team: "Ferrari", 
-    nationality: "🇲🇨",
-    racePoints: [18, 25, 15, 18, 25, 15, 18, 25, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 183
-  },
-  { 
-    position: 3, 
     name: "Lando Norris", 
     team: "McLaren", 
     nationality: "🇬🇧",
-    racePoints: [15, 12, 25, 15, 15, 18, 25, 18, 15, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 176
+    racePoints: [15, 12, 18, 15, 15, 18, 25, 18, 12, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 173
+  },
+  { 
+    position: 3, 
+    name: "Charles Leclerc", 
+    team: "Ferrari", 
+    nationality: "🇲🇨",
+    racePoints: [18, 25, 15, 12, 18, 12, 18, 25, 15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 158
   },
   { 
     position: 4, 
-    name: "Oscar Piastri", 
-    team: "McLaren", 
-    nationality: "🇦🇺",
-    racePoints: [12, 10, 18, 12, 12, 12, 12, 12, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 120
-  },
-  { 
-    position: 5, 
     name: "Lewis Hamilton", 
     team: "Ferrari", 
     nationality: "🇬🇧",
-    racePoints: [10, 15, 10, 10, 10, 10, 15, 10, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 106
+    racePoints: [12, 15, 10, 10, 12, 15, 15, 8, 18, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 127
+  },
+  { 
+    position: 5, 
+    name: "Oscar Piastri", 
+    team: "McLaren", 
+    nationality: "🇦🇺",
+    racePoints: [10, 8, 12, 8, 10, 10, 10, 10, 8, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 101
   },
   { 
     position: 6, 
     name: "Sergio Pérez", 
     team: "Red Bull Racing", 
     nationality: "🇲🇽",
-    racePoints: [8, 8, 8, 8, 8, 8, 8, 8, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 81
+    racePoints: [8, 10, 8, 6, 8, 6, 8, 0, 10, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 72
   },
   { 
     position: 7, 
-    name: "Carlos Sainz Jr.", 
-    team: "Williams", 
-    nationality: "🇪🇸",
-    racePoints: [6, 6, 6, 6, 6, 6, 6, 6, 6, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 69
-  },
-  { 
-    position: 8, 
     name: "George Russell", 
     team: "Mercedes", 
     nationality: "🇬🇧",
-    racePoints: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 40
+    racePoints: [6, 6, 4, 8, 6, 8, 6, 12, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 68
+  },
+  { 
+    position: 8, 
+    name: "Carlos Sainz Jr.", 
+    team: "Williams", 
+    nationality: "🇪🇸",
+    racePoints: [4, 4, 6, 10, 4, 4, 4, 6, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 50
   },
   { 
     position: 9, 
     name: "Fernando Alonso", 
     team: "Aston Martin", 
     nationality: "🇪🇸",
-    racePoints: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 20
+    racePoints: [2, 1, 1, 4, 2, 1, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 15
   },
   { 
     position: 10, 
     name: "Alex Albon", 
     team: "Williams", 
     nationality: "🇹🇭",
-    racePoints: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 10
+    racePoints: [1, 1, 1, 0, 1, 1, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 11
   },
   { 
     position: 11, 
-    name: "Yuki Tsunoda", 
-    team: "RB", 
-    nationality: "🇯🇵",
-    racePoints: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 5
-  },
-  { 
-    position: 12, 
     name: "Lance Stroll", 
     team: "Aston Martin", 
     nationality: "🇨🇦",
-    racePoints: [0, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    racePoints: [0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 4
+  },
+  { 
+    position: 12, 
+    name: "Nico Hülkenberg", 
+    team: "Haas", 
+    nationality: "🇩🇪",
+    racePoints: [0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     totalPoints: 3
   },
   { 
     position: 13, 
-    name: "Kimi Antonelli", 
-    team: "Mercedes", 
-    nationality: "🇮🇹",
-    racePoints: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 1
+    name: "Yuki Tsunoda", 
+    team: "RB", 
+    nationality: "🇯🇵",
+    racePoints: [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 2
   },
   { 
     position: 14, 
+    name: "Kimi Antonelli", 
+    team: "Mercedes", 
+    nationality: "🇮🇹",
+    racePoints: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 2
+  },
+  { 
+    position: 15, 
+    name: "Daniel Ricciardo", 
+    team: "RB", 
+    nationality: "🇦🇺",
+    racePoints: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 1
+  },
+  { 
+    position: 16, 
     name: "Pierre Gasly", 
     team: "Alpine", 
     nationality: "🇫🇷",
@@ -123,7 +138,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 15, 
+    position: 17, 
     name: "Esteban Ocon", 
     team: "Alpine", 
     nationality: "🇫🇷",
@@ -131,26 +146,10 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 16, 
-    name: "Nico Hülkenberg", 
-    team: "Haas", 
-    nationality: "🇩🇪",
-    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 0
-  },
-  { 
-    position: 17, 
+    position: 18, 
     name: "Kevin Magnussen", 
     team: "Haas", 
     nationality: "🇩🇰",
-    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 0
-  },
-  { 
-    position: 18, 
-    name: "Daniel Ricciardo", 
-    team: "RB", 
-    nationality: "🇦🇺",
     racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     totalPoints: 0
   },
