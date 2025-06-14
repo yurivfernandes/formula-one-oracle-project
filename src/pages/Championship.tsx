@@ -46,7 +46,7 @@ const Championship = () => {
           </Link>
           
           <h1 className="text-4xl font-bold text-white mb-2">
-            Campeonato Mundial de F1 2024
+            Campeonato Mundial de F1 2025
           </h1>
           <p className="text-gray-300 text-lg">
             Classificações atualizadas dos pilotos e construtores
