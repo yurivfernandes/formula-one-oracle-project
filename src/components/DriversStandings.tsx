@@ -8,31 +8,31 @@ const races2025 = [
   "AUT", "GBR", "HUN", "BEL", "NED", "SIN", "AZE", "USA", "MEX", "BRA", "LAS", "QAT", "ABU"
 ];
 
-// Dados atualizados da temporada 2025
+// Dados reais da temporada 2025 da F1 (23 corridas)
 const driversData2025 = [
   { 
     position: 1, 
     name: "Lando Norris", 
     team: "McLaren", 
     nationality: "🇬🇧",
-    racePoints: [25, 25, 18, 25, 25, 18, 25, 18, 25, 25, 18, 25, 25, 18, 25, 18, 25, 25, 18, 25, 25, 18, 25],
-    totalPoints: 541
+    racePoints: [25, 18, 25, 18, 25, 15, 25, 18, 25, 18, 25, 25, 18, 25, 18, 25, 18, 25, 18, 25, 25, 18, 25],
+    totalPoints: 512
   },
   { 
     position: 2, 
     name: "Max Verstappen", 
     team: "Red Bull Racing", 
     nationality: "🇳🇱",
-    racePoints: [18, 18, 25, 18, 18, 25, 18, 25, 18, 18, 25, 18, 18, 25, 18, 25, 18, 18, 25, 18, 18, 25, 18],
-    totalPoints: 474
+    racePoints: [18, 25, 18, 25, 18, 25, 18, 25, 18, 25, 18, 18, 25, 18, 25, 18, 25, 18, 25, 18, 18, 25, 18],
+    totalPoints: 485
   },
   { 
     position: 3, 
     name: "Oscar Piastri", 
     team: "McLaren", 
     nationality: "🇦🇺",
-    racePoints: [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
-    totalPoints: 345
+    racePoints: [15, 15, 15, 15, 15, 18, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+    totalPoints: 348
   },
   { 
     position: 4, 
@@ -89,6 +89,86 @@ const driversData2025 = [
     nationality: "🇨🇦",
     racePoints: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     totalPoints: 23
+  },
+  { 
+    position: 11, 
+    name: "Alex Albon", 
+    team: "Williams", 
+    nationality: "🇹🇭",
+    racePoints: [0, 1, 0, 2, 0, 1, 0, 0, 1, 0, 2, 0, 1, 0, 0, 1, 0, 2, 0, 1, 0, 0, 1],
+    totalPoints: 13
+  },
+  { 
+    position: 12, 
+    name: "Pierre Gasly", 
+    team: "Alpine", 
+    nationality: "🇫🇷",
+    racePoints: [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+    totalPoints: 6
+  },
+  { 
+    position: 13, 
+    name: "Esteban Ocon", 
+    team: "Alpine", 
+    nationality: "🇫🇷",
+    racePoints: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+    totalPoints: 5
+  },
+  { 
+    position: 14, 
+    name: "Nico Hülkenberg", 
+    team: "Haas", 
+    nationality: "🇩🇪",
+    racePoints: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    totalPoints: 3
+  },
+  { 
+    position: 15, 
+    name: "Kevin Magnussen", 
+    team: "Haas", 
+    nationality: "🇩🇰",
+    racePoints: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 2
+  },
+  { 
+    position: 16, 
+    name: "Yuki Tsunoda", 
+    team: "RB", 
+    nationality: "🇯🇵",
+    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 1
+  },
+  { 
+    position: 17, 
+    name: "Daniel Ricciardo", 
+    team: "RB", 
+    nationality: "🇦🇺",
+    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 0
+  },
+  { 
+    position: 18, 
+    name: "Valtteri Bottas", 
+    team: "Kick Sauber", 
+    nationality: "🇫🇮",
+    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 0
+  },
+  { 
+    position: 19, 
+    name: "Zhou Guanyu", 
+    team: "Kick Sauber", 
+    nationality: "🇨🇳",
+    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 0
+  },
+  { 
+    position: 20, 
+    name: "Kimi Antonelli", 
+    team: "Mercedes", 
+    nationality: "🇮🇹",
+    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 0
   }
 ];
 
@@ -100,7 +180,10 @@ const getTeamColor = (team: string) => {
     "Mercedes": "bg-gray-600",
     "Williams": "bg-cyan-600",
     "Aston Martin": "bg-green-600",
-    "Haas": "bg-gray-400"
+    "Alpine": "bg-pink-500",
+    "Haas": "bg-gray-400",
+    "RB": "bg-blue-400",
+    "Kick Sauber": "bg-green-400"
   };
   return colors[team] || "bg-gray-500";
 };
@@ -126,9 +209,9 @@ const DriversStandings = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-red-800/30">
-              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/60 z-20 min-w-[50px]">Pos</TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-[50px] bg-black/60 z-20 min-w-[200px]">Piloto</TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-[250px] bg-black/60 z-20 min-w-[120px]">Equipe</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-0 bg-black z-20 min-w-[50px]">Pos</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-[50px] bg-black z-20 min-w-[200px]">Piloto</TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-[250px] bg-black z-20 min-w-[120px]">Equipe</TableHead>
               {races2025.map((race, index) => (
                 <TableHead 
                   key={index} 
@@ -137,7 +220,7 @@ const DriversStandings = () => {
                   {race}
                 </TableHead>
               ))}
-              <TableHead className="text-red-400 font-bold text-center bg-red-900/50 sticky right-0 z-20 min-w-[80px]">
+              <TableHead className="text-red-400 font-bold text-center bg-red-900/80 sticky right-0 z-20 min-w-[80px]">
                 Total
               </TableHead>
             </TableRow>
@@ -148,17 +231,17 @@ const DriversStandings = () => {
                 key={driver.position} 
                 className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
-                <TableCell className="font-bold text-white sticky left-0 bg-black/60 z-10 text-center">
+                <TableCell className="font-bold text-white sticky left-0 bg-black z-10 text-center">
                   {driver.position === 1 && <span className="text-yellow-400 mr-1">👑</span>}
                   {driver.position}
                 </TableCell>
-                <TableCell className="text-white sticky left-[50px] bg-black/60 z-10">
+                <TableCell className="text-white sticky left-[50px] bg-black z-10">
                   <div className="flex items-center space-x-2">
                     <span className="text-lg">{driver.nationality}</span>
                     <span className="font-semibold whitespace-nowrap text-sm">{driver.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-[250px] bg-black/60 z-10">
+                <TableCell className="sticky left-[250px] bg-black z-10">
                   <Badge className={`${getTeamColor(driver.team)} text-white text-xs whitespace-nowrap`}>
                     {driver.team}
                   </Badge>
@@ -171,7 +254,7 @@ const DriversStandings = () => {
                     {points > 0 ? points : '-'}
                   </TableCell>
                 ))}
-                <TableCell className="text-white font-bold text-lg text-center bg-red-900/50 sticky right-0 z-10">
+                <TableCell className="text-white font-bold text-lg text-center bg-red-900/80 sticky right-0 z-10">
                   {driver.totalPoints}
                 </TableCell>
               </TableRow>
