@@ -15,99 +15,107 @@ const driversData2025 = [
     name: "Max Verstappen", 
     team: "Red Bull Racing", 
     nationality: "🇳🇱",
-    racePoints: [25, 18, 25, 18, 25, 1, 18, 25, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 198
+    racePoints: [25, 18, 12, 25, 18, 25, 10, 15, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 191
   },
   { 
     position: 2, 
-    name: "Lando Norris", 
-    team: "McLaren", 
-    nationality: "🇬🇧",
-    racePoints: [18, 25, 12, 15, 18, 25, 8, 12, 25, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 173
-  },
-  { 
-    position: 3, 
     name: "Charles Leclerc", 
     team: "Ferrari", 
     nationality: "🇲🇨",
-    racePoints: [15, 12, 18, 25, 12, 18, 25, 1, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 150
+    racePoints: [18, 25, 15, 18, 25, 15, 18, 25, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 183
+  },
+  { 
+    position: 3, 
+    name: "Lando Norris", 
+    team: "McLaren", 
+    nationality: "🇬🇧",
+    racePoints: [15, 12, 25, 15, 15, 18, 25, 18, 15, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 176
   },
   { 
     position: 4, 
     name: "Oscar Piastri", 
     team: "McLaren", 
     nationality: "🇦🇺",
-    racePoints: [12, 15, 10, 10, 15, 12, 10, 15, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 119
+    racePoints: [12, 10, 18, 12, 12, 12, 12, 12, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 120
   },
   { 
     position: 5, 
-    name: "Carlos Sainz Jr.", 
-    team: "Williams", 
-    nationality: "🇪🇸",
-    racePoints: [10, 8, 8, 8, 10, 15, 15, 10, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 100
+    name: "Lewis Hamilton", 
+    team: "Ferrari", 
+    nationality: "🇬🇧",
+    racePoints: [10, 15, 10, 10, 10, 10, 15, 10, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 106
   },
   { 
     position: 6, 
     name: "Sergio Pérez", 
     team: "Red Bull Racing", 
     nationality: "🇲🇽",
-    racePoints: [8, 10, 6, 6, 8, 0, 12, 18, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 80
+    racePoints: [8, 8, 8, 8, 8, 8, 8, 8, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 81
   },
   { 
     position: 7, 
-    name: "Lewis Hamilton", 
-    team: "Ferrari", 
-    nationality: "🇬🇧",
-    racePoints: [6, 4, 15, 4, 4, 10, 4, 6, 4, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 67
+    name: "Carlos Sainz Jr.", 
+    team: "Williams", 
+    nationality: "🇪🇸",
+    racePoints: [6, 6, 6, 6, 6, 6, 6, 6, 6, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 69
   },
   { 
     position: 8, 
     name: "George Russell", 
     team: "Mercedes", 
     nationality: "🇬🇧",
-    racePoints: [4, 6, 4, 2, 6, 8, 6, 4, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 45
+    racePoints: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 40
   },
   { 
     position: 9, 
     name: "Fernando Alonso", 
     team: "Aston Martin", 
     nationality: "🇪🇸",
-    racePoints: [2, 2, 2, 1, 2, 6, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 22
+    racePoints: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 20
   },
   { 
     position: 10, 
     name: "Alex Albon", 
     team: "Williams", 
     nationality: "🇹🇭",
-    racePoints: [1, 1, 1, 0, 1, 4, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 11
+    racePoints: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 10
   },
   { 
     position: 11, 
-    name: "Lance Stroll", 
-    team: "Aston Martin", 
-    nationality: "🇨🇦",
-    racePoints: [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 2
-  },
-  { 
-    position: 12, 
     name: "Yuki Tsunoda", 
     team: "RB", 
     nationality: "🇯🇵",
-    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 1
+    racePoints: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 5
+  },
+  { 
+    position: 12, 
+    name: "Lance Stroll", 
+    team: "Aston Martin", 
+    nationality: "🇨🇦",
+    racePoints: [0, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 3
   },
   { 
     position: 13, 
+    name: "Kimi Antonelli", 
+    team: "Mercedes", 
+    nationality: "🇮🇹",
+    racePoints: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    totalPoints: 1
+  },
+  { 
+    position: 14, 
     name: "Pierre Gasly", 
     team: "Alpine", 
     nationality: "🇫🇷",
@@ -115,7 +123,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 14, 
+    position: 15, 
     name: "Esteban Ocon", 
     team: "Alpine", 
     nationality: "🇫🇷",
@@ -123,7 +131,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 15, 
+    position: 16, 
     name: "Nico Hülkenberg", 
     team: "Haas", 
     nationality: "🇩🇪",
@@ -131,7 +139,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 16, 
+    position: 17, 
     name: "Kevin Magnussen", 
     team: "Haas", 
     nationality: "🇩🇰",
@@ -139,7 +147,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 17, 
+    position: 18, 
     name: "Daniel Ricciardo", 
     team: "RB", 
     nationality: "🇦🇺",
@@ -147,7 +155,7 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 18, 
+    position: 19, 
     name: "Valtteri Bottas", 
     team: "Kick Sauber", 
     nationality: "🇫🇮",
@@ -155,18 +163,10 @@ const driversData2025 = [
     totalPoints: 0
   },
   { 
-    position: 19, 
+    position: 20, 
     name: "Zhou Guanyu", 
     team: "Kick Sauber", 
     nationality: "🇨🇳",
-    racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    totalPoints: 0
-  },
-  { 
-    position: 20, 
-    name: "Kimi Antonelli", 
-    team: "Mercedes", 
-    nationality: "🇮🇹",
     racePoints: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     totalPoints: 0
   }
