@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Award } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -34,8 +33,9 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 const getCountryPTBR = (country: string) =>
   countryPTBR[country] || { nome: country, flag: "🏁" };
 
-const GRAND_PRIX_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-const SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1];
+// Pontuação oficial F1 (corrida principal e sprint)
+const GRAND_PRIX_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]; // Top 10
+const SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1]; // Top 8
 
 const fetchRaces = async () => {
   const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/races/");
@@ -49,7 +49,7 @@ const fetchSprintRaces = async () => {
   return data.MRData.RaceTable.Races;
 };
 
-const CURRENT_ROUND = 10;
+const CURRENT_ROUND = 10; // fixo conforme predição
 
 const NextRaceInfo = () => {
   const { data: races, isLoading: loadingRaces } = useQuery({
@@ -67,7 +67,7 @@ const NextRaceInfo = () => {
 
   const now = new Date();
 
-  // Descobre o próximo round
+  // Próxima corrida considerando a data e hora
   const nextRace = races?.find((race: any) => {
     const raceDateTime = new Date(
       `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
@@ -75,6 +75,7 @@ const NextRaceInfo = () => {
     return raceDateTime >= now;
   });
 
+  // Contar rounds futuros de corrida e sprint, usando round number (não só data)
   const currentRoundNum = races?.find((r: any) => {
     const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
     return dt >= now;
@@ -85,37 +86,27 @@ const NextRaceInfo = () => {
       }).round)
     : CURRENT_ROUND + 1;
 
-  // Corridas restantes (inclui a atual e próximas)
+  // Corridas restantes incluem a próxima e todas posteriores
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
+  // Sprints restantes: rounds maiores ou iguais ao currentRoundNum
+  const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
 
-  // Sprints restantes: pega rounds de sprints futuros comparando rounds do sprint calendar especificamente
-  let sprintRounds: number[] = [];
-  if (sprints) {
-    sprintRounds = sprints.map((s: any) => parseInt(s.round));
-  }
-  const sprintsLeft = sprintRounds.filter(round => round >= currentRoundNum).length;
-
-  // Pontuação máxima restante
+  // Pontos restantes corridas principais e sprint
   const pontosGrandPrix = racesLeft * 25;
   const pontosSprint = sprintsLeft * 8;
   const pontosPilotos = pontosGrandPrix + pontosSprint;
-  const pontosConstrutores = racesLeft * (25 + 18) + sprintsLeft * (8 + 7);
+  const pontosConstrutores =
+    racesLeft * (25 + 18) +
+    sprintsLeft * (8 + 7);
 
-  // Tradução PT-BR da próxima corrida:
-  let proxima = null;
-  if (nextRace) {
-    const paisPTBR = getCountryPTBR(nextRace.Circuit.Location.country);
-    proxima = {
-      nome: nextRace.raceName, // Vamos substituir pelo PT-BR na table
-      pais: paisPTBR,
-      data: format(parseISO(nextRace.date), "PPP", { locale: ptBR }),
-    };
-    // Se existir nome PT-BR do circuito ou GP pode atribuir aqui
-    if (paisPTBR && paisPTBR.nome) {
-      // Exibe GP com nome PTBR se encontrado
-      proxima.nome = `GP de ${paisPTBR.nome}`;
-    }
-  }
+  // Info da próxima corrida:
+  const proxima = nextRace
+    ? {
+        nome: nextRace.raceName,
+        pais: getCountryPTBR(nextRace.Circuit.Location.country),
+        data: format(parseISO(nextRace.date), "PPP", { locale: ptBR }),
+      }
+    : null;
 
   return (
     <div className="mb-6">
@@ -171,4 +162,3 @@ const NextRaceInfo = () => {
 };
 
 export default NextRaceInfo;
-

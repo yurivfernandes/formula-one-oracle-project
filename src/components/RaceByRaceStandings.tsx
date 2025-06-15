@@ -162,7 +162,7 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
   "Mexico": { nome: "México", flag: "🇲🇽" },
   "Brazil": { nome: "Brasil", flag: "🇧🇷" },
   "Qatar": { nome: "Catar", flag: "🇶🇦" },
-  "United Arab Emirates": { nome: "Abu Dhabi", flag: "🇦🇪" },
+  "United Arab Emirates": { nome: "Emirados Árabes Unidos", flag: "🇦🇪" },
   "Las Vegas": { nome: "Las Vegas", flag: "🎲" },
 };
 
@@ -170,10 +170,8 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
 
 // --- Funções de Fetch ---
-const F1_SEASON = 2025; // Agora busca dados de 2025 para a tabela
-
 const fetchRaces = async (): Promise<Race[]> => {
-  const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/races/`);
+  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
   if (!response.ok) {
     throw new Error('Erro ao buscar calendário de corridas');
   }
@@ -186,7 +184,7 @@ const fetchRaceResults = async (): Promise<Race[]> => {
   
   for (let page = 1; page <= 6; page++) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/results/?offset=${(page - 1) * 30}&limit=30`);
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${(page - 1) * 30}&limit=30`);
       if (!response.ok) {
         console.warn(`Erro ao buscar página ${page} dos resultados`);
         continue;
@@ -212,7 +210,7 @@ const fetchSprintResults = async (): Promise<Race[]> => {
   
   for (let page = 1; page <= 6; page++) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/sprint/?offset=${(page - 1) * 30}&limit=30`);
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${(page - 1) * 30}&limit=30`);
       if (!response.ok) {
         console.warn(`Erro ao buscar página ${page} dos resultados de Sprint`);
         continue;
@@ -234,13 +232,13 @@ const fetchSprintResults = async (): Promise<Race[]> => {
 };
 
 const fetchDriverStandings = async (): Promise<StandingsList> => {
-  const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/driverstandings.json`);
+  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
   if (!response.ok) {
     throw new Error('A resposta da rede não foi bem-sucedida');
   }
   const data: ErgastResponse = await response.json();
   if (!data.MRData.StandingsTable.StandingsLists.length) {
-    return { season: `${F1_SEASON}`, round: "0", DriverStandings: [] };
+    return { season: "2025", round: "0", DriverStandings: [] };
   }
   return data.MRData.StandingsTable.StandingsLists[0];
 };
@@ -249,22 +247,22 @@ const RaceByRaceStandings = () => {
   const [viewType, setViewType] = useState<"all" | "completed">("completed");
   
   const { data: allRaces, isLoading: isLoadingRaces } = useQuery({
-    queryKey: ['races', F1_SEASON],
+    queryKey: ['races', 2025],
     queryFn: fetchRaces,
   });
 
   const { data: raceResults, isLoading: isLoadingResults } = useQuery({
-    queryKey: ['raceResults', F1_SEASON],
+    queryKey: ['raceResults', 2025],
     queryFn: fetchRaceResults,
   });
 
   const { data: sprintResults, isLoading: isLoadingSprints } = useQuery({
-    queryKey: ['sprintResults', F1_SEASON],
+    queryKey: ['sprintResults', 2025],
     queryFn: fetchSprintResults,
   });
 
   const { data: standingsList, isLoading: isLoadingStandings } = useQuery({
-    queryKey: ['driverStandings', F1_SEASON],
+    queryKey: ['driverStandings', 2025],
     queryFn: fetchDriverStandings,
   });
 
@@ -274,7 +272,7 @@ const RaceByRaceStandings = () => {
     return (
       <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
         <div className="p-6 border-b border-red-800/30">
-          <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida {F1_SEASON}</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida 2025</h2>
           <p className="text-gray-300">A carregar dados das corridas...</p>
         </div>
         <div className="p-6">
@@ -382,7 +380,7 @@ const RaceByRaceStandings = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-3xl font-bold text-red-500 mb-2">
-              Temporada F1 {F1_SEASON} - Corrida a Corrida
+              Temporada F1 2025 - Corrida a Corrida
             </h2>
             <p className="text-gray-300">Pontos por corrida e sprint de cada piloto</p>
           </div>
@@ -432,11 +430,13 @@ const RaceByRaceStandings = () => {
               </TableHead>
               {racesToShow.map((race) => {
                 const c = getCountryPTBR(race.Circuit.Location.country);
-                // Corrigir Abu Dhabi e usar PT-BR:
-                const nome = c.nome;
-                const flag = c.flag;
-                // Nome do GP no formato "GP de <nome>" sempre:
-                const gpNome = `GP de ${nome}`;
+                // Corrigir Abu Dhabi:
+                const nome = race.Circuit.Location.country === "United Arab Emirates"
+                  ? "Abu Dhabi"
+                  : c.nome;
+                const flag = race.Circuit.Location.country === "United Arab Emirates"
+                  ? "🇦🇪"
+                  : c.flag;
                 return (
                   <TableHead
                     key={race.round}
@@ -445,14 +445,14 @@ const RaceByRaceStandings = () => {
                     <div className="flex flex-col items-center py-2">
                       <span className="text-2xl mb-1">{flag}</span>
                       <span className="text-xs font-medium text-gray-300">
-                        {gpNome}
+                        {nome}
                       </span>
                       <div className="flex gap-1 mt-2">
                         {sprintResultsMap[race.round] && (
-                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">Sprint</span>
+                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
                         )}
                         {raceResultsMap[race.round] && (
-                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">Corrida</span>
+                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
                         )}
                       </div>
                     </div>
@@ -468,12 +468,7 @@ const RaceByRaceStandings = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => {
-              // Adicionando um log para depuração
-              if (Object.keys(sprintPoints).length > 0) {
-                console.log(`Sprint points for ${driver.givenName} ${driver.familyName}:`, sprintPoints);
-              }
-              return (
+            {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => (
               <TableRow
                 key={driverId}
                 className="border-red-800/30 hover:bg-red-900/30 transition-colors"
@@ -482,13 +477,10 @@ const RaceByRaceStandings = () => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
-                        index === 0
-                          ? 'bg-yellow-500 text-black'
-                          : index === 1
-                          ? 'bg-gray-400 text-black'
-                          : index === 2
-                          ? 'bg-amber-700 text-white' // Bronze discreto para 3º lugar
-                          : 'bg-gray-700 text-white'
+                        index === 0 ? 'bg-yellow-500 text-black' : 
+                        index === 1 ? 'bg-gray-400 text-black' : 
+                        index === 2 ? 'bg-amber-700 text-white' : 
+                        'bg-gray-700 text-white'
                       }`}>
                         {index + 1}
                       </span>
@@ -503,52 +495,58 @@ const RaceByRaceStandings = () => {
                 {racesToShow.map((race) => {
                   const racePointsValue = parseInt(racePoints[race.round] || '0');
                   const sprintPointsValue = parseInt(sprintPoints[race.round] || '0');
-                  const hasRaceResult = !!racePoints[race.round];
-                  const hasSprintResult = !!sprintPoints[race.round];
+                  const hasRaceResult = raceResultsMap[race.round];
+                  const hasSprintResult = sprintResultsMap[race.round];
+                  const hasAnyResult = hasRaceResult || hasSprintResult;
+                  const totalRoundPoints =
+                    (hasRaceResult ? racePointsValue : 0) +
+                    (hasSprintResult ? sprintPointsValue : 0);
 
-                  // O quadrado "-" só aparece caso não tenha NENHUM resultado (nem sprint, nem corrida)
+                  // SOLUÇÃO: Exibir cada pontuação separadamente! Só mostra o total caso haja pontos nos dois.
                   return (
-                    <TableCell
-                      key={race.round}
+                    <TableCell 
+                      key={race.round} 
                       className={`text-white text-center font-medium py-4 ${
-                        !(hasRaceResult || hasSprintResult) && viewType === "all" ? 'text-gray-500' : ''
+                        !hasAnyResult && viewType === "all" ? 'text-gray-500' : ''
                       } bg-black`}
                     >
-                      <div className="flex flex-row items-center justify-center gap-1">
-                        {/* Corrida principal */}
-                        {hasRaceResult && (
-                          <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
-                            {racePointsValue}
-                          </span>
-                        )}
-                        {/* Sprint */}
-                        {hasSprintResult && (
-                          <span className="text-sm bg-yellow-400 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
-                            {sprintPointsValue}
-                          </span>
-                        )}
-                      </div>
+                      {hasRaceResult && (
+                        <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
+                          {racePointsValue}
+                        </span>
+                      )}
+                      {hasSprintResult && (
+                        <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
+                          {sprintPointsValue}
+                        </span>
+                      )}
+                      {/* Só exibe o total se houver pontos em ambos (corrida & sprint) e eles forem > 0*/}
+                      {(hasRaceResult && hasSprintResult && totalRoundPoints > 0) && (
+                        <span className="text-base font-bold text-white bg-gray-700 px-2 py-1 rounded-lg min-w-[32px] block">
+                          {totalRoundPoints}
+                        </span>
+                      )}
+                      {!hasAnyResult && viewType === "all" && (
+                        <span className="text-gray-500 text-lg">-</span>
+                      )}
                     </TableCell>
                   );
                 })}
                 <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-black z-10 border-l border-red-800/30 py-4">
                   <div className="flex flex-col items-center">
                     <span className={`${
-                      index === 0
-                        ? 'text-yellow-400'
-                        : index === 1
-                        ? 'text-gray-300'
-                        : index === 2
-                        ? 'text-amber-500' // Laranja/bronze para 3º
-                        : 'text-white'
-                  }`}>
+                      index === 0 ? 'text-yellow-400' : 
+                      index === 1 ? 'text-gray-300' : 
+                      index === 2 ? 'text-amber-500' : 
+                      'text-white'
+                    }`}>
                       {totalPoints}
                     </span>
                     <span className="text-xs text-gray-400 font-normal">pts</span>
                   </div>
                 </TableCell>
               </TableRow>
-            )}) : (
+            )) : (
               <TableRow>
                 <TableCell colSpan={racesToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-black">
                   Ainda não há resultados de corridas para exibir.
