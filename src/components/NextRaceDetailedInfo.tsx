@@ -199,8 +199,8 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
   // GP Canadá 2025: 15/jun/2025 15:00 Brasil — UTC "2025-06-15T18:00:00Z"
   const nextRaceStart = new Date("2025-06-15T18:00:00Z");
   const nextRaceEnd = new Date("2025-06-15T20:00:00Z");
-  const now = new Date();
-  const liveTimingAvailable = now >= nextRaceStart && now <= nextRaceEnd;
+  const nowForLiveTiming = new Date();
+  const liveTimingAvailable = nowForLiveTiming >= nextRaceStart && nowForLiveTiming <= nextRaceEnd;
 
   // HERO SECTION
   if (hero) {
