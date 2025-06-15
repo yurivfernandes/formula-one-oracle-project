@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 
 // Etapas chave (exemplos: Espanha, Silverstone, Bélgica)
@@ -95,8 +96,7 @@ export const useTeamRaceTrends = () => {
     });
   });
 
-  // Rounds para análise de tendência (últimos 3 e 6 rounds)
-  const allRounds: number[] = races.map(r => parseInt(r.round));
+  // Rounds para análise de tendência (últimos 3 e 6 rounds) -- use apenas a declaração já existente de allRounds
   const last3Rounds = allRounds.slice(-3);
   const last6Rounds = allRounds.slice(-6);
 
@@ -121,11 +121,15 @@ export const useTeamRaceTrends = () => {
 
     // Nova lógica para tendência
     let trendStatus: "up" | "down" | "stable" = "stable";
-    if (last3 > (last6 / 2)) {
+    if (last6 === 0) {
+      trendStatus = "stable"; // se não tem histórico suficiente assume estável
+    } else if (last3 > (last6 / 2)) {
       trendStatus = "up";
     } else if (last3 < (last6 / 2)) {
       trendStatus = "down";
-    } // se for igual, permanece "stable"
+    } else {
+      trendStatus = "stable";
+    }
 
     trends.push({
       team: teamNameMap.get(teamNorm) || teamNorm,
