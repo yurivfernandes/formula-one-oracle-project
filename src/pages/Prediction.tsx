@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Flag, ArrowLeft, TrendingUp, Brain, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChampionshipPrediction from "@/components/ChampionshipPrediction";
 import TrendsAnalysis from "@/components/TrendsAnalysis";
 import AIAnalysis from "@/components/AIAnalysis";
+import NextRaceInfo from "@/components/NextRaceInfo";
 
 const Prediction = () => {
   return (
@@ -43,6 +43,8 @@ const Prediction = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Informativo da próxima corrida e pontos restantes */}
+        <NextRaceInfo />
         {/* Header */}
         <div className="mb-8">
           <Link to="/">
