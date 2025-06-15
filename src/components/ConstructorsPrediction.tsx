@@ -6,7 +6,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 import { useTeamRaceTrends } from "./hooks/useTeamRaceTrends";
-import TeamTrends;
+import TeamTrends from "./TeamTrends";
 
 // DEFININDO O TIPO PARA EVITAR ERRO!
 interface ConstructorPrediction {
