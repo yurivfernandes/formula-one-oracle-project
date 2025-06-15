@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -7,55 +7,9 @@ import PredictionExplanation from "./PredictionExplanation";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 import ConstructorsPrediction from "./ConstructorsPrediction";
+import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
 
-// Tipos de dados
-interface Driver {
-  driverId: string;
-  givenName: string;
-  familyName: string;
-  nationality: string;
-}
-
-interface Constructor {
-  constructorId: string;
-  name: string;
-}
-
-interface HistoricalData {
-  driver: Driver;
-  constructor: Constructor;
-  points: number;
-  position: number;
-  year: number;
-}
-
-interface PredictionData {
-  driver: Driver;
-  constructor: Constructor;
-  currentPoints: number;
-  predictedPoints: number;
-  probability: number;
-  trend: 'up' | 'down' | 'stable';
-  historicalAverage: number;
-}
-
-// Funções auxiliares
-const getTeamLogo = (team: string) => {
-  const logos: { [key: string]: string } = {
-    "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
-    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png",
-    "Red Bull": "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png.transform/2col/image.png",
-    "Mercedes": "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png.transform/2col/image.png",
-    "Williams": "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png.transform/2col/image.png",
-    "Aston Martin": "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png.transform/2col/image.png",
-    "Alpine F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png.transform/2col/image.png",
-    "Haas F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png.transform/2col/image.png",
-    "RB F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png.transform/2col/image.png",
-    "Sauber": "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png.transform/2col/image.png"
-  };
-  return logos[team] || "";
-};
-
+// Para tradução de nacionalidades e bandeiras
 const getNationalityFlag = (nationality: string) => {
   const flags: { [key: string]: string } = {
     "Dutch": "🇳🇱",
@@ -81,155 +35,8 @@ const getNationalityFlag = (nationality: string) => {
   return flags[nationality] || "🏁";
 };
 
-// Funções de fetch
-const fetchCurrentStandings = async () => {
-  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverStandings/');
-  if (!response.ok) throw new Error('Erro ao buscar classificação atual');
-  const data = await response.json();
-  return data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
-};
-
-const fetchHistoricalData = async (): Promise<HistoricalData[]> => {
-  const historicalData: HistoricalData[] = [];
-  const years = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
-  
-  for (const year of years) {
-    try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${year}/driverStandings/`);
-      if (!response.ok) continue;
-      
-      const data = await response.json();
-      const standings = data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
-      
-      standings.forEach((standing: any) => {
-        historicalData.push({
-          driver: standing.Driver,
-          constructor: standing.Constructors[0],
-          points: parseInt(standing.points),
-          position: parseInt(standing.position),
-          year: year
-        });
-      });
-    } catch (error) {
-      console.warn(`Erro ao buscar dados de ${year}:`, error);
-    }
-  }
-  
-  return historicalData;
-};
-
-// Função de cálculo de pontuação máxima possível numa temporada
-const getMaxPointsPerSeason = (totalRounds: number) => {
-  // 25 (p1) + 18 (p2) por corrida, por equipe (pódio duplo) = 43 x totalRounds
-  // Por piloto = 25 x totalRounds (vitórias em todas)
-  // Ex: 24 corridas → piloto: 600, equipe: 1032
-  return {
-    maxByDriver: totalRounds * 25,
-    maxByTeam: totalRounds * (25 + 18),
-  };
-};
-
-const calculatePrediction = (currentStandings: any[], historicalData: HistoricalData[]): PredictionData[] => {
-  const currentRound = 10;
-  const totalRounds = 24;
-  const remainingRounds = totalRounds - currentRound;
-  const { maxByDriver, maxByTeam } = getMaxPointsPerSeason(totalRounds);
-
-  let predictions = currentStandings.map((standing, index) => {
-    const driverId = standing.Driver.driverId;
-    const currentPoints = parseInt(standing.points);
-
-    const driverHistory = historicalData.filter(h => h.driver.driverId === driverId);
-    let historicalAverage = currentPoints;
-    if (driverHistory.length > 0) {
-      const recent = driverHistory.filter(h => h.year >= 2022);
-      const older = driverHistory.filter(h => h.year < 2022);
-      const recentAvg = recent.length > 0 ? recent.reduce((sum, h) => sum + h.points, 0) / recent.length : 0;
-      const olderAvg = older.length > 0 ? older.reduce((sum, h) => sum + h.points, 0) / older.length : 0;
-      historicalAverage = recentAvg * 0.7 + olderAvg * 0.3;
-    }
-    const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
-    const team = standing.Constructors[0].name;
-    let teamPerformanceMultiplier = 1.0;
-    if (team === "McLaren") {
-      teamPerformanceMultiplier = 1.10;
-    } else if (team === "Red Bull") {
-      teamPerformanceMultiplier = 0.95;
-    } else if (team === "Ferrari") {
-      teamPerformanceMultiplier = 1.05;
-    } else if (team === "Mercedes") {
-      teamPerformanceMultiplier = 0.97;
-    }
-    const maxPossibleToGain = remainingRounds * 25;
-    let predicted = currentPoints;
-    let predictedPerRace = (currentPointsPerRace * 0.7 + (historicalAverage / totalRounds) * 0.3) * teamPerformanceMultiplier;
-    predictedPerRace = Math.min(predictedPerRace, 21);
-    predicted += Math.round(predictedPerRace * remainingRounds);
-    predicted = Math.min(predicted, maxByDriver, 420);
-
-    let trend: "up" | "down" | "stable" = "stable";
-    return {
-      driver: standing.Driver,
-      constructor: standing.Constructors[0],
-      currentPoints,
-      predictedPoints: Math.max(currentPoints, Math.round(predicted)),
-      probability: 0, // temporário
-      trend, // já tipado corretamente!
-      historicalAverage: Math.round(historicalAverage),
-    };
-  });
-
-  // Ajuste para pontuação máxima da equipe
-  const pilotsByTeam: Record<string, PredictionData[]> = {};
-  predictions.forEach((p) => {
-    if (!pilotsByTeam[p.constructor.name]) pilotsByTeam[p.constructor.name] = [];
-    pilotsByTeam[p.constructor.name].push(p);
-  });
-  Object.entries(pilotsByTeam).forEach(([team, list]) => {
-    const total = list.reduce((s, v) => s + v.predictedPoints, 0);
-    if (total > maxByTeam) {
-      list.forEach((p) => {
-        p.predictedPoints = Math.round((p.predictedPoints / total) * maxByTeam);
-      });
-    }
-  });
-
-  // Probabilidade + tendência adequadas
-  const sortedCurrent = [...predictions].sort((a, b) => b.currentPoints - a.currentPoints);
-  const leadingPoints = sortedCurrent[0] ? sortedCurrent[0].currentPoints : 0;
-  predictions = predictions.map((p, idx) => {
-    let chance = 30;
-    const gap = leadingPoints - p.currentPoints;
-    if (idx === 0) {
-      chance = 70 + (p.predictedPoints > 320 ? 10 : 0) + (p.constructor.name === "McLaren" ? 7 : 0);
-    } else {
-      chance = Math.round(35 - gap * 0.12 + (p.constructor.name === "McLaren" ? 3 : 0) + (p.historicalAverage > 150 ? 2 : 0));
-      chance = Math.max(2, Math.min(40, chance));
-    }
-    let trend: "up" | "down" | "stable" = "stable";
-    if (p.historicalAverage > 170) trend = "up";
-    else if (p.historicalAverage < 70) trend = "down";
-    return {
-      ...p,
-      probability: Math.max(0, Math.min(100, chance)),
-      trend, // tipo literal!
-    };
-  });
-  return predictions.sort((a, b) => b.predictedPoints - a.predictedPoints);
-};
-
 const ChampionshipPrediction = () => {
-  const { data: currentStandings, isLoading: isLoadingCurrent } = useQuery({
-    queryKey: ['currentStandings', 2025],
-    queryFn: fetchCurrentStandings,
-  });
-
-  const { data: historicalData, isLoading: isLoadingHistorical } = useQuery({
-    queryKey: ['historicalData'],
-    queryFn: fetchHistoricalData,
-  });
-
-  const isLoading = isLoadingCurrent || isLoadingHistorical;
+  const { isLoading, drivers } = useChampionshipPrediction();
 
   if (isLoading) {
     return (
@@ -239,7 +46,6 @@ const ChampionshipPrediction = () => {
           title="Predição Pilotos 2025 - Top 6"
           subtitle="Analisando dados históricos..."
           headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-          // TEMAS PRETO E VERMELHO
           className="bg-black border border-red-800"
         >
           <TableRow>
@@ -253,14 +59,12 @@ const ChampionshipPrediction = () => {
     );
   }
 
-  const predictions = currentStandings && historicalData 
-    ? calculatePrediction(currentStandings, historicalData).slice(0, 6)
-    : [];
+  const predictions = drivers.slice(0, 6);
 
   return (
     <div className="space-y-8">
       <PredictionExplanation />
-      
+
       <StandardTable
         title="Predição Pilotos 2025 - Top 6"
         subtitle="Análise dos pilotos favoritos ao título mundial"
@@ -326,7 +130,3 @@ const ChampionshipPrediction = () => {
 
 export default ChampionshipPrediction;
 
-// AVISO DE REFACTOR:
-//
-// O arquivo ChampionshipPrediction.tsx está muito grande (acima de 300 linhas).
-// Recomendo que peça para refatorar em componentes menores prontamente!
