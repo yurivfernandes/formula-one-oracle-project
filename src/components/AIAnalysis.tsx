@@ -38,28 +38,28 @@ const AIAnalysis = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+      <div className="bg-white rounded-xl border border-red-200 p-6">
+        <h2 className="text-2xl font-bold text-red-700 mb-6 flex items-center">
           <Brain className="mr-3 h-6 w-6 text-red-500" />
           Análise com Inteligência Artificial
         </h2>
         
         <div className="space-y-4 mb-8">
           {insights.map((insight, index) => (
-            <Card key={index} className="bg-black/40 border-red-800/30">
+            <Card key={index} className="bg-white border border-gray-200 shadow-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-white flex items-center justify-between">
+                <CardTitle className="text-red-800 flex items-center justify-between">
                   <div className="flex items-center">
                     <span className="text-red-400 mr-2">{insight.icon}</span>
                     {insight.title}
                   </div>
-                  <Badge variant="outline" className="text-green-400 border-green-400">
+                  <Badge variant="outline" className="text-green-600 border-green-400 bg-green-50">
                     {insight.confidence}% confiança
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed">
                   {insight.description}
                 </p>
               </CardContent>
@@ -67,11 +67,11 @@ const AIAnalysis = () => {
           ))}
         </div>
 
-        <div className="bg-black/20 rounded-lg p-4 border border-red-800/20">
-          <h3 className="text-lg font-semibold text-white mb-3">Metodologia da IA</h3>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h3 className="text-lg font-semibold text-red-700 mb-3">Metodologia da IA</h3>
           <ul className="space-y-2">
             {methodology.map((method, index) => (
-              <li key={index} className="text-gray-300 text-sm flex items-start">
+              <li key={index} className="text-gray-700 text-sm flex items-start">
                 <span className="text-red-400 mr-2">→</span>
                 {method}
               </li>
@@ -84,3 +84,4 @@ const AIAnalysis = () => {
 };
 
 export default AIAnalysis;
+
