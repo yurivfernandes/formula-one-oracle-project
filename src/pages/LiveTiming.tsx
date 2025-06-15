@@ -90,7 +90,7 @@ const LiveTimingPage = () => {
     });
   };
 
-  // Ícone e texto: mostrar apenas o traço se não houve alteração
+  // Corrigir: Icone e texto de mudança de posição
   const getPositionChangeIcon = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
@@ -106,7 +106,7 @@ const LiveTimingPage = () => {
     }
   };
 
-  // Só mostra o valor numérico se ganhou ou perdeu
+  // Só mostra valor numérico se ganhou ou perdeu
   const getPositionChangeText = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
@@ -114,7 +114,7 @@ const LiveTimingPage = () => {
     } else if (change < 0) {
       return change.toString();
     } else {
-      return ""; // agora não mostra "0"
+      return ""; // Não mostra nada para 0
     }
   };
 
@@ -165,10 +165,9 @@ const LiveTimingPage = () => {
               <table className="w-full">
                 <thead className="bg-red-600 text-white">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
-                    <th className="px-2 py-2 text-left font-semibold w-10"></th>
-                    <th className="px-3 py-2 text-left font-semibold w-20">Piloto</th>
-                    <th className="px-1 py-2 text-left font-semibold w-12"></th> {/* Equipe */}
+                    <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
+                    <th className="px-2 py-2 text-left font-semibold w-28">Piloto</th>
+                    <th className="px-2 py-2 text-center font-semibold w-12"> {/* Team logo only, no padding extra */} </th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
                         L{visibleLapRange[0] + i + 1}
@@ -185,40 +184,45 @@ const LiveTimingPage = () => {
                         'bg-gray-100'
                       }`}
                     >
-                      {/* Posição */}
-                      <td className="px-3 py-2 font-bold text-gray-900 flex items-center gap-1">
+                      {/* Posição + mudança */}
+                      <td className="px-3 py-2 font-bold text-gray-900 flex items-center gap-1 whitespace-nowrap">
                         {driver.position}
-                        {/* Indicador de ganho/perda posição agora mais à esquerda, junto da posição */}
                         <span className="ml-1 flex items-center gap-0">
                           {getPositionChangeIcon(driver.position, driver.startingPosition)}
                           {getPositionChangeText(driver.position, driver.startingPosition) && (
                             <span className={`text-xs font-medium ${
-                              driver.startingPosition - driver.position > 0 ? 'text-green-600' : 
-                              driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-400'
+                              driver.startingPosition - driver.position > 0
+                                ? 'text-green-600'
+                                : driver.startingPosition - driver.position < 0
+                                ? 'text-red-600'
+                                : 'text-gray-400'
                             } ml-0.5`}>
                               {getPositionChangeText(driver.position, driver.startingPosition)}
                             </span>
                           )}
                         </span>
                       </td>
-                      {/* Apenas bandeira + ID do piloto */}
-                      <td className="px-2 py-2">
+                      {/* Piloto: bandeira + ID abreviada */}
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
-                          <span className="font-mono font-semibold text-red-700">{driver.id}</span>
+                          <span className="font-mono font-semibold text-red-700 text-base">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: só logo, padding mínimo e centralizado */}
-                      <td className="px-1 py-2">
+                      {/* Equipe: apenas logo, CENTRALIZADO, SEM padding lateral extra */}
+                      <td className="px-2 py-2">
                         <div className="flex items-center justify-center">
                           <TeamLogo teamName={driver.team} className="w-8 h-5" />
                         </div>
                       </td>
-                      {/* Tempos de volta */}
+                      {/* Tempos de volta: sempre se alinham diretamente à direita do logo do time */}
                       {lapTimes[driver.id]
                         .slice(visibleLapRange[0], visibleLapRange[1])
                         .map((time, lapIndex) => (
-                          <td key={lapIndex + visibleLapRange[0]} className="px-2 py-2 text-center font-mono text-xs text-gray-800">
+                          <td
+                            key={lapIndex + visibleLapRange[0]}
+                            className="px-2 py-2 text-center font-mono text-xs text-gray-800 whitespace-nowrap"
+                          >
                             {time}
                           </td>
                         ))}
