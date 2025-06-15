@@ -10,18 +10,44 @@ const upgradeEvents = [
 
 // Função utilitária para normalizar nomes de equipes
 function normalizeTeamName(name: string) {
-  // Pode-se expandir para tratar variações conhecidas, por hora lowercase trim
   return name.trim().toLowerCase();
+}
+
+// Função utilitária para buscar todas as páginas de resultados da API
+async function fetchAllRaces2025() {
+  const limit = 100;
+  let offset = 0;
+  let allRaces: any[] = [];
+  let total = null;
+  let page = 1;
+
+  while (true) {
+    const res = await fetch(
+      `https://api.jolpi.ca/ergast/f1/2025/results.json?limit=${limit}&offset=${offset}`
+    );
+    const json = await res.json();
+    const races = json?.MRData?.RaceTable?.Races ?? [];
+    if (races.length === 0) break;
+    allRaces = allRaces.concat(races);
+
+    // Descobrir se já pegou tudo
+    if (!total) {
+      total = parseInt(json?.MRData?.total ?? "0");
+    }
+    offset += limit;
+    // Termina se pegou todos resultados
+    if (offset >= total) break;
+    page++;
+    if (page > 30) break; // Seguranca anti-loop infinito
+  }
+
+  return allRaces;
 }
 
 export const useTeamRaceTrends = () => {
   const { data: races, isLoading } = useQuery({
-    queryKey: ["races2025"],
-    queryFn: async () => {
-      const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/results.json?limit=300");
-      const json = await res.json();
-      return json.MRData.RaceTable.Races as any[] || [];
-    },
+    queryKey: ["races2025", "allPages"],
+    queryFn: fetchAllRaces2025,
   });
 
   if (isLoading || !races || races.length === 0)
@@ -44,8 +70,7 @@ export const useTeamRaceTrends = () => {
   const teamPointsByRound: Record<string, { [round: number]: number }> = {};
   for (const race of sortedRaces) {
     const round = parseInt(race.round);
-
-    // Para cada piloto, some pontos para o construtor nome-normalizado
+    // Contabilizar pontos de cada piloto para cada equipe por corrida
     for (const result of race.Results) {
       const teamNorm = normalizeTeamName(result.Constructor.name);
       const pts = Number(result.points) || 0;
@@ -115,4 +140,3 @@ export const useTeamRaceTrends = () => {
     upgradeEvents,
   };
 };
-
