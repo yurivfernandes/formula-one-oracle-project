@@ -28,6 +28,11 @@ const fetchConstructorStandings = async () => {
 };
 
 const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction[] => {
+  // Verificar se standings é um array válido
+  if (!Array.isArray(standings) || standings.length === 0) {
+    return [];
+  }
+
   const currentRound = 10;
   const totalRounds = 24;
   const remainingRounds = totalRounds - currentRound;
@@ -76,10 +81,12 @@ const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction
 };
 
 const ConstructorsPrediction = () => {
-  const { data: constructorStandings, isLoading } = useQuery({
+  const { data: constructorStandings, isLoading, error } = useQuery({
     queryKey: ['constructorStandings', 2025],
     queryFn: fetchConstructorStandings,
   });
+
+  console.log('Constructor standings data:', constructorStandings);
 
   if (isLoading) {
     return (
@@ -91,6 +98,22 @@ const ConstructorsPrediction = () => {
         <TableRow>
           <TableCell colSpan={6}>
             <Skeleton className="h-48 w-full" />
+          </TableCell>
+        </TableRow>
+      </StandardTable>
+    );
+  }
+
+  if (error) {
+    return (
+      <StandardTable
+        title="Predição Construtores 2025 - Top 4"
+        subtitle="Erro ao carregar dados"
+        headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+      >
+        <TableRow>
+          <TableCell colSpan={6} className="text-center text-red-400">
+            Erro ao carregar predição dos construtores
           </TableCell>
         </TableRow>
       </StandardTable>
