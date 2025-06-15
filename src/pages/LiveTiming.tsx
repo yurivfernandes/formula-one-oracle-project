@@ -1,10 +1,11 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Clock, RefreshCw, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 const fetchLiveLaps = async (round: string) => {
   const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${round}/laps.json`);
@@ -41,89 +42,78 @@ const LiveTimingPage = () => {
   const showLive = now >= raceDate;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-950 via-black to-red-900">
-      <nav className="bg-black/50 backdrop-blur-sm border-b border-red-800/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Zap className="h-8 w-8 text-yellow-400 mr-3" />
-              <span className="text-2xl font-bold text-white">Live Timing</span>
+    <div className="min-h-screen bg-white flex flex-col">
+      <SiteHeader />
+      <main className="flex flex-col flex-1">
+        <div className="max-w-3xl mx-auto px-4 py-12">
+          <h1 className="text-3xl font-bold text-red-600 mb-4 flex items-center gap-3">
+            <Zap className="w-7 h-7" /> Live Timing — {name}
+          </h1>
+          {!showLive ? (
+            <div className="bg-black/60 border border-red-600/30 rounded-xl px-6 py-8 text-center text-white font-semibold mb-6">
+              <Clock className="inline-block h-12 w-12 mb-2 text-red-400" />
+              A corrida ainda não começou.
+              <div className="mt-3 text-red-300 font-bold">
+                {raceDate.toLocaleString("pt-BR", {
+                  dateStyle: "medium",
+                  timeStyle: "short"
+                })}
+              </div>
+              <p className="mt-2 text-gray-400 text-sm">
+                O live timing ficará disponível no dia e horário da corrida.
+              </p>
             </div>
-            <div className="flex items-center space-x-6">
-              <Link to="/race-weekend" className="text-white hover:text-red-400 font-medium">
-                {name}
-              </Link>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="text-gray-400 text-sm mb-4">
+                Atualização automática a cada 10 minutos enquanto a corrida estiver acontecendo.
+                <Button
+                  size="sm"
+                  className="ml-2"
+                  onClick={() => refetch()}
+                  variant="outline"
+                >
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Atualizar agora
+                </Button>
+              </div>
+              {isLoading ? (
+                <Skeleton className="h-32 w-full bg-black/30 rounded-lg mb-8" />
+              ) : laps && laps.length > 0 ? (
+                <div className="overflow-x-auto max-w-full">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="text-red-400 border-b border-red-900/50 text-xs">
+                        <th className="p-2">Volta</th>
+                        <th className="p-2">Piloto</th>
+                        <th className="p-2">Tempo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {laps.map((lap: any) => (
+                        lap.Timings.map((timing: any, i: number) => (
+                          <tr key={`${lap.number}-${timing.driverId}`}>
+                            {i === 0 && (
+                              <td className="p-2 font-bold text-yellow-300 align-top" rowSpan={lap.Timings.length}>{lap.number}</td>
+                            )}
+                            <td className="p-2 text-white">{timing.driverId}</td>
+                            <td className="p-2 text-red-200 font-mono">{timing.time}</td>
+                          </tr>
+                        ))
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-gray-400 bg-black/30 rounded-lg py-5 text-center">
+                  Nenhum dado disponível ainda para esta corrida.
+                </div>
+              )}
+            </>
+          )}
         </div>
-      </nav>
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-red-400 mb-4 flex items-center gap-3">
-          <Zap className="animate-pulse w-7 h-7" /> Live Timing — {name}
-        </h1>
-        {!showLive ? (
-          <div className="bg-black/60 border border-red-600/30 rounded-xl px-6 py-8 text-center text-white font-semibold mb-6">
-            <Clock className="inline-block h-12 w-12 mb-2 text-red-400" />
-            A corrida ainda não começou.
-            <div className="mt-3 text-red-300 font-bold">
-              {raceDate.toLocaleString("pt-BR", {
-                dateStyle: "medium",
-                timeStyle: "short"
-              })}
-            </div>
-            <p className="mt-2 text-gray-400 text-sm">
-              O live timing ficará disponível no dia e horário da corrida.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="text-gray-400 text-sm mb-4">
-              Atualização automática a cada 10 minutos enquanto a corrida estiver acontecendo.
-              <Button
-                size="sm"
-                className="ml-2"
-                onClick={() => refetch()}
-                variant="outline"
-              >
-                <RefreshCw className="w-4 h-4 mr-1" />
-                Atualizar agora
-              </Button>
-            </div>
-            {isLoading ? (
-              <Skeleton className="h-32 w-full bg-black/30 rounded-lg mb-8" />
-            ) : laps && laps.length > 0 ? (
-              <div className="overflow-x-auto max-w-full">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="text-red-400 border-b border-red-900/50 text-xs">
-                      <th className="p-2">Volta</th>
-                      <th className="p-2">Piloto</th>
-                      <th className="p-2">Tempo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {laps.map((lap: any) => (
-                      lap.Timings.map((timing: any, i: number) => (
-                        <tr key={`${lap.number}-${timing.driverId}`}>
-                          {i === 0 && (
-                            <td className="p-2 font-bold text-yellow-300 align-top" rowSpan={lap.Timings.length}>{lap.number}</td>
-                          )}
-                          <td className="p-2 text-white">{timing.driverId}</td>
-                          <td className="p-2 text-red-200 font-mono">{timing.time}</td>
-                        </tr>
-                      ))
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-gray-400 bg-black/30 rounded-lg py-5 text-center">
-                Nenhum dado disponível ainda para esta corrida.
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 };
