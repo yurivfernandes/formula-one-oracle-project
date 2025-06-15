@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PredictionExplanation = () => {
   return (
-    <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6 mb-6">
+    <div className="bg-red-950 rounded-xl border border-red-800/40 p-6 mb-6">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center">
         <Info className="mr-2 h-5 w-5 text-red-500" />
         Como Funciona Nossa Predição

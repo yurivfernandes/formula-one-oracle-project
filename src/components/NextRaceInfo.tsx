@@ -49,14 +49,13 @@ const fetchSprintRaces = async () => {
   return data.MRData.RaceTable.Races;
 };
 
-const CURRENT_ROUND = 10; // Está hardcoded na lógica de predição do projeto
+const CURRENT_ROUND = 10; // fixo conforme predição
 
 const NextRaceInfo = () => {
   const { data: races, isLoading: loadingRaces } = useQuery({
     queryKey: ["races", 2025],
     queryFn: fetchRaces,
   });
-
   const { data: sprints, isLoading: loadingSprints } = useQuery({
     queryKey: ["sprintRaces", 2025],
     queryFn: fetchSprintRaces,
@@ -66,8 +65,9 @@ const NextRaceInfo = () => {
     return <Skeleton className="h-20 w-full bg-black/30 rounded-xl mb-4" />;
   }
 
-  // Corrige: Seleciona a próxima corrida, inclusive se for hoje mas ainda não ocorreu (considerando horário UTC como data/hora da corrida)
   const now = new Date();
+
+  // Próxima corrida considerando a data e hora
   const nextRace = races?.find((race: any) => {
     const raceDateTime = new Date(
       `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
@@ -75,35 +75,26 @@ const NextRaceInfo = () => {
     return raceDateTime >= now;
   });
 
-  // Listar rounds futuros (incluindo as que ainda não foram realizadas)
-  const futureRounds = races
-    ? races.filter((race: any) => {
-        const raceDateTime = new Date(
-          `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
-        );
-        return raceDateTime > now;
-      })
-    : [];
-  // Sprints futuros (com round > CURRENT_ROUND)
-  const futureSprints = sprints
-    ? sprints.filter((s: any) => {
-        const sprintDateTime = new Date(
-          `${s.date}${s.time ? "T" + s.time : "T12:00:00Z"}`
-        );
-        return sprintDateTime > now;
-      })
-    : [];
+  // Contar rounds futuros de corrida e sprint, usando round number (não só data)
+  const currentRoundNum = races?.find((r: any) => {
+    const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
+    return dt >= now;
+  })?.round
+    ? parseInt(races.find((r: any) => {
+        const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
+        return dt >= now;
+      }).round)
+    : CURRENT_ROUND + 1;
 
-  const racesLeft = futureRounds.length;
-  const sprintsLeft = futureSprints.length;
+  // Corridas restantes incluem a próxima e todas posteriores
+  const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
+  // Sprints restantes: rounds maiores ou iguais ao currentRoundNum
+  const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
 
-  // Pontos restantes para pilotos
+  // Pontos restantes corridas principais e sprint
   const pontosGrandPrix = racesLeft * 25;
   const pontosSprint = sprintsLeft * 8;
   const pontosPilotos = pontosGrandPrix + pontosSprint;
-
-  // Cada rodada pode ter dois pilotos por equipe marcando pontos máximos
-  // Para construtores, máximo é 43 por corrida (25+18) e 16 por sprint (8+8)
   const pontosConstrutores =
     racesLeft * (25 + 18) +
     sprintsLeft * (8 + 7);
