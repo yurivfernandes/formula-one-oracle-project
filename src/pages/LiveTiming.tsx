@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import SiteHeader from "@/components/SiteHeader";
@@ -7,41 +8,32 @@ import LiveTimingHeader from "@/components/LiveTimingHeader";
 import LiveTimingTable from "@/components/LiveTimingTable";
 import LiveTimingContextNotice from "@/components/LiveTimingContextNotice";
 
-// --- Constantes GP Austrália ---
-const GP_ROUND = "1";
-const GP_SEASON = "2025";
-const GP_NAME = "GP da Austrália";
-const RACE_START_UTC = new Date("2025-03-16T04:00:00Z");
-const RACE_END_UTC = new Date("2025-03-16T06:00:00Z");
-const LOCAL_START_TIME = RACE_START_UTC.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-const useIsTimingAvailable = () => {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(timer);
-  }, []);
-  // Corrigido: libera 1h antes do início até o fim
-  return now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000) && now <= RACE_END_UTC;
-};
-
-const fetchQualifying = async () => {
-  const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${GP_ROUND}/qualifying.json`);
-  const data = await res.json();
-  return data?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [];
-};
-
-const fetchLaps = async () => {
-  const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${GP_ROUND}/laps.json?limit=9999`);
-  const data = await res.json();
-  return data?.MRData?.RaceTable?.Races?.[0]?.Laps || [];
-};
-
-function getRaceStatus() {
+// --- Utilitário para identificar o GP atual ---
+function getCurrentRace(races: any[]): any | null {
   const now = new Date();
-  if (now < RACE_START_UTC) return "before";
-  if (now >= RACE_START_UTC && now <= RACE_END_UTC) return "live";
-  return "after";
+  for (const race of races) {
+    const start = new Date(`${race.date}T${race.time}`);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // estimando 2h de corrida
+    // 1h antes até o fim da corrida
+    if (now >= new Date(start.getTime() - 60 * 60 * 1000) && now <= end) {
+      return { ...race, start, end };
+    }
+  }
+  // Se nenhuma está rolando, pega a próxima futura
+  const next = races.find(race => new Date(`${race.date}T${race.time}`) > now);
+  if (next) {
+    const start = new Date(`${next.date}T${next.time}`);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    return { ...next, start, end };
+  }
+  // Senão, retorna última do ano
+  const last = races[races.length - 1];
+  if (last) {
+    const start = new Date(`${last.date}T${last.time}`);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    return { ...last, start, end };
+  }
+  return null;
 }
 
 function countryFlag(nationality: string): string {
@@ -69,29 +61,87 @@ function driverCountryFromId(driverId: string, qualifying: any[]) {
   return q ? countryFlag(q.Driver.nationality) : "";
 }
 
-const LiveTimingPage = () => {
-  const timingAvailable = useIsTimingAvailable();
+const fetchRaces = async () => {
+  const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/races`);
+  const data = await res.json();
+  return data?.MRData?.RaceTable?.Races || [];
+};
 
-  // Corrigir status da corrida usando now para consistência
+const fetchQualifying = async (season: string, round: string) => {
+  const res = await fetch(`https://api.jolpi.ca/ergast/f1/${season}/${round}/qualifying.json`);
+  const data = await res.json();
+  return data?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || [];
+};
+
+const fetchLaps = async (season: string, round: string) => {
+  const res = await fetch(`https://api.jolpi.ca/ergast/f1/${season}/${round}/laps.json?limit=9999`);
+  const data = await res.json();
+  return data?.MRData?.RaceTable?.Races?.[0]?.Laps || [];
+};
+
+const LiveTimingPage = () => {
+  // Busca todas as corridas do ano
+  const { data: races = [], isLoading: loadingRaces } = useQuery({
+    queryKey: ["seasonRaces", "2025"],
+    queryFn: fetchRaces,
+  });
+
+  const [currentRace, setCurrentRace] = useState<any | null>(null);
+
+  // Atualiza currentRace toda vez que races muda ou quando o tempo passa
+  useEffect(() => {
+    if (!races.length) return;
+    const updateRace = () => setCurrentRace(getCurrentRace(races));
+    updateRace();
+    const timer = setInterval(updateRace, 30000);
+    return () => clearInterval(timer);
+  }, [races]);
+
+  // Espera dados de currentRace
+  if (loadingRaces || !currentRace)
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <SiteHeader />
+        <main className="flex flex-col flex-1 items-center justify-center">
+          <div className="bg-white rounded-xl border p-8 shadow-lg text-center max-w-md">
+            <span className="text-lg font-bold text-red-700">Carregando...</span>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+
+  const GP_ROUND = currentRace.round;
+  const GP_SEASON = currentRace.season;
+  const GP_NAME = currentRace.raceName || currentRace.name || "GP";
+  const RACE_START_UTC = currentRace.start;
+  const RACE_END_UTC = currentRace.end;
+  const LOCAL_START_TIME = RACE_START_UTC.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+  // Libera Live Timing de 1h antes até o fim da corrida
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
+  const timingAvailable = now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000) && now <= RACE_END_UTC;
+
   let raceStatus: "before" | "live" | "after" = "before";
   if (now < RACE_START_UTC) raceStatus = "before";
   else if (now >= RACE_START_UTC && now <= RACE_END_UTC) raceStatus = "live";
   else raceStatus = "after";
 
+  // Qualifying do GP certo
   const { data: qualifying = [], isLoading: loadingQuali } = useQuery({
-    queryKey: ["qualifying", GP_ROUND],
-    queryFn: fetchQualifying,
+    queryKey: ["qualifying", GP_SEASON, GP_ROUND],
+    queryFn: () => fetchQualifying(GP_SEASON, GP_ROUND),
     enabled: timingAvailable,
   });
 
+  // Laps do GP certo
   const { data: laps = [], isLoading: loadingLaps } = useQuery({
-    queryKey: ["liveLaps", GP_ROUND],
-    queryFn: fetchLaps,
+    queryKey: ["liveLaps", GP_SEASON, GP_ROUND],
+    queryFn: () => fetchLaps(GP_SEASON, GP_ROUND),
     enabled: raceStatus === "live" && timingAvailable,
     refetchInterval: raceStatus === "live" ? 12000 : false,
   });
@@ -150,7 +200,7 @@ const LiveTimingPage = () => {
       }));
   }
 
-  // Bloquear Live Timing até liberar (faltando 1h)
+  // Bloqueia até liberar (faltando 1h)
   if (!timingAvailable)
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
