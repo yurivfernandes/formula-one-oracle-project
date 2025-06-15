@@ -1,4 +1,3 @@
-
 import TeamLogo from "@/components/TeamLogo";
 
 interface DriverType {
@@ -31,7 +30,6 @@ export default function LiveTimingTable({
           <thead className="bg-red-600 text-white">
             <tr>
               <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
-              {/* Antes da corrida: só a abreviação do piloto */}
               {raceStatus === "before" && (
                 <>
                   <th className="px-2 py-2 font-semibold w-20 text-left">Piloto</th>
@@ -72,16 +70,16 @@ export default function LiveTimingTable({
                 className={`border-b ${index < 10 ? 'bg-white' : 'bg-gray-100'} hover:bg-gray-50`}
               >
                 <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
-                {/* Só abreviação + country flag */}
+                {/* Bandeira país à esquerda, abreviação à direita */}
                 <td className="px-2 py-2 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-semibold text-red-700 text-lg">{driver.id}</span>
                     <span className="text-lg">{driver.country}</span>
+                    <span className="font-mono font-semibold text-red-700 text-lg">{driver.id}</span>
                   </div>
                 </td>
-                {/* Só logo da equipe */}
-                <td className="py-2 w-20 text-left">
-                  <TeamLogo teamName={driver.team} className="w-7 h-5" />
+                {/* Logo maior da equipe */}
+                <td className="py-2 w-24 text-left">
+                  <TeamLogo teamName={driver.team} className="w-12 h-8" />
                 </td>
                 {/* 5 colunas das voltas: usa tempo se houver, senão "-" */}
                 {Array.from({ length: 5 }).map((_, lapIdx) => (
@@ -133,4 +131,3 @@ export default function LiveTimingTable({
     </div>
   );
 }
-
