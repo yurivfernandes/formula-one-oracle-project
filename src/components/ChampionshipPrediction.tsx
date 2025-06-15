@@ -46,11 +46,11 @@ const ChampionshipPrediction = () => {
           title="Predição Pilotos 2025 - Top 6"
           subtitle="Analisando dados históricos..."
           headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-          className="bg-black border border-red-800"
+          className="bg-white border border-red-800"
         >
           <TableRow>
             <TableCell colSpan={7}>
-              <Skeleton className="h-96 w-full bg-black" />
+              <Skeleton className="h-96 w-full bg-white" />
             </TableCell>
           </TableRow>
         </StandardTable>
@@ -68,43 +68,43 @@ const ChampionshipPrediction = () => {
         title="Predição Pilotos 2025 - Top 6"
         subtitle="Análise dos pilotos favoritos ao título mundial"
         headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-black border border-red-800"
+        className="bg-white border border-red-800"
       >
         {predictions.map((prediction, index) => (
           <TableRow 
             key={prediction.driver.driverId} 
-            className="border-red-800/80 hover:bg-red-900/30 transition-colors"
+            className="border-red-800/80 hover:bg-red-900/10 transition-colors"
           >
-            <TableCell className="text-white font-bold">
+            <TableCell>
               <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 index === 0 ? 'bg-yellow-500 text-black' : 
                 index === 1 ? 'bg-gray-400 text-black' : 
                 index === 2 ? 'bg-amber-600 text-white' : 
-                'bg-gray-800 text-white'
+                'bg-gray-200 text-gray-900'
               }`}>
                 {index + 1}
               </span>
             </TableCell>
-            <TableCell className="text-white">
+            <TableCell>
               <div className="flex items-center space-x-3">
                 <span className="text-lg">{getNationalityFlag(prediction.driver.nationality)}</span>
-                <span className="font-semibold">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
+                <span className="font-semibold text-gray-900">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
               </div>
             </TableCell>
             <TableCell>
               <TeamLogo teamName={prediction.constructor.name} />
             </TableCell>
-            <TableCell className="text-white text-center font-bold text-lg">
+            <TableCell className="text-center font-bold text-lg text-gray-900">
               {prediction.currentPoints}
             </TableCell>
             <TableCell className="text-center">
-              <span className="text-red-400 font-bold text-lg">
+              <span className="text-red-500 font-bold text-lg">
                 {prediction.predictedPoints}
               </span>
             </TableCell>
             <TableCell className="text-center">
               <div className="flex flex-col items-center space-y-2">
-                <span className="text-white font-medium">{prediction.probability}%</span>
+                <span className="font-medium text-gray-900">{prediction.probability}%</span>
                 <Progress 
                   value={prediction.probability} 
                   className="w-20 h-2 bg-red-900"

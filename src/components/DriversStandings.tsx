@@ -107,9 +107,9 @@ const DriversStandings = () => {
       {standings?.map((standing: any) => (
         <TableRow
           key={standing.Driver.driverId}
-          className="border-red-800/70 hover:bg-red-900/30 transition-colors"
+          className="border-red-800/70 hover:bg-red-900/10 transition-colors"
         >
-          <TableCell className="text-white font-bold">
+          <TableCell>
             <span
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 standing.position === "1"
@@ -118,25 +118,25 @@ const DriversStandings = () => {
                   ? "bg-gray-400 text-black"
                   : standing.position === "3"
                   ? "bg-amber-700 text-white"
-                  : "bg-gray-700 text-white"
+                  : "bg-gray-200 text-gray-900"
               }`}
             >
               {standing.position}
             </span>
           </TableCell>
-          <TableCell className="text-white">
+          <TableCell>
             <div className="flex items-center space-x-3">
               <span className="text-lg">{getNationalityFlag(standing.Driver.nationality)}</span>
-              <span className="font-semibold">{`${standing.Driver.givenName} ${standing.Driver.familyName}`}</span>
+              <span className="font-semibold text-gray-900">{`${standing.Driver.givenName} ${standing.Driver.familyName}`}</span>
             </div>
           </TableCell>
           <TableCell>
             <TeamLogo teamName={standing.Constructors[0].name} />
           </TableCell>
-          <TableCell className="text-white text-center font-bold text-lg">
+          <TableCell className="text-center font-bold text-lg text-gray-900">
             {standing.points}
           </TableCell>
-          <TableCell className="text-white text-center font-bold">
+          <TableCell className="text-center font-bold text-gray-900">
             {standing.wins}
           </TableCell>
         </TableRow>

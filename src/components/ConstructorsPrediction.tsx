@@ -6,7 +6,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 import { useTeamRaceTrends } from "./hooks/useTeamRaceTrends";
-import TeamTrends from "./TeamTrends";
+import TeamTrends;
 
 // DEFININDO O TIPO PARA EVITAR ERRO!
 interface ConstructorPrediction {
@@ -95,12 +95,12 @@ const ConstructorsPrediction = () => {
         title="Predição Construtores 2025 - Top 4"
         subtitle="Análise das equipes favoritas ao título"
         headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-black border border-red-800"
+        className="bg-white border border-red-800"
       >
         <TableRow>
           <TableCell colSpan={6}>
-            <div className="bg-black">
-              <Skeleton className="h-48 w-full bg-black" />
+            <div className="bg-white">
+              <Skeleton className="h-48 w-full bg-white" />
             </div>
           </TableCell>
         </TableRow>
@@ -114,7 +114,7 @@ const ConstructorsPrediction = () => {
         title="Predição Construtores 2025 - Top 4"
         subtitle="Erro ao carregar dados"
         headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-black border border-red-800"
+        className="bg-white border border-red-800"
       >
         <TableRow>
           <TableCell colSpan={6} className="text-center text-red-400">
@@ -133,14 +133,14 @@ const ConstructorsPrediction = () => {
         title="Predição Construtores 2025 - Top 4"
         subtitle="Análise das equipes favoritas ao título de construtores"
         headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-black border border-red-800"
+        className="bg-white border border-red-800"
       >
         {predictions.map((prediction, index) => (
           <TableRow
             key={prediction.constructor.constructorId}
-            className="border-red-800/80 hover:bg-red-900/30 transition-colors"
+            className="border-red-800/80 hover:bg-red-900/10 transition-colors"
           >
-            <TableCell className="text-white font-bold">
+            <TableCell>
               <span
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                   index === 0
@@ -149,7 +149,7 @@ const ConstructorsPrediction = () => {
                     ? "bg-gray-400 text-black"
                     : index === 2
                     ? "bg-amber-700 text-white"
-                    : "bg-gray-800 text-white"
+                    : "bg-gray-200 text-gray-900"
                 }`}
               >
                 {index + 1}
@@ -158,17 +158,19 @@ const ConstructorsPrediction = () => {
             <TableCell>
               <TeamLogo teamName={prediction.constructor.name} />
             </TableCell>
-            <TableCell className="text-white text-center font-bold text-lg">
+            <TableCell className="text-center font-bold text-lg text-gray-900">
               {prediction.currentPoints}
             </TableCell>
             <TableCell className="text-center">
-              <span className="text-red-400 font-bold text-lg">
+              <span className="text-red-500 font-bold text-lg">
                 {prediction.predictedPoints}
               </span>
             </TableCell>
             <TableCell className="text-center">
               <div className="flex flex-col items-center space-y-2">
-                <span className="text-white font-medium">{prediction.probability}%</span>
+                <span className="font-medium text-gray-900">
+                  {prediction.probability}%
+                </span>
                 <Progress value={prediction.probability} className="w-20 h-2 bg-red-900" />
               </div>
             </TableCell>
