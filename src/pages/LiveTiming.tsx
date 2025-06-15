@@ -90,6 +90,7 @@ const LiveTimingPage = () => {
     });
   };
 
+  // Nova função: ícone de posição igual vira traço cinza
   const getPositionChangeIcon = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
@@ -97,7 +98,11 @@ const LiveTimingPage = () => {
     } else if (change < 0) {
       return <ArrowDown className="w-4 h-4 text-red-600" />;
     } else {
-      return <span className="w-4 h-4 text-gray-500 font-bold">=</span>;
+      return (
+        <span className="w-4 h-4 flex items-center justify-center text-gray-400 font-bold">
+          &mdash;
+        </span>
+      );
     }
   };
 
@@ -153,16 +158,16 @@ const LiveTimingPage = () => {
             canShowMore={visibleLapRange[1] < TOTAL_LAPS}
           />
 
-          {/* Tabela de Live Timing */}
+          {/* Tabela de Live Timing atualizada */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-red-600 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
-                    <th className="px-3 py-2 text-left font-semibold w-6"></th>
-                    <th className="px-3 py-2 text-left font-semibold w-28">Piloto</th>
-                    <th className="px-3 py-2 text-left font-semibold w-20">Equipe</th>
+                    <th className="px-2 py-2 text-left font-semibold w-10"></th> {/* Para indicador de posição */}
+                    <th className="px-3 py-2 text-left font-semibold w-20">Piloto</th>
+                    <th className="px-2 py-2 text-left font-semibold w-18">Equipe</th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
                         L{visibleLapRange[0] + i + 1}
@@ -175,36 +180,38 @@ const LiveTimingPage = () => {
                     <tr 
                       key={driver.id} 
                       className={`border-b hover:bg-gray-50 ${
-                        index < 3 ? 'bg-green-50' : 
                         index < 10 ? 'bg-white' :
                         'bg-gray-100'
                       }`}
                     >
+                      {/* Posição */}
                       <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
-                      <td className="px-2 py-2 text-center">
-                        <div className="flex items-center justify-center gap-1">
+                      {/* Indicador de ganho/perda posição */}
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1">
                           {getPositionChangeIcon(driver.position, driver.startingPosition)}
                           <span className={`text-xs font-medium ${
                             driver.startingPosition - driver.position > 0 ? 'text-green-600' : 
-                            driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-500'
+                            driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-400'
                           }`}>
                             {getPositionChangeText(driver.position, driver.startingPosition)}
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-2 min-w-[120px]">
+                      {/* Piloto: só ID e bandeira */}
+                      <td className="px-3 py-2 min-w-[80px]">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700">{driver.id}</span>
-                          <span className="ml-1 font-medium text-gray-700">{driver.name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-2">
+                      {/* Equipe: só logo */}
+                      <td className="px-2 py-2">
                         <div className="flex items-center gap-1">
-                          <TeamLogo teamName={driver.team} className="w-14 h-7" />
-                          <span className="text-xs ml-1">{driver.team}</span>
+                          <TeamLogo teamName={driver.team} className="w-10 h-6" />
                         </div>
                       </td>
+                      {/* Tempos de volta */}
                       {lapTimes[driver.id]
                         .slice(visibleLapRange[0], visibleLapRange[1])
                         .map((time, lapIndex) => (
@@ -219,12 +226,8 @@ const LiveTimingPage = () => {
             </div>
           </div>
 
-          {/* Legenda */}
+          {/* Legenda: atualizada apenas com pontuação, sem zona de eliminação */}
           <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-50 border border-green-200 rounded"></div>
-              <span>Top 3 (Pódio)</span>
-            </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-white border border-gray-200 rounded"></div>
               <span>Zona de pontuação (até o 10º)</span>
@@ -238,7 +241,7 @@ const LiveTimingPage = () => {
               <span>Perdeu posições</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-4 h-4 flex items-center justify-center text-gray-500 font-bold">=</span>
+              <span className="w-4 h-4 flex items-center justify-center text-gray-400 font-bold">&mdash;</span>
               <span>Mesma posição</span>
             </div>
           </div>
