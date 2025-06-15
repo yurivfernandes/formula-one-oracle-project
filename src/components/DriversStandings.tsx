@@ -40,20 +40,20 @@ interface ErgastResponse {
 }
 
 // --- Funções Auxiliares ---
-const getTeamColor = (team: string) => {
-  const colors: { [key: string]: string } = {
-    "Red Bull Racing": "bg-blue-600",
-    "McLaren": "bg-orange-500",
-    "Ferrari": "bg-red-600",
-    "Mercedes": "bg-gray-600",
-    "Williams": "bg-cyan-600",
-    "Aston Martin": "bg-green-600",
-    "Alpine": "bg-pink-500",
-    "Haas": "bg-gray-400",
-    "RB": "bg-blue-400",
-    "Kick Sauber": "bg-green-400"
+const getTeamLogo = (team: string) => {
+  const logos: { [key: string]: string } = {
+    "Red Bull Racing": "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png.transform/2col/image.png",
+    "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
+    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png",
+    "Mercedes": "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png.transform/2col/image.png",
+    "Williams": "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png.transform/2col/image.png",
+    "Aston Martin": "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png.transform/2col/image.png",
+    "Alpine": "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png.transform/2col/image.png",
+    "Haas": "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png.transform/2col/image.png",
+    "RB": "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png.transform/2col/image.png",
+    "Kick Sauber": "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png.transform/2col/image.png"
   };
-  return colors[team] || "bg-gray-500";
+  return logos[team] || "";
 };
 
 const getNationalityFlag = (nationality: string) => {
@@ -86,7 +86,6 @@ const fetchDriverStandings = async (): Promise<StandingsList> => {
   }
   const data: ErgastResponse = await response.json();
   if (!data.MRData.StandingsTable.StandingsLists.length) {
-    // A API pode retornar uma lista vazia se a temporada não tiver começado ou não houver dados.
     return { season: "2025", round: "0", DriverStandings: [] };
   }
   return data.MRData.StandingsTable.StandingsLists[0];
@@ -172,9 +171,18 @@ const DriversStandings = () => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge className={`${getTeamColor(driver.Constructors[0].name)} text-white text-xs whitespace-nowrap`}>
-                    {driver.Constructors[0].name}
-                  </Badge>
+                  <div className="flex items-center justify-center">
+                    <img 
+                      src={getTeamLogo(driver.Constructors[0].name)} 
+                      alt={driver.Constructors[0].name}
+                      className="w-12 h-8 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium">${driver.Constructors[0].name}</span>`;
+                      }}
+                    />
+                  </div>
                 </TableCell>
                 <TableCell className="text-white font-bold text-lg text-center">
                   {driver.points}

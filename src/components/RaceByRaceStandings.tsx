@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -48,23 +49,29 @@ interface RaceResponse {
   };
 }
 
-// --- Funções Auxiliares ---
-const getTeamColor = (team: string) => {
-  const colors: { [key: string]: string } = {
-    "McLaren": "bg-orange-500",
-    "Ferrari": "bg-red-600",
-    "Red Bull": "bg-blue-600",
-    "Mercedes": "bg-gray-600",
-    "Williams": "bg-cyan-600",
-    "Aston Martin": "bg-green-600",
-    "Alpine F1 Team": "bg-pink-500",
-    "Haas F1 Team": "bg-gray-400",
-    "RB F1 Team": "bg-blue-400",
-    "Sauber": "bg-green-400"
-  };
-  return colors[team] || "bg-gray-500";
-};
+interface DriverStanding {
+  position: string;
+  points: string;
+  wins: string;
+  Driver: Driver;
+  Constructors: Constructor[];
+}
 
+interface StandingsList {
+  season: string;
+  round: string;
+  DriverStandings: DriverStanding[];
+}
+
+interface ErgastResponse {
+  MRData: {
+    StandingsTable: {
+      StandingsLists: StandingsList[];
+    };
+  };
+}
+
+// --- Funções Auxiliares ---
 const getTeamLogo = (team: string) => {
   const logos: { [key: string]: string } = {
     "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
@@ -146,7 +153,6 @@ const fetchRaces = async (): Promise<Race[]> => {
 const fetchRaceResults = async (): Promise<Race[]> => {
   const allRaces: Race[] = [];
   
-  // Buscar todas as páginas (6 páginas conforme mencionado)
   for (let page = 1; page <= 6; page++) {
     try {
       const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${(page - 1) * 30}&limit=30`);
@@ -167,14 +173,12 @@ const fetchRaceResults = async (): Promise<Race[]> => {
     }
   }
   
-  console.log(`Total de corridas carregadas: ${allRaces.length}`);
   return allRaces;
 };
 
 const fetchSprintResults = async (): Promise<Race[]> => {
   const allSprints: Race[] = [];
   
-  // Buscar todas as páginas de Sprint
   for (let page = 1; page <= 6; page++) {
     try {
       const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${(page - 1) * 30}&limit=30`);
@@ -195,8 +199,19 @@ const fetchSprintResults = async (): Promise<Race[]> => {
     }
   }
   
-  console.log(`Total de corridas Sprint carregadas: ${allSprints.length}`);
   return allSprints;
+};
+
+const fetchDriverStandings = async (): Promise<StandingsList> => {
+  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
+  if (!response.ok) {
+    throw new Error('A resposta da rede não foi bem-sucedida');
+  }
+  const data: ErgastResponse = await response.json();
+  if (!data.MRData.StandingsTable.StandingsLists.length) {
+    return { season: "2025", round: "0", DriverStandings: [] };
+  }
+  return data.MRData.StandingsTable.StandingsLists[0];
 };
 
 const RaceByRaceStandings = () => {
@@ -217,7 +232,12 @@ const RaceByRaceStandings = () => {
     queryFn: fetchSprintResults,
   });
 
-  const isLoading = isLoadingRaces || isLoadingResults || isLoadingSprints;
+  const { data: standingsList, isLoading: isLoadingStandings } = useQuery({
+    queryKey: ['driverStandings', 2025],
+    queryFn: fetchDriverStandings,
+  });
+
+  const isLoading = isLoadingRaces || isLoadingResults || isLoadingSprints || isLoadingStandings;
 
   if (isLoading) {
     return (
@@ -253,8 +273,23 @@ const RaceByRaceStandings = () => {
       constructor: Constructor; 
       racePoints: { [round: string]: string };
       sprintPoints: { [round: string]: string };
+      totalPoints: number;
     } 
   } = {};
+
+  // Primeiro, pegar os pontos totais da API de standings
+  standingsList?.DriverStandings.forEach(standing => {
+    const driverId = standing.Driver.driverId;
+    allDrivers.add(driverId);
+    
+    driverData[driverId] = {
+      driver: standing.Driver,
+      constructor: standing.Constructors[0],
+      racePoints: {},
+      sprintPoints: {},
+      totalPoints: parseInt(standing.points)
+    };
+  });
 
   // Processar resultados das corridas
   raceResults?.forEach(race => {
@@ -267,7 +302,8 @@ const RaceByRaceStandings = () => {
           driver: result.Driver,
           constructor: result.Constructor,
           racePoints: {},
-          sprintPoints: {}
+          sprintPoints: {},
+          totalPoints: 0
         };
       }
       
@@ -286,7 +322,8 @@ const RaceByRaceStandings = () => {
           driver: result.Driver,
           constructor: result.Constructor,
           racePoints: {},
-          sprintPoints: {}
+          sprintPoints: {},
+          totalPoints: 0
         };
       }
       
@@ -294,27 +331,10 @@ const RaceByRaceStandings = () => {
     });
   });
 
-  // Calcular pontos totais para ordenação
-  const driversWithTotals = Object.entries(driverData).map(([driverId, data]) => {
-    let totalPoints = 0;
-    
-    // Sum all race points
-    Object.values(data.racePoints).forEach(points => {
-      const pointValue = parseInt(points || '0');
-      totalPoints += pointValue;
-      console.log(`Driver ${driverId} - Race points: ${pointValue}, Running total: ${totalPoints}`);
-    });
-    
-    // Sum all sprint points
-    Object.values(data.sprintPoints).forEach(points => {
-      const pointValue = parseInt(points || '0');
-      totalPoints += pointValue;
-      console.log(`Driver ${driverId} - Sprint points: ${pointValue}, Running total: ${totalPoints}`);
-    });
-    
-    console.log(`Driver ${driverId} - Final total: ${totalPoints}`);
-    return { driverId, ...data, totalPoints };
-  }).sort((a, b) => b.totalPoints - a.totalPoints);
+  // Ordenar pilotos pelos pontos totais da API de standings
+  const driversWithTotals = Object.entries(driverData)
+    .map(([driverId, data]) => ({ driverId, ...data }))
+    .sort((a, b) => b.totalPoints - a.totalPoints);
 
   // Filtrar corridas para exibir
   const racesToShow = viewType === "completed" 

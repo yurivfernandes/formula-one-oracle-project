@@ -33,20 +33,20 @@ interface ErgastResponse {
 }
 
 // --- Funções Auxiliares ---
-const getTeamColor = (team: string) => {
-  const colors: { [key: string]: string } = {
-    "McLaren": "bg-orange-500",
-    "Ferrari": "bg-red-600",
-    "Red Bull": "bg-blue-600",
-    "Mercedes": "bg-gray-600",
-    "Williams": "bg-cyan-600",
-    "Aston Martin": "bg-green-600",
-    "Alpine F1 Team": "bg-pink-500",
-    "Haas F1 Team": "bg-gray-400",
-    "RB F1 Team": "bg-blue-400",
-    "Sauber": "bg-green-400"
+const getTeamLogo = (team: string) => {
+  const logos: { [key: string]: string } = {
+    "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
+    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png",
+    "Red Bull": "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png.transform/2col/image.png",
+    "Mercedes": "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png.transform/2col/image.png",
+    "Williams": "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png.transform/2col/image.png",
+    "Aston Martin": "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png.transform/2col/image.png",
+    "Alpine F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png.transform/2col/image.png",
+    "Haas F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png.transform/2col/image.png",
+    "RB F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png.transform/2col/image.png",
+    "Sauber": "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png.transform/2col/image.png"
   };
-  return colors[team] || "bg-gray-500";
+  return logos[team] || "";
 };
 
 const getNationalityFlag = (nationality: string) => {
@@ -151,9 +151,16 @@ const ConstructorsStandings = () => {
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     <span className="text-lg">{getNationalityFlag(constructor.Constructor.nationality)}</span>
-                    <Badge className={`${getTeamColor(constructor.Constructor.name)} text-white px-3 py-1`}>
-                      {constructor.Constructor.name}
-                    </Badge>
+                    <img 
+                      src={getTeamLogo(constructor.Constructor.name)} 
+                      alt={constructor.Constructor.name}
+                      className="w-12 h-8 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement!.innerHTML = `<span class="text-white text-sm font-medium">${constructor.Constructor.name}</span>`;
+                      }}
+                    />
                   </div>
                 </TableCell>
                 <TableCell className="text-white font-bold text-lg text-center">

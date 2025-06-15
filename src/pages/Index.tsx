@@ -45,7 +45,7 @@ const Index = () => {
             </p>
             <Link to="/championship">
               <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
-                Ver Campeonato 2024
+                Ver Campeonato 2025
                 <TrendingUp className="ml-2 h-5 w-5" />
               </Button>
             </Link>
