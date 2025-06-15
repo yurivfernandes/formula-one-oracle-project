@@ -96,7 +96,7 @@ const RaceWeekend = () => {
     <div className="min-h-screen bg-white flex flex-col">
       <SiteHeader />
       <main className="flex flex-col flex-1">
-        {/* Hero Section - Minimalista */}
+        {/* Hero Section */}
         <section className="bg-gray-900 py-20 text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-6xl font-light mb-6 tracking-tight">
@@ -108,7 +108,7 @@ const RaceWeekend = () => {
           </div>
         </section>
 
-        {/* Track Information Section - Primeiro */}
+        {/* Track Information Section */}
         <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -118,13 +118,22 @@ const RaceWeekend = () => {
               <div className="w-20 h-0.5 bg-red-600 mx-auto"></div>
             </div>
             
-            {/* Track Layout Placeholder */}
+            {/* Track Layout with actual image */}
             <div className="bg-white rounded-2xl shadow-sm p-8 mb-12 border border-gray-100">
-              <div className="flex items-center justify-center h-64 bg-gray-100 rounded-xl mb-8">
-                <div className="text-center">
-                  <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 font-light">Layout da Pista</p>
-                  <p className="text-sm text-gray-400">{nextGPTrack}</p>
+              <div className="relative h-80 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-8 overflow-hidden">
+                {/* Track layout background image */}
+                <img 
+                  src="https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=400&fit=crop"
+                  alt={`Layout da pista ${nextGPTrack}`}
+                  className="absolute inset-0 w-full h-full object-cover opacity-30"
+                />
+                {/* Overlay with track info */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+                  <div className="text-center text-white">
+                    <Car className="h-16 w-16 mx-auto mb-4 drop-shadow-lg" />
+                    <h3 className="text-2xl font-light mb-2 drop-shadow">{nextGPTrack}</h3>
+                    <p className="text-lg opacity-90 drop-shadow">Layout da Pista</p>
+                  </div>
                 </div>
               </div>
               
@@ -162,7 +171,7 @@ const RaceWeekend = () => {
           </div>
         </section>
 
-        {/* Weekend Schedule - Minimalista */}
+        {/* Weekend Schedule */}
         <section className="bg-gray-50 py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
