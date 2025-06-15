@@ -1,128 +1,119 @@
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import PredictionExplanation from "./PredictionExplanation";
-import StandardTable from "./StandardTable";
-import TeamLogo from "./TeamLogo";
-import ConstructorsPrediction from "./ConstructorsPrediction";
-import TeamTrends from "./TeamTrends";
-import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
 
-// Para tradução de nacionalidades e bandeiras
-const getNationalityFlag = (nationality: string) => {
-  const flags: { [key: string]: string } = {
-    "Dutch": "🇳🇱",
-    "British": "🇬🇧",
-    "Monegasque": "🇲🇨",
-    "Australian": "🇦🇺",
-    "Mexican": "🇲🇽",
-    "Spanish": "🇪🇸",
-    "Thai": "🇹🇭",
-    "Canadian": "🇨🇦",
-    "German": "🇩🇪",
-    "Japanese": "🇯🇵",
-    "Italian": "🇮🇹",
-    "French": "🇫🇷",
-    "Danish": "🇩🇰",
-    "Finnish": "🇫🇮",
-    "Chinese": "🇨🇳",
-    "American": "🇺🇸",
-    "New Zealander": "🇳🇿",
-    "Brazilian": "🇧🇷",
-    "Argentine": "🇦🇷"
-  };
-  return flags[nationality] || "🏁";
-};
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy, Users, TrendingUp } from "lucide-react";
+import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
+import ConstructorsPrediction from "./ConstructorsPrediction";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import TeamLogo from "./TeamLogo";
 
 const ChampionshipPrediction = () => {
-  const { isLoading, drivers } = useChampionshipPrediction();
-
-  if (isLoading) {
-    return (
-      <div className="space-y-8">
-        <PredictionExplanation />
-        <StandardTable
-          title="Predição Pilotos 2025 - Top 6"
-          subtitle="Analisando dados históricos..."
-          headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-          className="bg-white border border-red-800"
-        >
-          <TableRow>
-            <TableCell colSpan={7}>
-              <Skeleton className="h-96 w-full bg-white" />
-            </TableCell>
-          </TableRow>
-        </StandardTable>
-        <ConstructorsPrediction />
-      </div>
-    );
-  }
-
-  const predictions = drivers.slice(0, 6);
+  const { drivers, constructors } = useChampionshipPrediction();
 
   return (
     <div className="space-y-8">
-      <PredictionExplanation />
-      <StandardTable
-        title="Predição Pilotos 2025 - Top 6"
-        subtitle="Análise dos pilotos favoritos ao título mundial"
-        headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-white border border-red-800"
-      >
-        {predictions.map((prediction, index) => (
-          <TableRow 
-            key={prediction.driver.driverId} 
-            className="border-red-800/80 hover:bg-red-900/10 transition-colors"
-          >
-            <TableCell>
-              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                index === 0 ? 'bg-yellow-500 text-black' : 
-                index === 1 ? 'bg-gray-400 text-black' : 
-                index === 2 ? 'bg-amber-600 text-white' : 
-                'bg-gray-200 text-gray-900'
-              }`}>
-                {index + 1}
-              </span>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center space-x-3">
-                <span className="text-lg">{getNationalityFlag(prediction.driver.nationality)}</span>
-                <span className="font-semibold text-gray-900">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
+      {/* Primeira seção - Predição dos Pilotos */}
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50">
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <Trophy className="h-5 w-5" />
+            Predição Final - Campeonato de Pilotos 2025
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="w-16">Pos</TableHead>
+                <TableHead>Piloto</TableHead>
+                <TableHead>Equipe</TableHead>
+                <TableHead className="text-right">Pontos Preditos</TableHead>
+                <TableHead className="text-right">Probabilidade</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {drivers.map((driver, index) => (
+                <TableRow key={driver.name} className={index < 3 ? "bg-yellow-50" : ""}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 text-white text-sm font-bold">
+                      {index + 1}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-semibold">{driver.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <TeamLogo teamName={driver.team} className="w-6 h-6" />
+                      <span>{driver.team}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{driver.predictedPoints}</TableCell>
+                  <TableCell className="text-right text-green-600 font-semibold">{driver.probability}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Terceira seção - Predição dos Construtores */}
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50">
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <Users className="h-5 w-5" />
+            Campeonato de Construtores 2025
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <ConstructorsPrediction />
+        </CardContent>
+      </Card>
+
+      {/* Quarta seção - Análise de Tendências */}
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50">
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <TrendingUp className="h-5 w-5" />
+            Análise de Tendências da Temporada
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-red-700">Favoritos para Vitórias</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Max Verstappen</span>
+                  <span className="text-red-600 font-semibold">12-14 vitórias</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Lando Norris</span>
+                  <span className="text-red-600 font-semibold">4-6 vitórias</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Charles Leclerc</span>
+                  <span className="text-red-600 font-semibold">3-5 vitórias</span>
+                </div>
               </div>
-            </TableCell>
-            <TableCell>
-              <TeamLogo teamName={prediction.constructor.name} />
-            </TableCell>
-            <TableCell className="text-center font-bold text-lg text-gray-900">
-              {prediction.currentPoints}
-            </TableCell>
-            <TableCell className="text-center">
-              <span className="text-red-500 font-bold text-lg">
-                {prediction.predictedPoints}
-              </span>
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex flex-col items-center space-y-2">
-                <span className="font-medium text-gray-900">{prediction.probability}%</span>
-                <Progress 
-                  value={prediction.probability} 
-                  className="w-20 h-2 bg-red-900"
-                />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-red-700">Batalhas a Observar</h3>
+              <div className="space-y-2">
+                <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                  <div className="font-medium">Título de Pilotos</div>
+                  <div className="text-sm text-gray-600">Verstappen vs Norris</div>
+                </div>
+                <div className="p-3 bg-green-50 rounded border-l-4 border-green-400">
+                  <div className="font-medium">P3 no Campeonato</div>
+                  <div className="text-sm text-gray-600">Leclerc vs Piastri vs Russell</div>
+                </div>
+                <div className="p-3 bg-orange-50 rounded border-l-4 border-orange-400">
+                  <div className="font-medium">Construtores</div>
+                  <div className="text-sm text-gray-600">Red Bull vs McLaren</div>
+                </div>
               </div>
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex items-center justify-center">
-                {prediction.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-400" />}
-                {prediction.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-400" />}
-                {prediction.trend === 'stable' && <Minus className="w-5 h-5 text-yellow-400" />}
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </StandardTable>
-      <TeamTrends />
-      <ConstructorsPrediction />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
