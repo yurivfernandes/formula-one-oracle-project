@@ -90,7 +90,7 @@ const LiveTimingPage = () => {
     });
   };
 
-  // Nova função: ícone de posição igual vira traço cinza
+  // Ícone e texto: mostrar apenas o traço se não houve alteração
   const getPositionChangeIcon = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
@@ -106,6 +106,7 @@ const LiveTimingPage = () => {
     }
   };
 
+  // Só mostra o valor numérico se ganhou ou perdeu
   const getPositionChangeText = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
@@ -113,7 +114,7 @@ const LiveTimingPage = () => {
     } else if (change < 0) {
       return change.toString();
     } else {
-      return "0";
+      return ""; // agora não mostra "0"
     }
   };
 
@@ -165,9 +166,9 @@ const LiveTimingPage = () => {
                 <thead className="bg-red-600 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
-                    <th className="px-2 py-2 text-left font-semibold w-10"></th> {/* Para indicador de posição */}
+                    <th className="px-2 py-2 text-left font-semibold w-10"></th>
                     <th className="px-3 py-2 text-left font-semibold w-20">Piloto</th>
-                    <th className="px-2 py-2 text-left font-semibold w-18">Equipe</th>
+                    <th className="px-1 py-2 text-left font-semibold w-12"></th> {/* Equipe */}
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
                         L{visibleLapRange[0] + i + 1}
@@ -185,27 +186,29 @@ const LiveTimingPage = () => {
                       }`}
                     >
                       {/* Posição */}
-                      <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
-                      {/* Indicador de ganho/perda posição */}
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
+                      <td className="px-3 py-2 font-bold text-gray-900 flex items-center gap-1">
+                        {driver.position}
+                        {/* Indicador de ganho/perda posição agora mais à esquerda, junto da posição */}
+                        <span className="ml-1 flex items-center gap-0">
                           {getPositionChangeIcon(driver.position, driver.startingPosition)}
-                          <span className={`text-xs font-medium ${
-                            driver.startingPosition - driver.position > 0 ? 'text-green-600' : 
-                            driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-400'
-                          }`}>
-                            {getPositionChangeText(driver.position, driver.startingPosition)}
-                          </span>
-                        </div>
+                          {getPositionChangeText(driver.position, driver.startingPosition) && (
+                            <span className={`text-xs font-medium ${
+                              driver.startingPosition - driver.position > 0 ? 'text-green-600' : 
+                              driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-400'
+                            } ml-0.5`}>
+                              {getPositionChangeText(driver.position, driver.startingPosition)}
+                            </span>
+                          )}
+                        </span>
                       </td>
-                      {/* Piloto: bandeira + ID */}
-                      <td className="px-3 py-2 min-w-[80px]">
+                      {/* Apenas bandeira + ID do piloto */}
+                      <td className="px-2 py-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: apenas logo, padding reduzido e centralizado */}
+                      {/* Equipe: só logo, padding mínimo e centralizado */}
                       <td className="px-1 py-2">
                         <div className="flex items-center justify-center">
                           <TeamLogo teamName={driver.team} className="w-8 h-5" />
