@@ -67,16 +67,16 @@ const getTeamColor = (team: string) => {
 
 const getTeamLogo = (team: string) => {
   const logos: { [key: string]: string } = {
-    "McLaren": "https://logos-world.net/wp-content/uploads/2021/03/McLaren-Logo.png",
-    "Ferrari": "https://logos-world.net/wp-content/uploads/2020/11/Ferrari-Logo.png",
-    "Red Bull": "https://logoeps.com/wp-content/uploads/2013/03/red-bull-vector-logo.png",
-    "Mercedes": "https://logos-world.net/wp-content/uploads/2020/04/Mercedes-Logo.png",
-    "Williams": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Williams_Racing_logo.svg/1200px-Williams_Racing_logo.svg.png",
-    "Aston Martin": "https://logos-world.net/wp-content/uploads/2021/03/Aston-Martin-Logo.png",
-    "Alpine F1 Team": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Alpine_F1_Team_2021_Logo.svg/1200px-Alpine_F1_Team_2021_Logo.svg.png",
-    "Haas F1 Team": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Haas_F1_Team_logo.svg/1200px-Haas_F1_Team_logo.svg.png",
-    "RB F1 Team": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Visa_Cash_App_RB_F1_Team_logo.svg/1200px-Visa_Cash_App_RB_F1_Team_logo.svg.png",
-    "Sauber": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Logo_Sauber_F1.svg/1200px-Logo_Sauber_F1.svg.png"
+    "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
+    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png",
+    "Red Bull": "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png.transform/2col/image.png",
+    "Mercedes": "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png.transform/2col/image.png",
+    "Williams": "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png.transform/2col/image.png",
+    "Aston Martin": "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png.transform/2col/image.png",
+    "Alpine F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png.transform/2col/image.png",
+    "Haas F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png.transform/2col/image.png",
+    "RB F1 Team": "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png.transform/2col/image.png",
+    "Sauber": "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png.transform/2col/image.png"
   };
   return logos[team] || "";
 };
@@ -221,8 +221,8 @@ const RaceByRaceStandings = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-gray-700 bg-gray-800">
+      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-red-800/30 bg-black/50">
           <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida 2025</h2>
           <p className="text-gray-300">A carregar dados das corridas...</p>
         </div>
@@ -326,8 +326,8 @@ const RaceByRaceStandings = () => {
   const nextRace = allRaces?.find(race => new Date(race.date) > today);
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden shadow-2xl">
-      <div className="p-6 border-b border-gray-700 bg-gray-800">
+    <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
+      <div className="p-6 border-b border-red-800/30 bg-black/50">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2">Temporada F1 2025 - Corrida a Corrida</h2>
@@ -335,21 +335,21 @@ const RaceByRaceStandings = () => {
           </div>
           <div className="flex items-center gap-4">
             {nextRace && (
-              <div className="bg-red-500 border border-red-400 rounded-lg px-4 py-2">
+              <div className="bg-red-600 border border-red-500 rounded-lg px-4 py-2">
                 <span className="text-white font-medium text-sm">
                   🏎️ Próxima: {nextRace.raceName} {getCountryFlag(nextRace.Circuit.Location.country)}
                 </span>
               </div>
             )}
             <Select value={viewType} onValueChange={(value: "all" | "completed") => setViewType(value)}>
-              <SelectTrigger className="w-[200px] bg-gray-800 border-gray-600 text-white">
+              <SelectTrigger className="w-[200px] bg-black/50 border-red-800/30 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-600">
-                <SelectItem value="completed" className="text-white hover:bg-gray-700 focus:bg-gray-700">
+              <SelectContent className="bg-gray-900 border-red-800/30">
+                <SelectItem value="completed" className="text-white hover:bg-red-900/30 focus:bg-red-900/30">
                   Apenas Realizadas
                 </SelectItem>
-                <SelectItem value="all" className="text-white hover:bg-gray-700 focus:bg-gray-700">
+                <SelectItem value="all" className="text-white hover:bg-red-900/30 focus:bg-red-900/30">
                   Calendário Completo
                 </SelectItem>
               </SelectContent>
@@ -361,17 +361,17 @@ const RaceByRaceStandings = () => {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-gray-700 bg-gray-800">
-              <TableHead className="text-gray-300 font-bold sticky left-0 bg-gray-800 min-w-[220px] z-20 border-r border-gray-700">
+            <TableRow className="border-red-800/30 bg-black/50">
+              <TableHead className="text-gray-300 font-bold sticky left-0 bg-black/50 min-w-[220px] z-20 border-r border-red-800/30">
                 Piloto
               </TableHead>
-              <TableHead className="text-gray-300 font-bold sticky left-[220px] bg-gray-800 min-w-[180px] z-20 border-r border-gray-700">
+              <TableHead className="text-gray-300 font-bold sticky left-[220px] bg-black/50 min-w-[100px] z-20 border-r border-red-800/30">
                 Equipe
               </TableHead>
               {racesToShow.map((race) => (
                 <TableHead 
                   key={race.round} 
-                  className="text-gray-300 font-bold text-center min-w-[120px] bg-gray-800"
+                  className="text-gray-300 font-bold text-center min-w-[120px] bg-black/50"
                 >
                   <div className="flex flex-col items-center py-2">
                     <span className="text-2xl mb-1">{getCountryFlag(race.Circuit.Location.country)}</span>
@@ -387,7 +387,7 @@ const RaceByRaceStandings = () => {
                   </div>
                 </TableHead>
               ))}
-              <TableHead className="text-gray-300 font-bold text-center min-w-[100px] sticky right-0 bg-gray-800 z-20 border-l border-gray-700">
+              <TableHead className="text-gray-300 font-bold text-center min-w-[100px] sticky right-0 bg-black/50 z-20 border-l border-red-800/30">
                 <div className="flex flex-col items-center">
                   <span className="text-lg">🏆</span>
                   <span className="text-sm">Total</span>
@@ -399,9 +399,9 @@ const RaceByRaceStandings = () => {
             {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => (
               <TableRow 
                 key={driverId} 
-                className="border-gray-700 hover:bg-gray-800 transition-colors"
+                className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
-                <TableCell className="sticky left-0 bg-gray-900 text-white z-10 border-r border-gray-700 py-4">
+                <TableCell className="sticky left-0 bg-gray-900 text-white z-10 border-r border-red-800/30 py-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
@@ -417,20 +417,18 @@ const RaceByRaceStandings = () => {
                     <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-[220px] bg-gray-900 z-10 border-r border-gray-700 py-4">
-                  <div className="flex items-center space-x-3">
+                <TableCell className="sticky left-[220px] bg-gray-900 z-10 border-r border-red-800/30 py-4">
+                  <div className="flex items-center justify-center">
                     <img 
                       src={getTeamLogo(constructor.name)} 
                       alt={constructor.name}
-                      className="w-8 h-8 object-contain"
+                      className="w-12 h-8 object-contain"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
+                        target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium">${constructor.name}</span>`;
                       }}
                     />
-                    <Badge className={`${getTeamColor(constructor.name)} text-white text-sm px-3 py-1 font-medium`}>
-                      {constructor.name}
-                    </Badge>
                   </div>
                 </TableCell>
                 {racesToShow.map((race) => {
@@ -472,7 +470,7 @@ const RaceByRaceStandings = () => {
                     </TableCell>
                   );
                 })}
-                <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-gray-900 z-10 border-l border-gray-700 py-4">
+                <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-gray-900 z-10 border-l border-red-800/30 py-4">
                   <div className="flex flex-col items-center">
                     <span className={`${
                       index === 0 ? 'text-yellow-400' : 

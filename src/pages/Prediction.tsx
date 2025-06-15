@@ -1,13 +1,11 @@
 
 import { Link } from "react-router-dom";
-import { Flag, ArrowLeft, Trophy, Users, Calendar } from "lucide-react";
+import { Flag, ArrowLeft, TrendingUp, Brain, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DriversStandings from "@/components/DriversStandings";
-import ConstructorsStandings from "@/components/ConstructorsStandings";
-import RaceByRaceStandings from "@/components/RaceByRaceStandings";
+import ChampionshipPrediction from "@/components/ChampionshipPrediction";
 
-const Championship = () => {
+const Prediction = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-950 via-black to-red-900">
       {/* Navigation */}
@@ -27,13 +25,13 @@ const Championship = () => {
               </Link>
               <Link 
                 to="/championship" 
-                className="text-red-400 font-medium"
+                className="text-white hover:text-red-400 transition-colors font-medium"
               >
                 Campeonato
               </Link>
               <Link 
                 to="/prediction" 
-                className="text-white hover:text-red-400 transition-colors font-medium"
+                className="text-red-400 font-medium"
               >
                 Predição
               </Link>
@@ -53,49 +51,55 @@ const Championship = () => {
           </Link>
           
           <h1 className="text-4xl font-bold text-white mb-2">
-            Campeonato Mundial de F1 2025
+            Predição do Campeonato F1 2025
           </h1>
           <p className="text-gray-300 text-lg">
-            Classificações atualizadas dos pilotos e construtores
+            Análise baseada em dados históricos dos últimos 10 anos
           </p>
         </div>
 
-        {/* Championship Tables */}
-        <Tabs defaultValue="drivers" className="w-full">
+        {/* Prediction Content */}
+        <Tabs defaultValue="championship" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30">
             <TabsTrigger 
-              value="drivers" 
+              value="championship" 
               className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
             >
-              <Trophy className="mr-2 h-4 w-4" />
-              Pilotos
+              <Target className="mr-2 h-4 w-4" />
+              Predição Final
             </TabsTrigger>
             <TabsTrigger 
-              value="constructors"
+              value="trends"
               className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
             >
-              <Users className="mr-2 h-4 w-4" />
-              Construtores
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Tendências
             </TabsTrigger>
             <TabsTrigger 
-              value="racebyrace"
+              value="analysis"
               className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
             >
-              <Calendar className="mr-2 h-4 w-4" />
-              Corrida a Corrida
+              <Brain className="mr-2 h-4 w-4" />
+              Análise IA
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="drivers" className="mt-8">
-            <DriversStandings />
+          <TabsContent value="championship" className="mt-8">
+            <ChampionshipPrediction />
           </TabsContent>
           
-          <TabsContent value="constructors" className="mt-8">
-            <ConstructorsStandings />
+          <TabsContent value="trends" className="mt-8">
+            <div className="bg-gray-900 rounded-xl border border-red-800/30 p-8">
+              <h2 className="text-2xl font-bold text-white mb-4">Tendências Históricas</h2>
+              <p className="text-gray-300">Em desenvolvimento...</p>
+            </div>
           </TabsContent>
 
-          <TabsContent value="racebyrace" className="mt-8">
-            <RaceByRaceStandings />
+          <TabsContent value="analysis" className="mt-8">
+            <div className="bg-gray-900 rounded-xl border border-red-800/30 p-8">
+              <h2 className="text-2xl font-bold text-white mb-4">Análise com IA</h2>
+              <p className="text-gray-300">Em desenvolvimento...</p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -103,4 +107,4 @@ const Championship = () => {
   );
 };
 
-export default Championship;
+export default Prediction;
