@@ -13,8 +13,7 @@ function getCurrentRace(races: any[]): any | null {
   const now = new Date();
   for (const race of races) {
     const start = new Date(`${race.date}T${race.time}`);
-    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // estimando 2h de corrida
-    // 1h antes até o fim da corrida
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
     if (now >= new Date(start.getTime() - 60 * 60 * 1000) && now <= end) {
       return { ...race, start, end };
     }
@@ -80,15 +79,15 @@ const fetchLaps = async (season: string, round: string) => {
 };
 
 const LiveTimingPage = () => {
-  // Busca todas as corridas do ano
+  // 1. Always run all queries/hooks in the same order to avoid the hook order bug.
   const { data: races = [], isLoading: loadingRaces } = useQuery({
     queryKey: ["seasonRaces", "2025"],
     queryFn: fetchRaces,
   });
 
+  // GP variables depend on races
   const [currentRace, setCurrentRace] = useState<any | null>(null);
 
-  // Atualiza currentRace toda vez que races muda ou quando o tempo passa
   useEffect(() => {
     if (!races.length) return;
     const updateRace = () => setCurrentRace(getCurrentRace(races));
@@ -97,57 +96,54 @@ const LiveTimingPage = () => {
     return () => clearInterval(timer);
   }, [races]);
 
-  // Espera dados de currentRace
-  if (loadingRaces || !currentRace)
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <SiteHeader />
-        <main className="flex flex-col flex-1 items-center justify-center">
-          <div className="bg-white rounded-xl border p-8 shadow-lg text-center max-w-md">
-            <span className="text-lg font-bold text-red-700">Carregando...</span>
-          </div>
-        </main>
-        <SiteFooter />
-      </div>
-    );
+  // Defaults if not available
+  const GP_ROUND = currentRace?.round || "";
+  const GP_SEASON = currentRace?.season || "";
+  const GP_NAME = currentRace?.raceName || currentRace?.name || "GP";
+  const RACE_START_UTC = currentRace?.start
+    ? currentRace.start
+    : new Date();
+  const RACE_END_UTC = currentRace?.end
+    ? currentRace.end
+    : new Date();
+  const LOCAL_START_TIME = currentRace?.start
+    ? currentRace.start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "";
 
-  const GP_ROUND = currentRace.round;
-  const GP_SEASON = currentRace.season;
-  const GP_NAME = currentRace.raceName || currentRace.name || "GP";
-  const RACE_START_UTC = currentRace.start;
-  const RACE_END_UTC = currentRace.end;
-  const LOCAL_START_TIME = RACE_START_UTC.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-  // Libera Live Timing de 1h antes até o fim da corrida
+  // time-based logic, but always run useState/useEffect
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
-  const timingAvailable = now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000) && now <= RACE_END_UTC;
+  const timingAvailable = currentRace
+    ? now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000) && now <= RACE_END_UTC
+    : false;
 
   let raceStatus: "before" | "live" | "after" = "before";
-  if (now < RACE_START_UTC) raceStatus = "before";
-  else if (now >= RACE_START_UTC && now <= RACE_END_UTC) raceStatus = "live";
-  else raceStatus = "after";
+  if (currentRace) {
+    if (now < RACE_START_UTC) raceStatus = "before";
+    else if (now >= RACE_START_UTC && now <= RACE_END_UTC) raceStatus = "live";
+    else raceStatus = "after";
+  }
 
-  // Qualifying do GP certo
+  // Always call these queries/hooks, but use `enabled` to prevent firing if races aren't ready/allowed.
   const { data: qualifying = [], isLoading: loadingQuali } = useQuery({
     queryKey: ["qualifying", GP_SEASON, GP_ROUND],
     queryFn: () => fetchQualifying(GP_SEASON, GP_ROUND),
-    enabled: timingAvailable,
+    enabled: Boolean(GP_SEASON && GP_ROUND && timingAvailable),
   });
 
-  // Laps do GP certo
   const { data: laps = [], isLoading: loadingLaps } = useQuery({
     queryKey: ["liveLaps", GP_SEASON, GP_ROUND],
     queryFn: () => fetchLaps(GP_SEASON, GP_ROUND),
-    enabled: raceStatus === "live" && timingAvailable,
+    enabled: Boolean(raceStatus === "live" && timingAvailable && GP_SEASON && GP_ROUND),
     refetchInterval: raceStatus === "live" ? 12000 : false,
   });
 
   const totalLaps = laps?.length || 0;
 
+  // Lap range is driven by raceStatus/totalLaps
   const [visibleLapRange, setVisibleLapRange] = useState<[number, number]>([0, 5]);
   useEffect(() => {
     if (raceStatus === "live" && totalLaps > 5) {
@@ -159,7 +155,7 @@ const LiveTimingPage = () => {
     }
   }, [raceStatus, totalLaps]);
 
-  // Montagem dos tempos de volta:
+  // Lap times collation
   const lapTimes: Record<string, string[]> = {};
   if (laps && laps.length > 0) {
     laps.forEach((lap, idx) => {
@@ -170,9 +166,8 @@ const LiveTimingPage = () => {
     });
   }
 
-  // Montagem da lista de pilotos:
+  // Driver rendering logic
   let drivers: any[] = [];
-  // Antes da corrida (1h antes): mostrar ordem do qualifying
   if (raceStatus === "before" && qualifying && qualifying.length > 0) {
     drivers = qualifying
       .slice()
@@ -186,7 +181,6 @@ const LiveTimingPage = () => {
         qualyRow: q,
       }));
   } else if (raceStatus === "live" && laps && laps.length > 0) {
-    // Durante a corrida: ordem atual da volta mais recente
     const lastLap = laps[laps.length - 1];
     drivers = [...lastLap.Timings]
       .sort((a: any, b: any) => Number(a.position) - Number(b.position))
@@ -200,8 +194,25 @@ const LiveTimingPage = () => {
       }));
   }
 
-  // Bloqueia até liberar (faltando 1h)
-  if (!timingAvailable)
+  // ---- ALL HOOKS must be at top; only now do we do any early UI returns! ----
+
+  // Loading state: races or currentRace not set
+  if (loadingRaces || !currentRace) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <SiteHeader />
+        <main className="flex flex-col flex-1 items-center justify-center">
+          <div className="bg-white rounded-xl border p-8 shadow-lg text-center max-w-md">
+            <span className="text-lg font-bold text-red-700">Carregando...</span>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  // Live timing locked (before 1h window)
+  if (!timingAvailable) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <SiteHeader />
@@ -221,9 +232,10 @@ const LiveTimingPage = () => {
         <SiteFooter />
       </div>
     );
+  }
 
-  // Estado loading
-  if (raceStatus === "before" && loadingQuali)
+  // Loading qualifying grid
+  if (raceStatus === "before" && loadingQuali) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <SiteHeader />
@@ -235,7 +247,10 @@ const LiveTimingPage = () => {
         <SiteFooter />
       </div>
     );
-  if (raceStatus === "live" && loadingLaps)
+  }
+
+  // Live, but laps loading
+  if (raceStatus === "live" && loadingLaps) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <SiteHeader />
@@ -247,7 +262,9 @@ const LiveTimingPage = () => {
         <SiteFooter />
       </div>
     );
+  }
 
+  // Normal render:
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader />
