@@ -38,7 +38,7 @@ const AIAnalysis = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6">
+      <div className="bg-gradient-to-br from-black via-red-950 to-black rounded-xl border border-red-800/30 p-6 shadow-lg">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
           <Brain className="mr-3 h-6 w-6 text-red-500" />
           Análise com Inteligência Artificial
@@ -67,7 +67,7 @@ const AIAnalysis = () => {
           ))}
         </div>
 
-        <div className="bg-black/20 rounded-lg p-4 border border-red-800/20">
+        <div className="bg-black/30 rounded-lg p-4 border border-red-800/20">
           <h3 className="text-lg font-semibold text-white mb-3">Metodologia da IA</h3>
           <ul className="space-y-2">
             {methodology.map((method, index) => (

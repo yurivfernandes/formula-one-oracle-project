@@ -495,38 +495,37 @@ const RaceByRaceStandings = () => {
                 {racesToShow.map((race) => {
                   const racePointsValue = parseInt(racePoints[race.round] || '0');
                   const sprintPointsValue = parseInt(sprintPoints[race.round] || '0');
-                  const hasRaceResult = raceResultsMap[race.round];
-                  const hasSprintResult = sprintResultsMap[race.round];
-                  const hasAnyResult = hasRaceResult || hasSprintResult;
-                  const totalRoundPoints =
-                    (hasRaceResult ? racePointsValue : 0) +
-                    (hasSprintResult ? sprintPointsValue : 0);
+                  const hasRaceResult = !!racePoints[race.round];
+                  const hasSprintResult = !!sprintPoints[race.round];
+                  const totalRoundPoints = racePointsValue + sprintPointsValue;
 
-                  // SOLUÇÃO: Exibir cada pontuação separadamente! Só mostra o total caso haja pontos nos dois.
                   return (
                     <TableCell 
                       key={race.round} 
                       className={`text-white text-center font-medium py-4 ${
-                        !hasAnyResult && viewType === "all" ? 'text-gray-500' : ''
+                        !(hasRaceResult || hasSprintResult) && viewType === "all" ? 'text-gray-500' : ''
                       } bg-black`}
                     >
+                      {/* Corrida principal */}
                       {hasRaceResult && (
                         <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
                           {racePointsValue}
                         </span>
                       )}
+                      {/* Sprint: mostra apenas se existir e NÃO duplicar valor de corrida */}
                       {hasSprintResult && (
                         <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
                           {sprintPointsValue}
                         </span>
                       )}
-                      {/* Só exibe o total se houver pontos em ambos (corrida & sprint) e eles forem > 0*/}
-                      {(hasRaceResult && hasSprintResult && totalRoundPoints > 0) && (
+                      {/* Somente exibe o total se tivermos pontos em ambos e ambos forem > 0 e são realmente valores diferentes (ou um deles 0) */}
+                      {(hasRaceResult && hasSprintResult && (racePointsValue > 0 || sprintPointsValue > 0)) && (
                         <span className="text-base font-bold text-white bg-gray-700 px-2 py-1 rounded-lg min-w-[32px] block">
                           {totalRoundPoints}
                         </span>
                       )}
-                      {!hasAnyResult && viewType === "all" && (
+                      {/* Placeholder para rounds sem resultado */}
+                      {!(hasRaceResult || hasSprintResult) && viewType === "all" && (
                         <span className="text-gray-500 text-lg">-</span>
                       )}
                     </TableCell>
