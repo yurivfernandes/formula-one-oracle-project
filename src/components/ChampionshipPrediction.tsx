@@ -1,4 +1,3 @@
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +6,7 @@ import PredictionExplanation from "./PredictionExplanation";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 import ConstructorsPrediction from "./ConstructorsPrediction";
+import TeamTrends from "./TeamTrends";
 import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
 
 // Para tradução de nacionalidades e bandeiras
@@ -64,7 +64,6 @@ const ChampionshipPrediction = () => {
   return (
     <div className="space-y-8">
       <PredictionExplanation />
-
       <StandardTable
         title="Predição Pilotos 2025 - Top 6"
         subtitle="Análise dos pilotos favoritos ao título mundial"
@@ -122,11 +121,10 @@ const ChampionshipPrediction = () => {
           </TableRow>
         ))}
       </StandardTable>
-
+      <TeamTrends />
       <ConstructorsPrediction />
     </div>
   );
 };
 
 export default ChampionshipPrediction;
-
