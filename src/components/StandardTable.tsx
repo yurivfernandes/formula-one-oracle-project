@@ -19,7 +19,7 @@ const StandardTable: React.FC<StandardTableProps> = ({
 }) => {
   return (
     <div className={`bg-gray-900 rounded-xl border border-red-800/50 overflow-hidden shadow-2xl ${className}`}>
-      <div className="p-6 border-b border-red-800/50 bg-black/80">
+      <div className="p-6 border-b border-red-800/50 bg-black">
         <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
         {subtitle && <p className="text-gray-300">{subtitle}</p>}
       </div>
@@ -27,15 +27,15 @@ const StandardTable: React.FC<StandardTableProps> = ({
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-red-800/50 bg-black/80">
+            <TableRow className="border-red-800/50 bg-black">
               {headers.map((header, index) => (
-                <TableHead key={index} className="text-gray-300 font-bold">
+                <TableHead key={index} className="text-red-400 font-bold">
                   {header}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="bg-gray-900">
             {children}
           </TableBody>
         </Table>

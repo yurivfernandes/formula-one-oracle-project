@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import PredictionExplanation from "./PredictionExplanation";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
+import ConstructorsPrediction from "./ConstructorsPrediction";
 
 // Tipos de dados
 interface Driver {
@@ -242,42 +243,43 @@ const ChampionshipPrediction = () => {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="space-y-8">
         <PredictionExplanation />
         <StandardTable
-          title="Predição do Campeonato 2025"
+          title="Predição Pilotos 2025 - Top 6"
           subtitle="Analisando dados históricos..."
-          headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência", "Média Histórica"]}
+          headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
         >
           <TableRow>
-            <TableCell colSpan={8}>
+            <TableCell colSpan={7}>
               <Skeleton className="h-96 w-full" />
             </TableCell>
           </TableRow>
         </StandardTable>
+        <ConstructorsPrediction />
       </div>
     );
   }
 
   const predictions = currentStandings && historicalData 
-    ? calculatePrediction(currentStandings, historicalData)
+    ? calculatePrediction(currentStandings, historicalData).slice(0, 6)
     : [];
 
   return (
-    <div>
+    <div className="space-y-8">
       <PredictionExplanation />
       
       <StandardTable
-        title="Predição do Campeonato 2025"
-        subtitle="Baseado em dados históricos e performance atual da temporada"
-        headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência", "Média Histórica"]}
+        title="Predição Pilotos 2025 - Top 6"
+        subtitle="Análise dos pilotos favoritos ao título mundial"
+        headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
       >
         {predictions.map((prediction, index) => (
           <TableRow 
             key={prediction.driver.driverId} 
             className="border-red-800/50 hover:bg-red-900/20 transition-colors"
           >
-            <TableCell className="text-white font-bold min-w-[50px]">
+            <TableCell className="text-white font-bold">
               <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 index === 0 ? 'bg-yellow-500 text-black' : 
                 index === 1 ? 'bg-gray-400 text-black' : 
@@ -287,24 +289,24 @@ const ChampionshipPrediction = () => {
                 {index + 1}
               </span>
             </TableCell>
-            <TableCell className="text-white min-w-[200px]">
+            <TableCell className="text-white">
               <div className="flex items-center space-x-3">
                 <span className="text-lg">{getNationalityFlag(prediction.driver.nationality)}</span>
                 <span className="font-semibold">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
               </div>
             </TableCell>
-            <TableCell className="min-w-[100px]">
+            <TableCell>
               <TeamLogo teamName={prediction.constructor.name} />
             </TableCell>
-            <TableCell className="text-white text-center font-bold text-lg min-w-[100px]">
+            <TableCell className="text-white text-center font-bold text-lg">
               {prediction.currentPoints}
             </TableCell>
-            <TableCell className="text-center min-w-[100px]">
+            <TableCell className="text-center">
               <span className="text-red-400 font-bold text-lg">
                 {prediction.predictedPoints}
               </span>
             </TableCell>
-            <TableCell className="text-center min-w-[120px]">
+            <TableCell className="text-center">
               <div className="flex flex-col items-center space-y-2">
                 <span className="text-white font-medium">{prediction.probability}%</span>
                 <Progress 
@@ -313,19 +315,18 @@ const ChampionshipPrediction = () => {
                 />
               </div>
             </TableCell>
-            <TableCell className="text-center min-w-[100px]">
+            <TableCell className="text-center">
               <div className="flex items-center justify-center">
                 {prediction.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-400" />}
                 {prediction.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-400" />}
                 {prediction.trend === 'stable' && <Minus className="w-5 h-5 text-yellow-400" />}
               </div>
             </TableCell>
-            <TableCell className="text-white text-center font-medium min-w-[100px]">
-              {prediction.historicalAverage}
-            </TableCell>
           </TableRow>
         ))}
       </StandardTable>
+
+      <ConstructorsPrediction />
     </div>
   );
 };

@@ -27,20 +27,21 @@ const TeamLogo: React.FC<TeamLogoProps> = ({ teamName, className = "" }) => {
   
   if (!logoUrl) {
     return (
-      <div className={`bg-red-900/30 rounded-lg p-2 flex items-center justify-center ${className}`}>
+      <div className={`rounded-lg p-2 flex items-center justify-center ${className}`}>
         <span className="text-white text-xs font-medium px-2">{teamName}</span>
       </div>
     );
   }
 
   return (
-    <div className={`bg-red-900/30 rounded-lg p-2 flex items-center justify-center ${className}`}>
+    <div className={`rounded-lg p-2 flex items-center justify-center ${className}`}>
       <img 
         src={logoUrl}
         alt={teamName}
         className="w-12 h-8 object-contain"
         style={{
-          filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.8))'
+          filter: 'brightness(0) invert(1)',
+          mixBlendMode: 'normal'
         }}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
