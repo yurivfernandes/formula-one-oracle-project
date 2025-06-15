@@ -38,11 +38,6 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* AVISO DA PRÓXIMA CORRIDA DETALHADO */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <NextRaceDetailedInfo />
-      </div>
-
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -67,6 +62,11 @@ const Index = () => {
         <div className="absolute top-20 left-10 w-20 h-20 bg-red-500/20 rounded-full animate-bounce"></div>
         <div className="absolute bottom-20 right-10 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
         <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-red-600/30 rounded-full animate-ping"></div>
+      </div>
+
+      {/* AVISO DA PRÓXIMA CORRIDA DETALHADO - Movido para depois da hero */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <NextRaceDetailedInfo />
       </div>
 
       {/* History Section */}
