@@ -9,7 +9,7 @@ interface TeamLogoProps {
 const getTeamLogo = (team: string) => {
   const logos: { [key: string]: string } = {
     "McLaren": "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png.transform/2col/image.png",
-    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png", 
+    "Ferrari": "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png.transform/2col/image.png",
     "Red Bull": "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png.transform/2col/image.png",
     "Mercedes": "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png.transform/2col/image.png",
     "Williams": "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png.transform/2col/image.png",
@@ -24,7 +24,7 @@ const getTeamLogo = (team: string) => {
 
 const TeamLogo: React.FC<TeamLogoProps> = ({ teamName, className = "" }) => {
   const logoUrl = getTeamLogo(teamName);
-  
+
   if (!logoUrl) {
     return (
       <div className={`rounded-lg p-2 flex items-center justify-center ${className}`}>
@@ -35,15 +35,12 @@ const TeamLogo: React.FC<TeamLogoProps> = ({ teamName, className = "" }) => {
 
   return (
     <div className={`rounded-lg p-2 flex items-center justify-center ${className}`}>
-      <img 
+      <img
         src={logoUrl}
         alt={teamName}
         className="w-12 h-8 object-contain"
-        style={{
-          filter: 'brightness(0) invert(1)',
-          mixBlendMode: 'normal'
-        }}
-        onError={(e) => {
+        // Removido qualquer filter para mostrar a logo original
+        onError={e => {
           const target = e.target as HTMLImageElement;
           target.style.display = 'none';
           target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium px-2">${teamName}</span>`;

@@ -139,6 +139,35 @@ const getCountryFlag = (country: string) => {
   return flags[country] || "🏁";
 };
 
+// NOVA LISTA DE NOMES PT-BR E FLAGS
+const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
+  "Australia": { nome: "Austrália", flag: "🇦🇺" },
+  "China": { nome: "China", flag: "🇨🇳" },
+  "Japan": { nome: "Japão", flag: "🇯🇵" },
+  "Bahrain": { nome: "Bahrein", flag: "🇧🇭" },
+  "Saudi Arabia": { nome: "Arábia Saudita", flag: "🇸🇦" },
+  "USA": { nome: "Estados Unidos", flag: "🇺🇸" },
+  "Italy": { nome: "Itália", flag: "🇮🇹" },
+  "Monaco": { nome: "Mônaco", flag: "🇲🇨" },
+  "Spain": { nome: "Espanha", flag: "🇪🇸" },
+  "Canada": { nome: "Canadá", flag: "🇨🇦" },
+  "Austria": { nome: "Áustria", flag: "🇦🇹" },
+  "UK": { nome: "Reino Unido", flag: "🇬🇧" },
+  "Hungary": { nome: "Hungria", flag: "🇭🇺" },
+  "Belgium": { nome: "Bélgica", flag: "🇧🇪" },
+  "Netherlands": { nome: "Holanda", flag: "🇳🇱" },
+  "Azerbaijan": { nome: "Azerbaijão", flag: "🇦🇿" },
+  "Singapore": { nome: "Singapura", flag: "🇸🇬" },
+  "Mexico": { nome: "México", flag: "🇲🇽" },
+  "Brazil": { nome: "Brasil", flag: "🇧🇷" },
+  "Qatar": { nome: "Catar", flag: "🇶🇦" },
+  "United Arab Emirates": { nome: "Emirados Árabes Unidos", flag: "🇦🇪" },
+  "Las Vegas": { nome: "Las Vegas", flag: "🎲" },
+};
+
+// Função auxiliar pro nome e flag pt-br
+const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
+
 // --- Funções de Fetch ---
 const fetchRaces = async (): Promise<Race[]> => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
@@ -358,7 +387,7 @@ const RaceByRaceStandings = () => {
             {nextRace && (
               <div className="bg-red-600 border border-red-500 rounded-lg px-4 py-2">
                 <span className="text-white font-medium text-sm">
-                  🏎️ Próxima: {nextRace.raceName} {getCountryFlag(nextRace.Circuit.Location.country)}
+                  🏎️ Próxima: {nextRace.raceName} {getCountryPTBR(nextRace.Circuit.Location.country).flag}
                 </span>
               </div>
             )}
@@ -398,27 +427,37 @@ const RaceByRaceStandings = () => {
               <TableHead className="text-red-400 font-bold sticky left-[220px] bg-black min-w-[100px] z-20 border-r border-red-800/30">
                 Equipe
               </TableHead>
-              {racesToShow.map((race) => (
-                <TableHead
-                  key={race.round}
-                  className="text-red-400 font-bold text-center min-w-[120px] bg-black"
-                >
-                  <div className="flex flex-col items-center py-2">
-                    <span className="text-2xl mb-1">{getCountryFlag(race.Circuit.Location.country)}</span>
-                    <span className="text-xs font-medium text-gray-300">
-                      {race.Circuit.Location.country}
-                    </span>
-                    <div className="flex gap-1 mt-2">
-                      {sprintResultsMap[race.round] && (
-                        <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
-                      )}
-                      {raceResultsMap[race.round] && (
-                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
-                      )}
+              {racesToShow.map((race) => {
+                const c = getCountryPTBR(race.Circuit.Location.country);
+                // Corrigir Abu Dhabi:
+                const nome = race.Circuit.Location.country === "United Arab Emirates"
+                  ? "Abu Dhabi"
+                  : c.nome;
+                const flag = race.Circuit.Location.country === "United Arab Emirates"
+                  ? "🇦🇪"
+                  : c.flag;
+                return (
+                  <TableHead
+                    key={race.round}
+                    className="text-red-400 font-bold text-center min-w-[120px] bg-black"
+                  >
+                    <div className="flex flex-col items-center py-2">
+                      <span className="text-2xl mb-1">{flag}</span>
+                      <span className="text-xs font-medium text-gray-300">
+                        {nome}
+                      </span>
+                      <div className="flex gap-1 mt-2">
+                        {sprintResultsMap[race.round] && (
+                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
+                        )}
+                        {raceResultsMap[race.round] && (
+                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </TableHead>
-              ))}
+                  </TableHead>
+                );
+              })}
               <TableHead className="text-red-400 font-bold text-center min-w-[100px] sticky right-0 bg-black z-20 border-l border-red-800/30">
                 <div className="flex flex-col items-center">
                   <span className="text-lg">🏆</span>
@@ -450,18 +489,7 @@ const RaceByRaceStandings = () => {
                   </div>
                 </TableCell>
                 <TableCell className="sticky left-[220px] bg-black z-10 border-r border-red-800/30 py-4">
-                  <div className="flex items-center justify-center rounded-lg p-2">
-                    <img 
-                      src={getTeamLogo(constructor.name)} 
-                      alt={constructor.name}
-                      className="w-12 h-8 object-contain"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        target.parentElement!.innerHTML = `<span class="text-black text-xs font-medium">${constructor.name}</span>`;
-                      }}
-                    />
-                  </div>
+                  <TeamLogo teamName={constructor.name} />
                 </TableCell>
                 {racesToShow.map((race) => {
                   const racePointsValue = parseInt(racePoints[race.round] || '0');
