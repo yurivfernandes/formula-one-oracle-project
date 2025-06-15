@@ -1,31 +1,46 @@
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Trophy, Calendar, TrendingUp, Flag, Github, Linkedin } from "lucide-react";
+import { Trophy, Calendar, TrendingUp, Flag, Github, Linkedin, Zap } from "lucide-react";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
+import { useLiveTimingWindow } from "@/hooks/useLiveTimingWindow";
 
 // Hero principal do site
-const SiteHero = () => (
-  <section className="bg-white pt-20 pb-16 border-b border-red-100">
-    <div className="max-w-3xl mx-auto px-4 text-center flex flex-col items-center">
-      <Flag className="h-16 w-16 text-red-600 mb-4" />
-      <h1 className="text-5xl sm:text-6xl font-bold text-red-700 mb-6 leading-tight">
-        F1 Analytics
-      </h1>
-      <p className="text-xl text-gray-700 mb-6 max-w-xl">
-        Análises modernas, dados históricos e previsões inteligentes para cada corrida de <span className="text-red-700 font-bold">Fórmula 1</span>.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/championship">
-          <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg">Ver Campeonato</Button>
-        </a>
-        <a href="/race-weekend">
-          <Button variant="outline" className="border-red-600 text-red-700">Próximo GP</Button>
-        </a>
+const SiteHero = () => {
+  const liveTiming = useLiveTimingWindow();
+
+  return (
+    <section className="bg-white pt-20 pb-16 border-b border-red-100">
+      <div className="max-w-3xl mx-auto px-4 text-center flex flex-col items-center">
+        <Flag className="h-16 w-16 text-red-600 mb-4" />
+        <h1 className="text-5xl sm:text-6xl font-bold text-red-700 mb-6 leading-tight">
+          F1 Analytics
+        </h1>
+        <p className="text-xl text-gray-700 mb-6 max-w-xl">
+          Análises modernas, dados históricos e previsões inteligentes para cada corrida de <span className="text-red-700 font-bold">Fórmula 1</span>.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-2">
+          <a href="/championship">
+            <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg">Ver Campeonato</Button>
+          </a>
+          <a href="/race-weekend">
+            <Button variant="outline" className="border-red-600 text-red-700">Próximo GP</Button>
+          </a>
+        </div>
+        {liveTiming && (
+          <a
+            href="/race-weekend/live"
+            className="mt-2 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-800 border border-green-300 font-semibold shadow-lg text-lg animate-pulse transition hover:bg-green-200"
+            style={{ animation: "pulse 1.5s infinite"}}
+          >
+            <Zap className="w-5 h-5 text-green-700 animate-pulse" />
+            Acesse o Live Timing AGORA!
+          </a>
+        )}
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const HISTORY_CARDS = [
   {
