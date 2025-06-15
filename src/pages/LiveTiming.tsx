@@ -167,7 +167,8 @@ const LiveTimingPage = () => {
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
                     <th className="px-2 py-2 text-left font-semibold w-28">Piloto</th>
-                    <th className="px-2 py-2 text-center font-semibold w-12"> {/* Team logo only, no padding extra */} </th>
+                    {/* Cabeçalho vazio da equipe para alinhar corretamente */}
+                    <th className="px-2 py-2 text-center font-semibold w-12"></th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
                         L{visibleLapRange[0] + i + 1}
@@ -189,17 +190,20 @@ const LiveTimingPage = () => {
                         {driver.position}
                         <span className="ml-1 flex items-center gap-0">
                           {getPositionChangeIcon(driver.position, driver.startingPosition)}
-                          {getPositionChangeText(driver.position, driver.startingPosition) && (
-                            <span className={`text-xs font-medium ${
-                              driver.startingPosition - driver.position > 0
-                                ? 'text-green-600'
-                                : driver.startingPosition - driver.position < 0
-                                ? 'text-red-600'
-                                : 'text-gray-400'
-                            } ml-0.5`}>
-                              {getPositionChangeText(driver.position, driver.startingPosition)}
-                            </span>
-                          )}
+                          {/* Mostra texto SÓ se a mudança não for 0 */}
+                          {(() => {
+                            const change = driver.startingPosition - driver.position;
+                            if (change === 0) return null;
+                            return (
+                              <span className={`text-xs font-medium ${
+                                change > 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                              } ml-0.5`}>
+                                {change > 0 ? `+${change}` : change}
+                              </span>
+                            );
+                          })()}
                         </span>
                       </td>
                       {/* Piloto: bandeira + ID abreviada */}
