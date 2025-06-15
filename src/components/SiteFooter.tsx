@@ -1,5 +1,5 @@
 
-import { Github, Linkedin, Whatsapp } from "lucide-react";
+import { Github, Linkedin, MessageCircle } from "lucide-react";
 
 const FOOTER_LINKS = [
   { to: "/championship", label: "Campeonato" },
@@ -42,10 +42,10 @@ export default function SiteFooter() {
                 href="https://wa.me/5531987798823"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-green-500 transition-colors"
+                className="text-gray-400 hover:text-red-400 transition-colors"
                 aria-label="WhatsApp"
               >
-                <Whatsapp className="h-6 w-6" />
+                <MessageCircle className="h-6 w-6" />
               </a>
               <a
                 href="https://github.com/yurivfernandes"
@@ -77,3 +77,4 @@ export default function SiteFooter() {
     </footer>
   );
 }
+
