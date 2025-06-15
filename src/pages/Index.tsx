@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Trophy, Flag, Calendar, TrendingUp } from "lucide-react";
+import { Trophy, Flag, Calendar, TrendingUp, CheckeredFlag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
 
@@ -33,6 +34,12 @@ const Index = () => {
               >
                 Predição
               </Link>
+              <Link 
+                to="/race-weekend" 
+                className="text-white hover:text-red-400 transition-colors font-medium"
+              >
+                Fim de Semana
+              </Link>
             </div>
           </div>
         </div>
@@ -49,12 +56,20 @@ const Index = () => {
             <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
               Análise completa dos dados da Fórmula 1 com previsões inteligentes para o campeonato mundial
             </p>
-            <Link to="/championship">
-              <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
-                Ver Campeonato 2025
-                <TrendingUp className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link to="/championship">
+                <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
+                  Ver Campeonato 2025
+                  <TrendingUp className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/race-weekend">
+                <Button variant="outline" className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
+                  Fim de Semana de Corrida
+                  <CheckeredFlag className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
         
@@ -117,7 +132,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div className="bg-black/40 p-6 rounded-lg border border-red-800/30">
-              <div className="text-3xl font-bold text-red-500 mb-2">74</div>
+              <div className="text-3xl font-bold text-red-500 mb-2">75</div>
               <div className="text-white">Anos de História</div>
             </div>
             <div className="bg-black/40 p-6 rounded-lg border border-red-800/30">
@@ -138,10 +153,51 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="bg-black/60 border-t border-red-800/30 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-400">
-            © 2024 F1 Analytics. Dados e estatísticas da Fórmula 1.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-red-400 font-bold text-lg mb-4">F1 Analytics</h3>
+              <p className="text-gray-400 text-sm">
+                Análise completa dos dados da Fórmula 1 com previsões inteligentes para o campeonato mundial.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-red-400 font-bold text-lg mb-4">Links</h3>
+              <div className="space-y-2">
+                <Link to="/" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+                  Home
+                </Link>
+                <Link to="/championship" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+                  Campeonato
+                </Link>
+                <Link to="/prediction" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+                  Predição
+                </Link>
+                <Link to="/race-weekend" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+                  Fim de Semana
+                </Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-red-400 font-bold text-lg mb-4">Desenvolvedor</h3>
+              <p className="text-gray-400 text-sm mb-2">
+                Desenvolvido por <span className="text-red-400 font-semibold">Yuri Fernandes</span>
+              </p>
+              <a 
+                href="https://wa.me/5531987798823" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-400 hover:text-green-300 transition-colors text-sm"
+              >
+                📱 WhatsApp: (31) 98779-8823
+              </a>
+            </div>
+          </div>
+          <div className="border-t border-red-800/30 mt-8 pt-6 text-center">
+            <p className="text-gray-400 text-sm">
+              © 2025 F1 Analytics. Dados e estatísticas da Fórmula 1.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
