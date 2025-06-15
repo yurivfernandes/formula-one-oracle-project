@@ -466,7 +466,12 @@ const RaceByRaceStandings = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => (
+            {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => {
+              // Adicionando um log para depuração
+              if (Object.keys(sprintPoints).length > 0) {
+                console.log(`Sprint points for ${driver.givenName} ${driver.familyName}:`, sprintPoints);
+              }
+              return (
               <TableRow
                 key={driverId}
                 className="border-red-800/30 hover:bg-red-900/30 transition-colors"
@@ -498,7 +503,6 @@ const RaceByRaceStandings = () => {
                   const sprintPointsValue = parseInt(sprintPoints[race.round] || '0');
                   const hasRaceResult = !!racePoints[race.round];
                   const hasSprintResult = !!sprintPoints[race.round];
-                  const totalRoundPoints = racePointsValue + sprintPointsValue;
 
                   return (
                     <TableCell
@@ -507,7 +511,7 @@ const RaceByRaceStandings = () => {
                         !(hasRaceResult || hasSprintResult) && viewType === "all" ? 'text-gray-500' : ''
                       } bg-black`}
                     >
-                      <div className="flex flex-col items-center gap-0.5">
+                      <div className="flex flex-row items-center justify-center gap-1">
                         {/* Corrida principal */}
                         {hasRaceResult && (
                           <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
@@ -545,7 +549,7 @@ const RaceByRaceStandings = () => {
                   </div>
                 </TableCell>
               </TableRow>
-            )) : (
+            )}) : (
               <TableRow>
                 <TableCell colSpan={racesToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-black">
                   Ainda não há resultados de corridas para exibir.
