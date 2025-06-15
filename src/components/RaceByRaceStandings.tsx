@@ -128,12 +128,32 @@ const fetchRaces = async (): Promise<Race[]> => {
 };
 
 const fetchRaceResults = async (): Promise<Race[]> => {
-  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/results/');
-  if (!response.ok) {
-    throw new Error('Erro ao buscar resultados das corridas');
+  const allRaces: Race[] = [];
+  
+  // Buscar todas as páginas (6 páginas conforme mencionado)
+  for (let page = 1; page <= 6; page++) {
+    try {
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${(page - 1) * 30}&limit=30`);
+      if (!response.ok) {
+        console.warn(`Erro ao buscar página ${page} dos resultados`);
+        continue;
+      }
+      const data: RaceResponse = await response.json();
+      const pageRaces = data.MRData.RaceTable.Races;
+      
+      if (pageRaces.length === 0) {
+        // Se não há mais dados, sair do loop
+        break;
+      }
+      
+      allRaces.push(...pageRaces);
+    } catch (error) {
+      console.warn(`Erro ao processar página ${page}:`, error);
+    }
   }
-  const data: RaceResponse = await response.json();
-  return data.MRData.RaceTable.Races;
+  
+  console.log(`Total de corridas carregadas: ${allRaces.length}`);
+  return allRaces;
 };
 
 const RaceByRaceStandings = () => {
