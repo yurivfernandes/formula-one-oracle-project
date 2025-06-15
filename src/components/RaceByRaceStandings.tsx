@@ -347,7 +347,6 @@ const RaceByRaceStandings = () => {
                   <div className="flex flex-col items-center">
                     <span className="text-lg mb-1">{getCountryFlag(race.Circuit.Location.country)}</span>
                     <span className="text-xs">{race.Circuit.Location.country}</span>
-                    <span className="text-xs text-gray-400">R{race.round}</span>
                     <div className="flex gap-1 mt-1">
                       {sprintResultsMap[race.round] && (
                         <span className="text-xs bg-yellow-600 text-white px-1 rounded">S</span>
@@ -383,8 +382,9 @@ const RaceByRaceStandings = () => {
                   </Badge>
                 </TableCell>
                 {racesToShow.map((race) => {
-                  const racePointsValue = racePoints[race.round] || '0';
-                  const sprintPointsValue = sprintPoints[race.round] || '0';
+                  const racePointsValue = parseInt(racePoints[race.round] || '0');
+                  const sprintPointsValue = parseInt(sprintPoints[race.round] || '0');
+                  const totalRoundPoints = racePointsValue + sprintPointsValue;
                   const hasRaceResult = raceResultsMap[race.round];
                   const hasSprintResult = sprintResultsMap[race.round];
                   const hasAnyResult = hasRaceResult || hasSprintResult;
@@ -408,12 +408,17 @@ const RaceByRaceStandings = () => {
                               R: {racePointsValue}
                             </span>
                           )}
+                          {(hasRaceResult || hasSprintResult) && totalRoundPoints > 0 && (
+                            <span className="text-xs font-bold text-white">
+                              {totalRoundPoints}
+                            </span>
+                          )}
                         </div>
                       ) : viewType === "all" ? '-' : ''}
                     </TableCell>
                   );
                 })}
-                <TableCell className="text-white font-bold text-lg text-center bg-red-900/30 sticky right-0 z-10 border-l border-red-800/30">
+                <TableCell className="text-white font-bold text-lg text-center sticky right-0 bg-black/95 backdrop-blur-sm z-10 border-l border-red-800/30">
                   {totalPoints}
                 </TableCell>
               </TableRow>
