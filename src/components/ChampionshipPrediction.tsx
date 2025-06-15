@@ -135,29 +135,20 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
   const remainingRounds = totalRounds - currentRound;
   const { maxByDriver, maxByTeam } = getMaxPointsPerSeason(totalRounds);
 
-  // Mapeia todos os pilotos e já agrupa para somar os pontos por equipe ao final:
   let predictions = currentStandings.map((standing, index) => {
     const driverId = standing.Driver.driverId;
     const currentPoints = parseInt(standing.points);
 
-    // Buscar dados históricos do piloto
     const driverHistory = historicalData.filter(h => h.driver.driverId === driverId);
-
-    // Média histórica, ponderando mais os anos recentes
     let historicalAverage = currentPoints;
     if (driverHistory.length > 0) {
-      // Peso para anos mais recentes: 70% três últimos, 30% anteriores
       const recent = driverHistory.filter(h => h.year >= 2022);
       const older = driverHistory.filter(h => h.year < 2022);
       const recentAvg = recent.length > 0 ? recent.reduce((sum, h) => sum + h.points, 0) / recent.length : 0;
       const olderAvg = older.length > 0 ? older.reduce((sum, h) => sum + h.points, 0) / older.length : 0;
       historicalAverage = recentAvg * 0.7 + olderAvg * 0.3;
     }
-
-    // Média de pontos por corrida atual
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
-
-    // Fator equipe (manter gap pequeno entre dupla, exceto no caso de amplo domínio)
     const team = standing.Constructors[0].name;
     let teamPerformanceMultiplier = 1.0;
     if (team === "McLaren") {
@@ -169,35 +160,26 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
     } else if (team === "Mercedes") {
       teamPerformanceMultiplier = 0.97;
     }
-
-    // O máximo de pontos que o piloto pode fazer daqui até o fim:
     const maxPossibleToGain = remainingRounds * 25;
-    // Projeção realista do piloto (mantendo ritmo, ponderado pelo desempenho atual/histórico)
     let predicted = currentPoints;
-    // Média entre pontos por corrida recente (comperformance) e histórico recente
     let predictedPerRace = (currentPointsPerRace * 0.7 + (historicalAverage / totalRounds) * 0.3) * teamPerformanceMultiplier;
-
-    // Não pode passar do máximo por corrida (25), geralmente fica entre 10~20 nos bons pilotos
     predictedPerRace = Math.min(predictedPerRace, 21);
-
-    // Projetar para corridas restantes
     predicted += Math.round(predictedPerRace * remainingRounds);
-
-    // Nunca passar do máximo absoluto (vitória em todas), nem ultrapassar recordes históricos
     predicted = Math.min(predicted, maxByDriver, 420);
 
+    let trend: "up" | "down" | "stable" = "stable";
     return {
       driver: standing.Driver,
       constructor: standing.Constructors[0],
       currentPoints,
       predictedPoints: Math.max(currentPoints, Math.round(predicted)),
-      probability: 0, // Preencher depois
-      trend: "stable", // Preencher depois
+      probability: 0, // temporário
+      trend, // já tipado corretamente!
       historicalAverage: Math.round(historicalAverage),
     };
   });
 
-  // Ajuste para manter a soma dos pilotos da equipe <= máximo possível da equipe
+  // Ajuste para pontuação máxima da equipe
   const pilotsByTeam: Record<string, PredictionData[]> = {};
   predictions.forEach((p) => {
     if (!pilotsByTeam[p.constructor.name]) pilotsByTeam[p.constructor.name] = [];
@@ -206,43 +188,33 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
   Object.entries(pilotsByTeam).forEach(([team, list]) => {
     const total = list.reduce((s, v) => s + v.predictedPoints, 0);
     if (total > maxByTeam) {
-      // Reduzir proporcionalmente
       list.forEach((p) => {
         p.predictedPoints = Math.round((p.predictedPoints / total) * maxByTeam);
       });
     }
   });
 
-  // Agora definir probabilidades e tendência
-  // O líder tem maior probabilidade, e depende do gap de pontos, forma e equipe
+  // Probabilidade + tendência adequadas
   const sortedCurrent = [...predictions].sort((a, b) => b.currentPoints - a.currentPoints);
   const leadingPoints = sortedCurrent[0] ? sortedCurrent[0].currentPoints : 0;
   predictions = predictions.map((p, idx) => {
-    // Probabilidade: depende gap + performance equipe + histórico
-    let chance = 30; // base
+    let chance = 30;
     const gap = leadingPoints - p.currentPoints;
     if (idx === 0) {
       chance = 70 + (p.predictedPoints > 320 ? 10 : 0) + (p.constructor.name === "McLaren" ? 7 : 0);
     } else {
-      // Quanto menor o gap, mais chance, mas nunca acima de 40 para não ser incoerente
       chance = Math.round(35 - gap * 0.12 + (p.constructor.name === "McLaren" ? 3 : 0) + (p.historicalAverage > 150 ? 2 : 0));
       chance = Math.max(2, Math.min(40, chance));
     }
-
-    // Tendência
-    const recent = p.historicalAverage;
-    let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (recent > 170) trend = "up";
-    else if (recent < 70) trend = "down";
-
+    let trend: "up" | "down" | "stable" = "stable";
+    if (p.historicalAverage > 170) trend = "up";
+    else if (p.historicalAverage < 70) trend = "down";
     return {
       ...p,
       probability: Math.max(0, Math.min(100, chance)),
-      trend,
+      trend, // tipo literal!
     };
   });
-
-  // Ordenar por pontos preditos
   return predictions.sort((a, b) => b.predictedPoints - a.predictedPoints);
 };
 

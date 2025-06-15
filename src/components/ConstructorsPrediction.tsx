@@ -7,6 +7,15 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 
+// DEFININDO O TIPO PARA EVITAR ERRO!
+interface ConstructorPrediction {
+  constructor: any;
+  currentPoints: number;
+  predictedPoints: number;
+  probability: number;
+  trend: "up" | "down" | "stable";
+}
+
 const fetchConstructorStandings = async () => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorStandings/');
   if (!response.ok) throw new Error('Erro ao buscar classificação de construtores');
@@ -18,16 +27,12 @@ const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction
   if (!Array.isArray(standings) || standings.length === 0) {
     return [];
   }
-
   const currentRound = 10;
   const totalRounds = 24;
   const remainingRounds = totalRounds - currentRound;
-  // DOIS CARROS, por corrida, máximo 1-2 = 25+18=43
   const maxByTeam = totalRounds * (25 + 18);
 
-  // Ajustar com predição dos pilotos: prevenir incoerência (a soma dos preditos dos pilotos da equipe)
-  // Muito difícil que um time bata 900+ pts; vamos limitar a algo realista pra F1 atual
-  return standings.map((standing, index) => {
+  return standings.map((standing, index): ConstructorPrediction => {
     const currentPoints = parseInt(standing.points);
     const teamName = standing.Constructor.name;
 
@@ -42,19 +47,14 @@ const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction
       teamPerformanceMultiplier = 0.97;
     }
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
-
-    // Limitar média máxima dupla a 36pts/corrida (p1-p2 todo GP é impossível)
     let predictedPerRace = Math.min(currentPointsPerRace * teamPerformanceMultiplier, 37);
-
     const projectedRemainingPoints = predictedPerRace * remainingRounds;
     let predictedPoints = Math.round(currentPoints + projectedRemainingPoints);
-
-    // Nunca ultrapassar o teórico máximo
     predictedPoints = Math.min(predictedPoints, maxByTeam, 650);
 
     const leadingPoints = standings[0] ? parseInt(standings[0].points) : currentPoints;
     const pointsGap = leadingPoints - currentPoints;
-    const maxPossibleGain = remainingRounds * 43; // 2 carros podem somar até 43 pontos por corrida GP
+    const maxPossibleGain = remainingRounds * 43;
 
     let probability = 0;
     if (index === 0) {
@@ -65,10 +65,10 @@ const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction
       probability = Math.min(40, (catchUpProbability * 100 * 0.55) + teamFactor);
     }
 
-    // Definir tendência
-    let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (teamPerformanceMultiplier > 1.05) trend = 'up';
-    else if (teamPerformanceMultiplier < 0.96) trend = 'down';
+    // Corrigindo para tipo literal:
+    let trend: "up" | "down" | "stable" = "stable";
+    if (teamPerformanceMultiplier > 1.05) trend = "up";
+    else if (teamPerformanceMultiplier < 0.96) trend = "down";
 
     return {
       constructor: standing.Constructor,
@@ -182,3 +182,4 @@ const ConstructorsPrediction = () => {
 };
 
 export default ConstructorsPrediction;
+
