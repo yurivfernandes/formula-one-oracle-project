@@ -527,10 +527,6 @@ const RaceByRaceStandings = () => {
                             {sprintPointsValue}
                           </span>
                         )}
-                        {/* Placeholder para rounds sem nenhum resultado */}
-                        {!(hasRaceResult || hasSprintResult) && viewType === "all" && (
-                          <span className="text-gray-500 text-lg">-</span>
-                        )}
                       </div>
                     </TableCell>
                   );
