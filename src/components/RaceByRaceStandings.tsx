@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -241,8 +240,8 @@ const RaceByRaceStandings = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-red-800/30 bg-black/50">
+      <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
+        <div className="p-6 border-b border-red-800/30">
           <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida 2025</h2>
           <p className="text-gray-300">A carregar dados das corridas...</p>
         </div>
@@ -346,8 +345,8 @@ const RaceByRaceStandings = () => {
   const nextRace = allRaces?.find(race => new Date(race.date) > today);
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-      <div className="p-6 border-b border-red-800/30 bg-black/50">
+    <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
+      <div className="p-6 border-b border-red-800/30">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2">Temporada F1 2025 - Corrida a Corrida</h2>
@@ -365,7 +364,7 @@ const RaceByRaceStandings = () => {
               <SelectTrigger className="w-[200px] bg-black/50 border-red-800/30 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-red-800/30">
+              <SelectContent className="bg-black/50 border-red-800/30">
                 <SelectItem value="completed" className="text-white hover:bg-red-900/30 focus:bg-red-900/30">
                   Apenas Realizadas
                 </SelectItem>
@@ -381,21 +380,21 @@ const RaceByRaceStandings = () => {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-red-800/30 bg-black/50">
-              <TableHead className="text-gray-300 font-bold sticky left-0 bg-black/50 min-w-[220px] z-20 border-r border-red-800/30">
+            <TableRow className="border-red-800/30">
+              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/50 min-w-[220px] z-20 border-r border-red-800/30">
                 Piloto
               </TableHead>
-              <TableHead className="text-gray-300 font-bold sticky left-[220px] bg-black/50 min-w-[100px] z-20 border-r border-red-800/30">
+              <TableHead className="text-red-400 font-bold sticky left-[220px] bg-black/50 min-w-[100px] z-20 border-r border-red-800/30">
                 Equipe
               </TableHead>
               {racesToShow.map((race) => (
                 <TableHead 
                   key={race.round} 
-                  className="text-gray-300 font-bold text-center min-w-[120px] bg-black/50"
+                  className="text-red-400 font-bold text-center min-w-[120px] bg-black/50"
                 >
                   <div className="flex flex-col items-center py-2">
                     <span className="text-2xl mb-1">{getCountryFlag(race.Circuit.Location.country)}</span>
-                    <span className="text-xs font-medium">{race.Circuit.Location.country}</span>
+                    <span className="text-xs font-medium text-gray-300">{race.Circuit.Location.country}</span>
                     <div className="flex gap-1 mt-2">
                       {sprintResultsMap[race.round] && (
                         <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
@@ -407,7 +406,7 @@ const RaceByRaceStandings = () => {
                   </div>
                 </TableHead>
               ))}
-              <TableHead className="text-gray-300 font-bold text-center min-w-[100px] sticky right-0 bg-black/50 z-20 border-l border-red-800/30">
+              <TableHead className="text-red-400 font-bold text-center min-w-[100px] sticky right-0 bg-black/50 z-20 border-l border-red-800/30">
                 <div className="flex flex-col items-center">
                   <span className="text-lg">🏆</span>
                   <span className="text-sm">Total</span>
@@ -421,7 +420,7 @@ const RaceByRaceStandings = () => {
                 key={driverId} 
                 className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
-                <TableCell className="sticky left-0 bg-gray-900 text-white z-10 border-r border-red-800/30 py-4">
+                <TableCell className="sticky left-0 bg-black/40 text-white z-10 border-r border-red-800/30 py-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
@@ -437,8 +436,8 @@ const RaceByRaceStandings = () => {
                     <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-[220px] bg-gray-900 z-10 border-r border-red-800/30 py-4">
-                  <div className="flex items-center justify-center">
+                <TableCell className="sticky left-[220px] bg-black/40 z-10 border-r border-red-800/30 py-4">
+                  <div className="flex items-center justify-center bg-white/90 rounded-lg p-2">
                     <img 
                       src={getTeamLogo(constructor.name)} 
                       alt={constructor.name}
@@ -446,7 +445,7 @@ const RaceByRaceStandings = () => {
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
-                        target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium">${constructor.name}</span>`;
+                        target.parentElement!.innerHTML = `<span class="text-black text-xs font-medium">${constructor.name}</span>`;
                       }}
                     />
                   </div>
@@ -490,7 +489,7 @@ const RaceByRaceStandings = () => {
                     </TableCell>
                   );
                 })}
-                <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-gray-900 z-10 border-l border-red-800/30 py-4">
+                <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-black/40 z-10 border-l border-red-800/30 py-4">
                   <div className="flex flex-col items-center">
                     <span className={`${
                       index === 0 ? 'text-yellow-400' : 
