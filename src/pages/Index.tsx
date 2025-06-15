@@ -1,10 +1,15 @@
-
 import { Link } from "react-router-dom";
 import { Trophy, Flag, Calendar, TrendingUp, Github, Linkedin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// Adiciona o ícone do WhatsApp
+import { SiWhatsapp } from "react-icons/si";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
+import canadaImg from "/canada-f1.jpg"; // Opcional, só se o usuário enviar a imagem depois
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
+  // Mudança: nome GP atual para exibir no header
+  const currentGPName = "GP do Canadá";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-950 via-black to-red-900">
       {/* Navigation */}
@@ -34,54 +39,36 @@ const Index = () => {
               >
                 Predição
               </Link>
+              {/* Troca nome do menu para GP atual */}
               <Link 
                 to="/race-weekend" 
                 className="text-white hover:text-red-400 transition-colors font-medium"
               >
-                Fim de Semana
+                {currentGPName}
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold text-white mb-6 animate-pulse">
-              Fórmula 1
-              <span className="text-red-500"> Analytics</span>
-            </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              Análise completa dos dados da Fórmula 1 com previsões inteligentes para o campeonato mundial
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/championship">
-                <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
-                  Ver Campeonato 2025
-                  <TrendingUp className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/race-weekend">
-                <Button variant="outline" className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
-                  Fim de Semana de Corrida
-                  <Flag className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+      {/* Hero da Próxima Corrida - Versão Herozona */}
+      <section
+        className="relative flex items-center justify-center min-h-[500px] bg-cover bg-center"
+        style={{
+          backgroundImage: `url('/canada-f1.jpg'), linear-gradient(to bottom right, #991b1b, #111)`,
+          backgroundBlendMode: "overlay",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[rgba(0,0,0,.91)] via-black/80 to-red-900/60" />
+        <div className="relative z-10 w-full flex flex-col items-center py-12 gap-6">
+          <NextRaceDetailedInfo hero />
         </div>
-        
-        {/* Animated background elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-red-500/20 rounded-full animate-bounce"></div>
-        <div className="absolute bottom-20 right-10 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-red-600/30 rounded-full animate-ping"></div>
-      </div>
+      </section>
 
-      {/* AVISO DA PRÓXIMA CORRIDA DETALHADO - Movido para depois da hero */}
+      {/* Seções colapsáveis de cronograma e pontos */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <NextRaceDetailedInfo />
+        {/* Cronograma e Pontos agora estão dentro do NextRaceDetailedInfo */}
+        {/* Abaixo removido o antigo NextRaceDetailedInfo daqui */}
       </div>
 
       {/* History Section */}
@@ -127,7 +114,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Stats Section */}
+      {/* Só atualizar os anos de história para 75 */}
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
@@ -151,7 +138,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer melhorado com ícone do WhatsApp */}
       <footer className="bg-black/60 border-t border-red-800/30 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
@@ -174,7 +161,7 @@ const Index = () => {
                   Predição
                 </Link>
                 <Link to="/race-weekend" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
-                  Fim de Semana
+                  {currentGPName}
                 </Link>
               </div>
             </div>
@@ -183,16 +170,23 @@ const Index = () => {
               <p className="text-gray-400 text-sm mb-2">
                 Desenvolvido por <span className="text-red-400 font-semibold">Yuri Fernandes</span>
               </p>
-              <a
-                href="https://wa.me/5531987798823"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-400 hover:text-green-300 transition-colors text-sm flex items-center gap-1 mb-2"
-              >
-                📱 WhatsApp: (31) 98779-8823
-              </a>
               <div className="flex gap-3 mt-2">
-                <a 
+                <a
+                  href="https://wa.me/5531987798823"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-400 hover:text-green-300 transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="16" fill="#25D366" />
+                    <path
+                      d="M22.27 18.13c-.39-.19-2.3-1.13-2.66-1.25-.36-.13-.62-.19-.89.19-.26.39-1.02 1.25-1.25 1.51-.23.26-.46.29-.84.09-.39-.19-1.65-.61-3.13-1.95-1.15-1.02-1.93-2.27-2.16-2.66-.23-.39-.03-.6.17-.79.17-.17.39-.45.58-.68.2-.23.26-.39.39-.65.13-.26.06-.48 0-.67-.07-.19-.89-2.13-1.22-2.91-.32-.78-.66-.67-.89-.67-.23 0-.48-.01-.74 0-.26.01-.67.09-1.03.46s-1.35 1.33-1.28 3.23c.06 1.6 1.28 3.51 2.91 5.02 1.99 1.84 3.91 2.11 5.1 2.11.35 0 .67-.03.96-.06.55-.06 1.86-.75 2.13-1.48.27-.72.27-1.37.19-1.51-.08-.14-.27-.22-.56-.36z"
+                      fill="#fff"
+                    />
+                  </svg>
+                </a>
+                <a
                   href="https://github.com/yurivfernandes"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -201,7 +195,7 @@ const Index = () => {
                 >
                   <Github className="h-6 w-6" />
                 </a>
-                <a 
+                <a
                   href="https://www.linkedin.com/in/yurianalistabi/"
                   target="_blank"
                   rel="noopener noreferrer"

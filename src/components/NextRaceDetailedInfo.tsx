@@ -1,10 +1,11 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Clock, Award, MapPin, Zap } from "lucide-react";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 // Tradução de países e bandeiras
 const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
@@ -86,7 +87,7 @@ const fetchSchedule = async (round: string) => {
 
 const CURRENT_ROUND = 10;
 
-const NextRaceDetailedInfo = () => {
+const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
   // All hooks must be called at the top level
   const { data: races, isLoading: loadingRaces } = useQuery({
     queryKey: ["races", 2025],
@@ -195,6 +196,112 @@ const NextRaceDetailedInfo = () => {
 
   const nextSession = sessions.find(s => s.isNext);
 
+  // HERO SECTION
+  if (hero) {
+    return (
+      <div
+        className="w-full max-w-4xl mx-auto rounded-xl shadow-2xl bg-black/60 border border-red-900/50 overflow-hidden"
+      >
+        <div className="flex flex-col md:flex-row items-center gap-5 md:gap-10 p-8">
+          {/* GP e país */}
+          <div className="flex-1 flex flex-col items-center md:items-start gap-2">
+            <span className="text-5xl mb-2">
+              {proxima.pais.flag}
+            </span>
+            <span className="text-2xl text-red-300 font-semibold">{proxima.nome}</span>
+            <span className="text-md text-gray-200 font-medium flex items-center gap-1">
+              <MapPin className="w-4 h-4 text-red-500" /> {proxima.circuito}
+            </span>
+            <div className="flex items-center gap-2 mt-3">
+              <CalendarDays className="w-5 h-5 text-red-400" />
+              <span className="text-gray-300">{proxima.data}</span>
+            </div>
+          </div>
+          {/* Proxima sessão */}
+          {nextSession && (
+            <div className="bg-gradient-to-r from-red-600/30 to-red-500/20 border border-red-400/50 rounded-xl px-7 py-6 backdrop-blur flex flex-col items-center">
+              <div className="flex items-center gap-3 mb-2">
+                <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
+                <span className="text-yellow-400 font-bold text-lg">PRÓXIMA SESSÃO</span>
+              </div>
+              <div className="text-white font-bold text-xl">{nextSession.label}</div>
+              <div className="flex items-center gap-2 text-red-300 text-lg font-semibold">
+                <Clock className="w-5 h-5" />
+                {nextSession.dt}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Colapsável: Cronograma */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-200 bg-black/30 hover:bg-red-900/30 transition rounded-none border-t border-red-900/30">
+            <span className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-red-400" /> Cronograma Completo
+            </span>
+            <ChevronDown className="w-5 h-5 text-red-200" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-6 py-4">
+            <div className="space-y-3">
+              {sessions.map((session, idx) => (
+                <div 
+                  key={idx}
+                  className={`flex justify-between items-center py-2 px-3 rounded-lg ${
+                    session.isNext
+                      ? "bg-gradient-to-r from-red-600/40 to-yellow-100/10 border border-red-400/60 shadow-lg shadow-red-500/10"
+                      : "bg-black/30 border border-red-800/30 hover:bg-black/40"
+                  }`}
+                >
+                  <span className={`font-semibold flex gap-2 items-center ${session.isNext ? 'text-yellow-400' : 'text-white'}`}>
+                    {session.isNext && <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />}
+                    {session.label}
+                  </span>
+                  <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-300' : 'text-red-300'}`}>
+                    {session.dt}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Colapsável: Pontos Restantes */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-200 bg-black/30 hover:bg-red-900/30 transition rounded-none border-y border-red-900/30">
+            <span className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-yellow-400" /> Pontos Restantes
+            </span>
+            <ChevronDown className="w-5 h-5 text-red-200" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-6 pb-6">
+            <div className="space-y-4 pt-4">
+              <div className="bg-gradient-to-r from-yellow-600/20 to-yellow-500/10 rounded-lg p-4 border border-yellow-400/40">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-yellow-400 font-bold text-lg">Campeonato de Pilotos</span>
+                  <span className="text-3xl font-bold text-yellow-400">{pontosPilotos}</span>
+                </div>
+                <p className="text-xs text-yellow-200/80">
+                  {racesLeft} corridas • {sprintsLeft} sprints restantes
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-gray-600/20 to-gray-500/10 rounded-lg p-4 border border-gray-400/40">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-300 font-bold text-lg">Campeonato de Construtores</span>
+                  <span className="text-3xl font-bold text-gray-300">{pontosConstrutores}</span>
+                </div>
+                <p className="text-xs text-gray-400">
+                  {racesLeft} corridas • {sprintsLeft} sprints restantes
+                </p>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    );
+  }
+
+  // Componente padrão para exibir seção detalhada
   return (
     <div className="mb-8">
       <Card className="bg-gradient-to-br from-red-950/60 via-black/80 to-red-900/40 border border-red-500/50 backdrop-blur-sm shadow-2xl">
