@@ -507,22 +507,24 @@ const RaceByRaceStandings = () => {
                         !(hasRaceResult || hasSprintResult) && viewType === "all" ? 'text-gray-500' : ''
                       } bg-black`}
                     >
-                      {/* Corrida principal */}
-                      {hasRaceResult && (
-                        <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
-                          {racePointsValue}
-                        </span>
-                      )}
-                      {/* Sprint */}
-                      {hasSprintResult && (
-                        <span className="text-sm bg-yellow-400 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block">
-                          {sprintPointsValue}
-                        </span>
-                      )}
-                      {/* Placeholder para rounds sem resultado */}
-                      {!(hasRaceResult || hasSprintResult) && viewType === "all" && (
-                        <span className="text-gray-500 text-lg">-</span>
-                      )}
+                      <div className="flex flex-col items-center gap-0.5">
+                        {/* Corrida principal */}
+                        {hasRaceResult && (
+                          <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            {racePointsValue}
+                          </span>
+                        )}
+                        {/* Sprint */}
+                        {hasSprintResult && (
+                          <span className="text-sm bg-yellow-400 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            {sprintPointsValue}
+                          </span>
+                        )}
+                        {/* Placeholder para rounds sem resultado */}
+                        {!(hasRaceResult || hasSprintResult) && viewType === "all" && (
+                          <span className="text-gray-500 text-lg">-</span>
+                        )}
+                      </div>
                     </TableCell>
                   );
                 })}
