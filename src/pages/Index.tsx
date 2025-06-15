@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Trophy, Flag, Calendar, TrendingUp, CheckeredFlag } from "lucide-react";
+import { Trophy, Flag, Calendar, TrendingUp, Github, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
 
@@ -66,7 +66,7 @@ const Index = () => {
               <Link to="/race-weekend">
                 <Button variant="outline" className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-105">
                   Fim de Semana de Corrida
-                  <CheckeredFlag className="ml-2 h-5 w-5" />
+                  <Flag className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </div>
@@ -183,14 +183,34 @@ const Index = () => {
               <p className="text-gray-400 text-sm mb-2">
                 Desenvolvido por <span className="text-red-400 font-semibold">Yuri Fernandes</span>
               </p>
-              <a 
-                href="https://wa.me/5531987798823" 
-                target="_blank" 
+              <a
+                href="https://wa.me/5531987798823"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-green-400 hover:text-green-300 transition-colors text-sm"
+                className="text-green-400 hover:text-green-300 transition-colors text-sm flex items-center gap-1 mb-2"
               >
                 📱 WhatsApp: (31) 98779-8823
               </a>
+              <div className="flex gap-3 mt-2">
+                <a 
+                  href="https://github.com/yurivfernandes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-red-400"
+                  aria-label="GitHub"
+                >
+                  <Github className="h-6 w-6" />
+                </a>
+                <a 
+                  href="https://www.linkedin.com/in/yurianalistabi/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-red-400"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="h-6 w-6" />
+                </a>
+              </div>
             </div>
           </div>
           <div className="border-t border-red-800/30 mt-8 pt-6 text-center">
