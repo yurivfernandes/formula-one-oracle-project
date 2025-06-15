@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Clock, Award, MapPin, Zap } from "lucide-react";
-import { format, parseISO, isAfter, isBefore } from "date-fns";
+import { format, parseISO, isAfter, isBefore, addHours, subHours } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -196,6 +196,19 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
 
   const nextSession = sessions.find(s => s.isNext);
 
+  // Get date/time for race
+  const raceStart = nextRaceObj?.date && nextRaceObj?.time
+    ? parseISO(`${nextRaceObj.date}T${nextRaceObj.time}`)
+    : null;
+
+  // Calcula se está dentro da janela Live Timing (1h antes)
+  let liveTimingShow = false;
+  if (raceStart) {
+    const oneHourBeforeStart = subHours(raceStart, 1);
+    const raceEnd = addHours(raceStart, 2);
+    liveTimingShow = now >= oneHourBeforeStart && now <= raceEnd;
+  }
+
   // GP Canadá 2025: 15/jun/2025 15:00 Brasil — UTC "2025-06-15T18:00:00Z"
   const nextRaceStart = new Date("2025-06-15T18:00:00Z");
   const nextRaceEnd = new Date("2025-06-15T20:00:00Z");
@@ -209,12 +222,12 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
         className="w-full max-w-4xl mx-auto rounded-xl shadow-2xl bg-white border border-red-200 overflow-hidden"
       >
         <div className="flex flex-col md:flex-row items-center gap-5 md:gap-10 p-8">
-          {/* GP e país */}
+          {/* GP e país -- bandeira ao lado do nome, compacto */}
           <div className="flex-1 flex flex-col items-center md:items-start gap-2">
-            <span className="text-5xl mb-2">
-              {proxima.pais.flag}
-            </span>
-            <span className="text-2xl text-red-700 font-semibold">{proxima.nome}</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-4xl">{proxima.pais.flag}</span>
+              <span className="text-2xl text-red-700 font-semibold">{proxima.nome}</span>
+            </div>
             <span className="text-md text-gray-600 font-medium flex items-center gap-1">
               <MapPin className="w-4 h-4 text-red-400" /> {proxima.circuito}
             </span>
@@ -222,8 +235,8 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
               <CalendarDays className="w-5 h-5 text-red-500" />
               <span className="text-gray-700">{proxima.data}</span>
             </div>
-            {/* Botão Live Timing na home */}
-            {liveTimingAvailable && (
+            {/* Botão Live Timing só aparece a partir de 1h antes */}
+            {liveTimingShow && (
               <a
                 href="/race-weekend/live"
                 className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg bg-green-100 text-green-800 border border-green-300 font-semibold shadow hover:bg-green-200 transition"
@@ -267,7 +280,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                       : "bg-white border border-gray-200"
                   }`}
                 >
-                  <span className={`font-semibold flex gap-2 items-center ${session.isNext ? 'text-yellow-600' : 'text-red-700'}`}>
+                  <span className={`font-semibold flex gap-2 items-center ${session.isNext ? 'text-yellow-700' : 'text-red-700'}`}>
                     {session.isNext && <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />}
                     {session.label}
                   </span>
