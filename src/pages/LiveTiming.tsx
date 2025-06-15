@@ -1,31 +1,31 @@
-
 import { useState, useEffect } from "react";
-import { Zap, Wifi } from "lucide-react";
+import { Zap, Wifi, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import TeamLogo from "@/components/TeamLogo";
 
 // Dados mockados mais realistas para live timing
 const DRIVERS_DATA = [
-  { id: "VER", name: "Max Verstappen", team: "Red Bull Racing", position: 1 },
-  { id: "HAM", name: "Lewis Hamilton", team: "Mercedes", position: 2 },
-  { id: "LEC", name: "Charles Leclerc", team: "Ferrari", position: 3 },
-  { id: "RUS", name: "George Russell", team: "Mercedes", position: 4 },
-  { id: "SAI", name: "Carlos Sainz", team: "Ferrari", position: 5 },
-  { id: "NOR", name: "Lando Norris", team: "McLaren", position: 6 },
-  { id: "PIA", name: "Oscar Piastri", team: "McLaren", position: 7 },
-  { id: "ALO", name: "Fernando Alonso", team: "Aston Martin", position: 8 },
-  { id: "STR", name: "Lance Stroll", team: "Aston Martin", position: 9 },
-  { id: "GAS", name: "Pierre Gasly", team: "Alpine", position: 10 },
-  { id: "OCO", name: "Esteban Ocon", team: "Alpine", position: 11 },
-  { id: "ALB", name: "Alexander Albon", team: "Williams", position: 12 },
-  { id: "SAR", name: "Logan Sargeant", team: "Williams", position: 13 },
-  { id: "TSU", name: "Yuki Tsunoda", team: "AlphaTauri", position: 14 },
-  { id: "RIC", name: "Daniel Ricciardo", team: "AlphaTauri", position: 15 },
-  { id: "BOT", name: "Valtteri Bottas", team: "Alfa Romeo", position: 16 },
-  { id: "ZHO", name: "Zhou Guanyu", team: "Alfa Romeo", position: 17 },
-  { id: "MAG", name: "Kevin Magnussen", team: "Haas", position: 18 },
-  { id: "HUL", name: "Nico Hulkenberg", team: "Haas", position: 19 },
-  { id: "PER", name: "Sergio Perez", team: "Red Bull Racing", position: 20 },
+  { id: "VER", name: "Max Verstappen", team: "Red Bull", position: 1, startingPosition: 2, country: "🇳🇱" },
+  { id: "HAM", name: "Lewis Hamilton", team: "Mercedes", position: 2, startingPosition: 3, country: "🇬🇧" },
+  { id: "LEC", name: "Charles Leclerc", team: "Ferrari", position: 3, startingPosition: 1, country: "🇲🇨" },
+  { id: "RUS", name: "George Russell", team: "Mercedes", position: 4, startingPosition: 4, country: "🇬🇧" },
+  { id: "SAI", name: "Carlos Sainz", team: "Ferrari", position: 5, startingPosition: 6, country: "🇪🇸" },
+  { id: "NOR", name: "Lando Norris", team: "McLaren", position: 6, startingPosition: 5, country: "🇬🇧" },
+  { id: "PIA", name: "Oscar Piastri", team: "McLaren", position: 7, startingPosition: 8, country: "🇦🇺" },
+  { id: "ALO", name: "Fernando Alonso", team: "Aston Martin", position: 8, startingPosition: 7, country: "🇪🇸" },
+  { id: "STR", name: "Lance Stroll", team: "Aston Martin", position: 9, startingPosition: 10, country: "🇨🇦" },
+  { id: "GAS", name: "Pierre Gasly", team: "Alpine F1 Team", position: 10, startingPosition: 9, country: "🇫🇷" },
+  { id: "OCO", name: "Esteban Ocon", team: "Alpine F1 Team", position: 11, startingPosition: 11, country: "🇫🇷" },
+  { id: "ALB", name: "Alexander Albon", team: "Williams", position: 12, startingPosition: 13, country: "🇹🇭" },
+  { id: "SAR", name: "Logan Sargeant", team: "Williams", position: 13, startingPosition: 12, country: "🇺🇸" },
+  { id: "TSU", name: "Yuki Tsunoda", team: "RB F1 Team", position: 14, startingPosition: 15, country: "🇯🇵" },
+  { id: "RIC", name: "Daniel Ricciardo", team: "RB F1 Team", position: 15, startingPosition: 14, country: "🇦🇺" },
+  { id: "BOT", name: "Valtteri Bottas", team: "Sauber", position: 16, startingPosition: 16, country: "🇫🇮" },
+  { id: "ZHO", name: "Zhou Guanyu", team: "Sauber", position: 17, startingPosition: 18, country: "🇨🇳" },
+  { id: "MAG", name: "Kevin Magnussen", team: "Haas F1 Team", position: 18, startingPosition: 17, country: "🇩🇰" },
+  { id: "HUL", name: "Nico Hulkenberg", team: "Haas F1 Team", position: 19, startingPosition: 19, country: "🇩🇪" },
+  { id: "PER", name: "Sergio Perez", team: "Red Bull", position: 20, startingPosition: 20, country: "🇲🇽" },
 ];
 
 // Tempos mockados por volta para cada piloto
@@ -84,6 +84,28 @@ const LiveTimingPage = () => {
     });
   };
 
+  const getPositionChangeIcon = (currentPos: number, startingPos: number) => {
+    const change = startingPos - currentPos;
+    if (change > 0) {
+      return <TrendingUp className="w-4 h-4 text-green-600" />;
+    } else if (change < 0) {
+      return <TrendingDown className="w-4 h-4 text-red-600" />;
+    } else {
+      return <Minus className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getPositionChangeText = (currentPos: number, startingPos: number) => {
+    const change = startingPos - currentPos;
+    if (change > 0) {
+      return `+${change}`;
+    } else if (change < 0) {
+      return change.toString();
+    } else {
+      return "0";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader />
@@ -123,8 +145,9 @@ const LiveTimingPage = () => {
                 <thead className="bg-red-600 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
+                    <th className="px-3 py-2 text-left font-semibold w-6"></th>
                     <th className="px-3 py-2 text-left font-semibold w-16">Piloto</th>
-                    <th className="px-3 py-2 text-left font-semibold min-w-40">Equipe</th>
+                    <th className="px-3 py-2 text-left font-semibold min-w-20">Equipe</th>
                     {Array.from({ length: 15 }, (_, i) => (
                       <th key={i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
                         L{i + 1}
@@ -142,8 +165,26 @@ const LiveTimingPage = () => {
                       }`}
                     >
                       <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
-                      <td className="px-3 py-2 font-mono font-semibold text-red-700">{driver.id}</td>
-                      <td className="px-3 py-2 text-gray-700 text-sm">{driver.team}</td>
+                      <td className="px-2 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {getPositionChangeIcon(driver.position, driver.startingPosition)}
+                          <span className={`text-xs font-medium ${
+                            driver.startingPosition - driver.position > 0 ? 'text-green-600' : 
+                            driver.startingPosition - driver.position < 0 ? 'text-red-600' : 'text-gray-500'
+                          }`}>
+                            {getPositionChangeText(driver.position, driver.startingPosition)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{driver.country}</span>
+                          <span className="font-mono font-semibold text-red-700">{driver.id}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <TeamLogo teamName={driver.team} className="w-16 h-10" />
+                      </td>
                       {lapTimes[driver.id]?.map((time, lapIndex) => (
                         <td key={lapIndex} className="px-2 py-2 text-center font-mono text-xs text-gray-800">
                           {time}
@@ -169,6 +210,18 @@ const LiveTimingPage = () => {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-50 border border-red-200 rounded"></div>
               <span>Zona de eliminação</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-green-600" />
+              <span>Ganhou posições</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-red-600" />
+              <span>Perdeu posições</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Minus className="w-4 h-4 text-gray-500" />
+              <span>Mesma posição</span>
             </div>
           </div>
         </div>
