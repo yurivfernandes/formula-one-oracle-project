@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Award } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
+import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Bandeiras extras para países
