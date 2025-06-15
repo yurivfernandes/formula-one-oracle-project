@@ -32,8 +32,13 @@ interface Race {
   raceName: string;
   Circuit: {
     circuitName: string;
+    Location: {
+      country: string;
+      locality: string;
+    };
   };
-  Results: Result[];
+  Results?: Result[];
+  date: string;
 }
 
 interface RaceResponse {
@@ -43,39 +48,6 @@ interface RaceResponse {
     };
   };
 }
-
-// Calendário completo 2025 com sprints
-const FULL_CALENDAR_2025 = [
-  { round: "1", country: "🇦🇺", name: "Austrália", city: "Melbourne", type: "race" },
-  { round: "2", country: "🇨🇳", name: "China", city: "Xangai", type: "race" },
-  { round: "3", country: "🇯🇵", name: "Japão", city: "Suzuka", type: "race" },
-  { round: "4", country: "🇧🇭", name: "Bahrein", city: "Sakhir", type: "sprint" },
-  { round: "4s", country: "🇧🇭", name: "Bahrein Sprint", city: "Sakhir", type: "sprint-race" },
-  { round: "5", country: "🇸🇦", name: "Arábia Saudita", city: "Jeddah", type: "race" },
-  { round: "6", country: "🇺🇸", name: "Miami", city: "Miami", type: "sprint" },
-  { round: "6s", country: "🇺🇸", name: "Miami Sprint", city: "Miami", type: "sprint-race" },
-  { round: "7", country: "🇮🇹", name: "Emilia-Romagna", city: "Ímola", type: "race" },
-  { round: "8", country: "🇲🇨", name: "Mônaco", city: "Monte Carlo", type: "race" },
-  { round: "9", country: "🇪🇸", name: "Espanha", city: "Barcelona", type: "race" },
-  { round: "10", country: "🇨🇦", name: "Canadá", city: "Montreal", type: "race", current: true },
-  { round: "11", country: "🇦🇹", name: "Áustria", city: "Spielberg", type: "sprint" },
-  { round: "11s", country: "🇦🇹", name: "Áustria Sprint", city: "Spielberg", type: "sprint-race" },
-  { round: "12", country: "🇬🇧", name: "Reino Unido", city: "Silverstone", type: "race" },
-  { round: "13", country: "🇭🇺", name: "Hungria", city: "Budapeste", type: "race" },
-  { round: "14", country: "🇧🇪", name: "Bélgica", city: "Spa-Francorchamps", type: "race" },
-  { round: "15", country: "🇳🇱", name: "Holanda", city: "Zandvoort", type: "race" },
-  { round: "16", country: "🇮🇹", name: "Itália", city: "Monza", type: "race" },
-  { round: "17", country: "🇦🇿", name: "Azerbaijão", city: "Baku", type: "race" },
-  { round: "18", country: "🇸🇬", name: "Singapura", city: "Marina Bay", type: "race" },
-  { round: "19", country: "🇺🇸", name: "EUA", city: "Austin", type: "sprint" },
-  { round: "19s", country: "🇺🇸", name: "EUA Sprint", city: "Austin", type: "sprint-race" },
-  { round: "20", country: "🇲🇽", name: "México", city: "Cidade do México", type: "race" },
-  { round: "21", country: "🇧🇷", name: "Brasil", city: "São Paulo", type: "sprint" },
-  { round: "21s", country: "🇧🇷", name: "Brasil Sprint", city: "São Paulo", type: "sprint-race" },
-  { round: "22", country: "🇺🇸", name: "Las Vegas", city: "Las Vegas", type: "race" },
-  { round: "23", country: "🇶🇦", name: "Catar", city: "Lusail", type: "race" },
-  { round: "24", country: "🇦🇪", name: "Abu Dhabi", city: "Yas Marina", type: "race" }
-];
 
 // --- Funções Auxiliares ---
 const getTeamColor = (team: string) => {
@@ -119,11 +91,47 @@ const getNationalityFlag = (nationality: string) => {
   return flags[nationality] || "🏁";
 };
 
-// --- Função de Fetch ---
+const getCountryFlag = (country: string) => {
+  const flags: { [key: string]: string } = {
+    "Australia": "🇦🇺",
+    "China": "🇨🇳",
+    "Japan": "🇯🇵",
+    "Bahrain": "🇧🇭",
+    "Saudi Arabia": "🇸🇦",
+    "USA": "🇺🇸",
+    "Italy": "🇮🇹",
+    "Monaco": "🇲🇨",
+    "Spain": "🇪🇸",
+    "Canada": "🇨🇦",
+    "Austria": "🇦🇹",
+    "UK": "🇬🇧",
+    "Hungary": "🇭🇺",
+    "Belgium": "🇧🇪",
+    "Netherlands": "🇳🇱",
+    "Azerbaijan": "🇦🇿",
+    "Singapore": "🇸🇬",
+    "Mexico": "🇲🇽",
+    "Brazil": "🇧🇷",
+    "Qatar": "🇶🇦",
+    "United Arab Emirates": "🇦🇪"
+  };
+  return flags[country] || "🏁";
+};
+
+// --- Funções de Fetch ---
+const fetchRaces = async (): Promise<Race[]> => {
+  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
+  if (!response.ok) {
+    throw new Error('Erro ao buscar calendário de corridas');
+  }
+  const data: RaceResponse = await response.json();
+  return data.MRData.RaceTable.Races;
+};
+
 const fetchRaceResults = async (): Promise<Race[]> => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/results.json?limit=200');
   if (!response.ok) {
-    throw new Error('A resposta da rede não foi bem-sucedida');
+    throw new Error('Erro ao buscar resultados das corridas');
   }
   const data: RaceResponse = await response.json();
   return data.MRData.RaceTable.Races;
@@ -132,12 +140,17 @@ const fetchRaceResults = async (): Promise<Race[]> => {
 const RaceByRaceStandings = () => {
   const [viewType, setViewType] = useState<"all" | "completed">("completed");
   
-  const { data: races, isLoading, isError, error } = useQuery({
+  const { data: allRaces, isLoading: isLoadingRaces } = useQuery({
+    queryKey: ['races', 2025],
+    queryFn: fetchRaces,
+  });
+
+  const { data: raceResults, isLoading: isLoadingResults, isError, error } = useQuery({
     queryKey: ['raceResults', 2025],
     queryFn: fetchRaceResults,
   });
 
-  if (isLoading) {
+  if (isLoadingRaces || isLoadingResults) {
     return (
       <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
         <div className="p-6 border-b border-red-800/30">
@@ -163,7 +176,7 @@ const RaceByRaceStandings = () => {
 
   // Criar mapa de resultados das corridas realizadas
   const raceResultsMap: { [round: string]: Race } = {};
-  races?.forEach(race => {
+  raceResults?.forEach(race => {
     raceResultsMap[race.round] = race;
   });
 
@@ -171,8 +184,8 @@ const RaceByRaceStandings = () => {
   const allDrivers = new Set<string>();
   const driverData: { [key: string]: { driver: Driver; constructor: Constructor; racePoints: { [round: string]: string } } } = {};
 
-  races?.forEach(race => {
-    race.Results.forEach(result => {
+  raceResults?.forEach(race => {
+    race.Results?.forEach(result => {
       const driverId = result.Driver.driverId;
       allDrivers.add(driverId);
       
@@ -196,10 +209,12 @@ const RaceByRaceStandings = () => {
 
   // Filtrar corridas para exibir
   const racesToShow = viewType === "completed" 
-    ? FULL_CALENDAR_2025.filter(round => raceResultsMap[round.round] || round.type === "sprint-race")
-    : FULL_CALENDAR_2025;
+    ? allRaces?.filter(race => raceResultsMap[race.round]) || []
+    : allRaces || [];
 
-  const currentRaceIndex = FULL_CALENDAR_2025.findIndex(race => race.current);
+  // Encontrar próxima corrida
+  const today = new Date();
+  const nextRace = allRaces?.find(race => new Date(race.date) > today);
 
   return (
     <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
@@ -210,18 +225,22 @@ const RaceByRaceStandings = () => {
             <p className="text-gray-300">Pontos por corrida de cada piloto</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-red-600/20 border border-red-500 rounded-lg px-3 py-2">
-              <span className="text-red-400 font-medium text-sm">🏎️ Próxima: Canadá 🇨🇦</span>
-            </div>
+            {nextRace && (
+              <div className="bg-red-600/20 border border-red-500 rounded-lg px-3 py-2">
+                <span className="text-red-400 font-medium text-sm">
+                  🏎️ Próxima: {nextRace.raceName} {getCountryFlag(nextRace.Circuit.Location.country)}
+                </span>
+              </div>
+            )}
             <Select value={viewType} onValueChange={(value: "all" | "completed") => setViewType(value)}>
-              <SelectTrigger className="w-[200px] bg-black/60 border-red-800/50 text-white">
+              <SelectTrigger className="w-[200px] bg-black/90 border-red-800/50 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black/90 border-red-800/50">
-                <SelectItem value="completed" className="text-white hover:bg-red-900/20">
+              <SelectContent className="bg-black/95 border-red-800/50 z-50">
+                <SelectItem value="completed" className="text-white hover:bg-red-900/30 focus:bg-red-900/30">
                   Apenas Realizadas
                 </SelectItem>
-                <SelectItem value="all" className="text-white hover:bg-red-900/20">
+                <SelectItem value="all" className="text-white hover:bg-red-900/30 focus:bg-red-900/30">
                   Calendário Completo
                 </SelectItem>
               </SelectContent>
@@ -234,24 +253,27 @@ const RaceByRaceStandings = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-red-800/30">
-              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/40 min-w-[200px] z-10">Piloto</TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-[200px] bg-black/40 min-w-[150px] z-10">Equipe</TableHead>
-              {racesToShow.map((raceInfo) => (
+              <TableHead className="text-red-400 font-bold sticky left-0 bg-black/95 backdrop-blur-sm min-w-[200px] z-20 border-r border-red-800/30">
+                Piloto
+              </TableHead>
+              <TableHead className="text-red-400 font-bold sticky left-[200px] bg-black/95 backdrop-blur-sm min-w-[150px] z-20 border-r border-red-800/30">
+                Equipe
+              </TableHead>
+              {racesToShow.map((race) => (
                 <TableHead 
-                  key={`${raceInfo.round}-${raceInfo.type}`} 
-                  className={`text-red-400 font-bold text-center min-w-[70px] ${
-                    raceInfo.current ? 'bg-red-600/20 border-x border-red-500' : ''
-                  }`}
+                  key={race.round} 
+                  className="text-red-400 font-bold text-center min-w-[80px]"
                 >
                   <div className="flex flex-col items-center">
-                    <span className="text-lg mb-1">{raceInfo.country}</span>
-                    <span className="text-xs">{raceInfo.name}</span>
-                    {raceInfo.type === "sprint" && <span className="text-xs text-yellow-400">Sprint</span>}
-                    {raceInfo.type === "sprint-race" && <span className="text-xs text-yellow-400">Sprint Race</span>}
+                    <span className="text-lg mb-1">{getCountryFlag(race.Circuit.Location.country)}</span>
+                    <span className="text-xs">{race.Circuit.Location.country}</span>
+                    <span className="text-xs text-gray-400">R{race.round}</span>
                   </div>
                 </TableHead>
               ))}
-              <TableHead className="text-red-400 font-bold text-center min-w-[80px] sticky right-0 bg-black/40 z-10">Total</TableHead>
+              <TableHead className="text-red-400 font-bold text-center min-w-[80px] sticky right-0 bg-black/95 backdrop-blur-sm z-20 border-l border-red-800/30">
+                Total
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -260,28 +282,26 @@ const RaceByRaceStandings = () => {
                 key={driverId} 
                 className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
-                <TableCell className="sticky left-0 bg-black/40 text-white z-10">
+                <TableCell className="sticky left-0 bg-black/95 backdrop-blur-sm text-white z-10 border-r border-red-800/30">
                   <div className="flex items-center space-x-3">
                     <span className="text-sm font-bold text-red-400 min-w-[20px]">#{index + 1}</span>
                     <span className="text-lg">{getNationalityFlag(driver.nationality)}</span>
                     <span className="font-semibold whitespace-nowrap">{`${driver.givenName} ${driver.familyName}`}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-[200px] bg-black/40 z-10">
+                <TableCell className="sticky left-[200px] bg-black/95 backdrop-blur-sm z-10 border-r border-red-800/30">
                   <Badge className={`${getTeamColor(constructor.name)} text-white text-xs whitespace-nowrap`}>
                     {constructor.name}
                   </Badge>
                 </TableCell>
-                {racesToShow.map((raceInfo) => {
-                  const points = racePoints[raceInfo.round] || '0';
-                  const hasResult = raceResultsMap[raceInfo.round];
+                {racesToShow.map((race) => {
+                  const points = racePoints[race.round] || '0';
+                  const hasResult = raceResultsMap[race.round];
                   
                   return (
                     <TableCell 
-                      key={`${raceInfo.round}-${raceInfo.type}`} 
+                      key={race.round} 
                       className={`text-white text-center font-medium ${
-                        raceInfo.current ? 'bg-red-600/10' : ''
-                      } ${
                         !hasResult && viewType === "all" ? 'text-gray-500' : ''
                       }`}
                     >
@@ -289,7 +309,7 @@ const RaceByRaceStandings = () => {
                     </TableCell>
                   );
                 })}
-                <TableCell className="text-white font-bold text-lg text-center bg-red-900/20 sticky right-0 z-10">
+                <TableCell className="text-white font-bold text-lg text-center bg-red-900/30 sticky right-0 z-10 border-l border-red-800/30">
                   {totalPoints}
                 </TableCell>
               </TableRow>
