@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import SiteHeader from "@/components/SiteHeader";
@@ -22,7 +21,8 @@ const useIsTimingAvailable = () => {
     const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
-  return now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000);
+  // Corrigido: libera 1h antes do início até o fim
+  return now >= new Date(RACE_START_UTC.getTime() - 60 * 60 * 1000) && now <= RACE_END_UTC;
 };
 
 const fetchQualifying = async () => {
@@ -71,18 +71,28 @@ function driverCountryFromId(driverId: string, qualifying: any[]) {
 
 const LiveTimingPage = () => {
   const timingAvailable = useIsTimingAvailable();
-  const raceStatus = getRaceStatus();
 
-  const { data: qualifying, isLoading: loadingQuali } = useQuery({
+  // Corrigir status da corrida usando now para consistência
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+  let raceStatus: "before" | "live" | "after" = "before";
+  if (now < RACE_START_UTC) raceStatus = "before";
+  else if (now >= RACE_START_UTC && now <= RACE_END_UTC) raceStatus = "live";
+  else raceStatus = "after";
+
+  const { data: qualifying = [], isLoading: loadingQuali } = useQuery({
     queryKey: ["qualifying", GP_ROUND],
     queryFn: fetchQualifying,
     enabled: timingAvailable,
   });
 
-  const { data: laps, isLoading: loadingLaps } = useQuery({
+  const { data: laps = [], isLoading: loadingLaps } = useQuery({
     queryKey: ["liveLaps", GP_ROUND],
     queryFn: fetchLaps,
-    enabled: raceStatus === "live",
+    enabled: raceStatus === "live" && timingAvailable,
     refetchInterval: raceStatus === "live" ? 12000 : false,
   });
 
@@ -105,19 +115,19 @@ const LiveTimingPage = () => {
     laps.forEach((lap, idx) => {
       lap.Timings.forEach(t => {
         if (!lapTimes[t.driverId]) lapTimes[t.driverId] = [];
-        lapTimes[t.driverId][parseInt(lap.number)-1] = t.time;
+        lapTimes[t.driverId][parseInt(lap.number) - 1] = t.time;
       });
     });
   }
 
   // Montagem da lista de pilotos:
   let drivers: any[] = [];
-  if (raceStatus === "before") {
-    // Exatamente na ordem do qualifying:
-    drivers = (qualifying || [])
+  // Antes da corrida (1h antes): mostrar ordem do qualifying
+  if (raceStatus === "before" && qualifying && qualifying.length > 0) {
+    drivers = qualifying
       .slice()
       .sort((a: any, b: any) => Number(a.position) - Number(b.position))
-      .map((q: any, ix: number) => ({
+      .map((q: any) => ({
         id: q.Driver.code,
         name: `${q.Driver.givenName} ${q.Driver.familyName}`,
         team: q.Constructor.name,
@@ -126,7 +136,8 @@ const LiveTimingPage = () => {
         qualyRow: q,
       }));
   } else if (raceStatus === "live" && laps && laps.length > 0) {
-    const lastLap = laps[laps.length-1];
+    // Durante a corrida: ordem atual da volta mais recente
+    const lastLap = laps[laps.length - 1];
     drivers = [...lastLap.Timings]
       .sort((a: any, b: any) => Number(a.position) - Number(b.position))
       .map((timing: any) => ({
@@ -139,7 +150,7 @@ const LiveTimingPage = () => {
       }));
   }
 
-  // Live Timing indisponível
+  // Bloquear Live Timing até liberar (faltando 1h)
   if (!timingAvailable)
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
