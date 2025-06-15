@@ -1,6 +1,7 @@
+
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Clock, Award, MapPin } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { CalendarDays, Clock, Award, MapPin, Zap } from "lucide-react";
+import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,7 +78,6 @@ const fetchSprints = async () => {
 };
 
 const fetchSchedule = async (round: string) => {
-  // A API do Ergast já traz horários detalhados por corrida
   const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${round}.json`);
   const data = await res.json();
   return data.MRData.RaceTable.Races[0];
@@ -106,8 +106,8 @@ const NextRaceDetailedInfo = () => {
     return dt >= now;
   });
   if (!nextRaceObj) return (
-    <div className="bg-black/40 border border-red-800/40 rounded-xl px-5 py-6 text-center text-white font-semibold mb-6">
-      Temporada finalizada
+    <div className="bg-gradient-to-r from-red-900/40 to-black/60 border border-red-500/30 rounded-xl px-5 py-6 text-center text-white font-semibold mb-6">
+      🏁 Temporada finalizada
     </div>
   );
 
@@ -118,67 +118,64 @@ const NextRaceDetailedInfo = () => {
     enabled: Boolean(nextRaceObj),
   });
 
-  // Cálculo pontos restantes pilotos/construtores (igual Prediction)
+  // Cálculo pontos restantes
   const currentRoundNum = parseInt(nextRaceObj.round ?? CURRENT_ROUND + 1);
-
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
   const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
-
   const pontosGrandPrix = racesLeft * 25;
   const pontosSprint = sprintsLeft * 8;
   const pontosPilotos = pontosGrandPrix + pontosSprint;
-  const pontosConstrutores =
-    racesLeft * (25 + 18) +
-    sprintsLeft * (8 + 7);
+  const pontosConstrutores = racesLeft * (25 + 18) + sprintsLeft * (8 + 7);
 
-  // Função para mostrar data/hora no fuso de Brasília (GMT-3)
+  // Função para mostrar data/hora no fuso de Brasília
   const formatDateTime = (date: string, time: string | undefined) => {
     try {
       if (!date) return "-";
       let iso = date;
       if (time) iso += "T" + time;
-      // ISO da Ergast é UTC Z
       const d = parseISO(iso);
-      // formatar para fuso horário de Brasília (America/Sao_Paulo)
       return format(d, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
     } catch {
       return "-";
     }
   };
 
-  // Treinos livres, qualy, sprint, corrida etc.
-  const sessions: { label: string, dt: string }[] = [];
+  // Criar array de sessões com horários
+  const sessions: { label: string, dt: string, dateObj: Date | null, isNext: boolean }[] = [];
   if (nextRaceFull) {
+    const addSession = (label: string, date: string, time: string | undefined) => {
+      const dt = formatDateTime(date, time);
+      let dateObj = null;
+      try {
+        let iso = date;
+        if (time) iso += "T" + time;
+        dateObj = parseISO(iso);
+      } catch {}
+      sessions.push({ label, dt, dateObj, isNext: false });
+    };
+
     if (nextRaceFull.FirstPractice)
-      sessions.push({
-        label: "Treino Livre 1",
-        dt: formatDateTime(nextRaceFull.FirstPractice.date, nextRaceFull.FirstPractice.time),
-      });
+      addSession("Treino Livre 1", nextRaceFull.FirstPractice.date, nextRaceFull.FirstPractice.time);
     if (nextRaceFull.SecondPractice)
-      sessions.push({
-        label: "Treino Livre 2",
-        dt: formatDateTime(nextRaceFull.SecondPractice.date, nextRaceFull.SecondPractice.time),
-      });
+      addSession("Treino Livre 2", nextRaceFull.SecondPractice.date, nextRaceFull.SecondPractice.time);
     if (nextRaceFull.ThirdPractice)
-      sessions.push({
-        label: "Treino Livre 3",
-        dt: formatDateTime(nextRaceFull.ThirdPractice.date, nextRaceFull.ThirdPractice.time),
-      });
+      addSession("Treino Livre 3", nextRaceFull.ThirdPractice.date, nextRaceFull.ThirdPractice.time);
     if (nextRaceFull.Sprint)
-      sessions.push({
-        label: "Sprint",
-        dt: formatDateTime(nextRaceFull.Sprint.date, nextRaceFull.Sprint.time),
-      });
+      addSession("Sprint", nextRaceFull.Sprint.date, nextRaceFull.Sprint.time);
     if (nextRaceFull.Qualifying)
-      sessions.push({
-        label: "Qualy",
-        dt: formatDateTime(nextRaceFull.Qualifying.date, nextRaceFull.Qualifying.time),
-      });
+      addSession("Classificação", nextRaceFull.Qualifying.date, nextRaceFull.Qualifying.time);
     if (nextRaceFull.date && nextRaceFull.time)
-      sessions.push({
-        label: "Corrida",
-        dt: formatDateTime(nextRaceFull.date, nextRaceFull.time),
-      });
+      addSession("Corrida", nextRaceFull.date, nextRaceFull.time);
+
+    // Determinar próxima sessão
+    const currentTime = new Date();
+    let nextSessionFound = false;
+    for (const session of sessions) {
+      if (session.dateObj && isAfter(session.dateObj, currentTime) && !nextSessionFound) {
+        session.isNext = true;
+        nextSessionFound = true;
+      }
+    }
   }
 
   const proxima = {
@@ -189,60 +186,86 @@ const NextRaceDetailedInfo = () => {
     circuito: nextRaceObj.Circuit.circuitName
   };
 
+  const nextSession = sessions.find(s => s.isNext);
+
   return (
     <div className="mb-8">
-      <Card className="bg-gradient-to-br from-black/60 to-red-950/40 border border-red-800/50 backdrop-blur-sm">
-        <CardContent className="p-6">
-          {/* Header com nome do GP e país */}
-          <div className="flex items-center justify-between mb-6">
+      <Card className="bg-gradient-to-br from-red-950/60 via-black/80 to-red-900/40 border border-red-500/50 backdrop-blur-sm shadow-2xl">
+        <CardContent className="p-8">
+          {/* Header principal */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-6">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <CalendarDays className="w-8 h-8 text-red-500" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-600/20 rounded-full border border-red-500/30">
+                  <CalendarDays className="w-8 h-8 text-red-400" />
+                </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-1">
+                  <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
                     Próxima Corrida
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{proxima.pais.flag}</span>
+                  </h2>
+                  <div className="flex items-center gap-4">
+                    <span className="text-4xl drop-shadow-lg">{proxima.pais.flag}</span>
                     <div>
-                      <p className="text-xl font-bold text-red-400">{proxima.nome}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <MapPin className="w-4 h-4" />
-                        <span>{proxima.circuito}</span>
+                      <p className="text-2xl font-bold text-red-400 mb-1">{proxima.nome}</p>
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <MapPin className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">{proxima.circuito}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg font-semibold text-white mb-1">{proxima.data}</p>
-              <div className="flex items-center gap-2 justify-end">
-                <Clock className="w-5 h-5 text-yellow-400" />
-                <span className="text-red-300 font-medium">{proxima.hora}</span>
+            
+            {/* Próxima sessão destacada */}
+            {nextSession && (
+              <div className="bg-gradient-to-r from-red-600/30 to-red-500/20 border border-red-400/50 rounded-xl p-4 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
+                  <span className="text-yellow-400 font-bold text-lg">PRÓXIMA SESSÃO</span>
+                </div>
+                <div className="text-white font-bold text-xl">{nextSession.label}</div>
+                <div className="flex items-center gap-2 text-red-300 text-lg font-semibold">
+                  <Clock className="w-5 h-5" />
+                  {nextSession.dt}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Cronograma das sessões */}
-            <div className="bg-black/30 rounded-lg p-4 border border-red-800/30">
-              <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-red-500" />
-                Cronograma do Fim de Semana
-              </h4>
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Cronograma completo */}
+            <div className="bg-gradient-to-br from-black/40 to-red-950/20 rounded-xl p-6 border border-red-600/30">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <Clock className="w-6 h-6 text-red-400" />
+                Cronograma Completo
+              </h3>
               {loadingSchedule ? (
-                <div className="space-y-2">
-                  {[1,2,3,4].map(i => (
-                    <Skeleton key={i} className="h-8 w-full bg-black/20" />
+                <div className="space-y-3">
+                  {[1,2,3,4,5].map(i => (
+                    <Skeleton key={i} className="h-12 w-full bg-black/30" />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sessions.map((s, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-2 px-3 bg-black/40 rounded border border-red-800/20">
-                      <span className="font-medium text-white text-sm">{s.label}</span>
-                      <span className="text-red-300 text-sm font-mono">{s.dt}</span>
+                  {sessions.map((session, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center justify-between py-3 px-4 rounded-lg border transition-all duration-300 ${
+                        session.isNext 
+                          ? 'bg-gradient-to-r from-red-600/40 to-red-500/20 border-red-400/60 shadow-lg shadow-red-500/20' 
+                          : 'bg-black/30 border-red-800/30 hover:bg-black/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {session.isNext && <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />}
+                        <span className={`font-semibold ${session.isNext ? 'text-yellow-400' : 'text-white'}`}>
+                          {session.label}
+                        </span>
+                      </div>
+                      <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-300' : 'text-red-300'}`}>
+                        {session.dt}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -250,29 +273,29 @@ const NextRaceDetailedInfo = () => {
             </div>
 
             {/* Pontos restantes */}
-            <div className="bg-black/30 rounded-lg p-4 border border-red-800/30">
-              <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-400" />
-                Pontos Restantes na Temporada
-              </h4>
+            <div className="bg-gradient-to-br from-black/40 to-red-950/20 rounded-xl p-6 border border-red-600/30">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <Award className="w-6 h-6 text-yellow-400" />
+                Pontos Restantes
+              </h3>
               <div className="space-y-4">
-                <div className="bg-black/40 rounded p-3 border border-yellow-400/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-yellow-400 font-semibold">Campeonato de Pilotos</span>
-                    <span className="text-2xl font-bold text-yellow-400">{pontosPilotos}</span>
+                <div className="bg-gradient-to-r from-yellow-600/20 to-yellow-500/10 rounded-lg p-4 border border-yellow-400/40">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-yellow-400 font-bold text-lg">Campeonato de Pilotos</span>
+                    <span className="text-3xl font-bold text-yellow-400">{pontosPilotos}</span>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    {racesLeft} corridas restantes • {sprintsLeft} sprints restantes
+                  <p className="text-xs text-yellow-200/80">
+                    {racesLeft} corridas • {sprintsLeft} sprints restantes
                   </p>
                 </div>
                 
-                <div className="bg-black/40 rounded p-3 border border-gray-400/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-300 font-semibold">Campeonato de Construtores</span>
-                    <span className="text-2xl font-bold text-gray-300">{pontosConstrutores}</span>
+                <div className="bg-gradient-to-r from-gray-600/20 to-gray-500/10 rounded-lg p-4 border border-gray-400/40">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-gray-300 font-bold text-lg">Campeonato de Construtores</span>
+                    <span className="text-3xl font-bold text-gray-300">{pontosConstrutores}</span>
                   </div>
                   <p className="text-xs text-gray-400">
-                    {racesLeft} corridas restantes • {sprintsLeft} sprints restantes
+                    {racesLeft} corridas • {sprintsLeft} sprints restantes
                   </p>
                 </div>
               </div>
@@ -285,3 +308,4 @@ const NextRaceDetailedInfo = () => {
 };
 
 export default NextRaceDetailedInfo;
+
