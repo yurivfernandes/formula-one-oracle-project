@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -129,7 +128,7 @@ const fetchRaces = async (): Promise<Race[]> => {
 };
 
 const fetchRaceResults = async (): Promise<Race[]> => {
-  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/results.json?limit=200');
+  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/results/');
   if (!response.ok) {
     throw new Error('Erro ao buscar resultados das corridas');
   }
