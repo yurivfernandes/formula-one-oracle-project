@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight, Wrench, TrendingUp } from "lucide-react";
 import { useTeamRaceTrends } from "./hooks/useTeamRaceTrends";
@@ -21,12 +20,14 @@ const TeamTrends = () => {
         <TrendingUp className="w-5 h-5 text-red-500 mr-2" />
         Tendências Dinâmicas das Equipes (Atualização Espanha & Últimas Corridas)
       </h3>
+      <div className="mb-8"></div> {/* Spacer para separar do bloco acima */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {trends.map(trend => (
           <Card className="bg-white border-red-800/30 shadow" key={trend.team}>
             <CardHeader>
               <CardTitle className="text-gray-900 flex items-center space-x-2">
-                <TeamLogo teamName={trend.team} className="w-16 h-10" />
+                <TeamLogo teamName={trend.team} className="w-24 h-12" />
+                {/* Upgrade */}
                 {trend.upgradeImpact > 0 && <Wrench className="text-green-400 w-4 h-4 ml-1" />}
                 {trend.upgradeImpact < 0 && <Wrench className="text-red-400 w-4 h-4 ml-1" />}
               </CardTitle>
@@ -36,8 +37,9 @@ const TeamTrends = () => {
                 <div>
                   <b>Pontos nas últimas 3 corridas:</b>{" "}
                   {trend.last3}
-                  {trend.last3 > 40 && <ArrowUpRight className="w-3 h-3 inline text-green-400 ml-1" />}
-                  {trend.last3 < 20 && <ArrowDownRight className="w-3 h-3 inline text-red-400 ml-1" />}
+                  {trend.trendStatus === "up" && <ArrowUpRight className="w-3 h-3 inline text-green-400 ml-1" />}
+                  {trend.trendStatus === "down" && <ArrowDownRight className="w-3 h-3 inline text-red-400 ml-1" />}
+                  {trend.trendStatus === "stable" && <span className="ml-2 text-yellow-400">estável</span>}
                 </div>
                 <div>
                   <b>Pontos nas últimas 6 corridas:</b> {trend.last6}

@@ -2,31 +2,62 @@
 import { Brain, Zap, Target, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+
+// Carregar standings atuais para análise realista
+const fetchStandings = async () => {
+  const response = await fetch("https://api.jolpi.ca/ergast/f1/2025/driverStandings/");
+  if (!response.ok) throw new Error("Erro ao buscar standings");
+  const data = await response.json();
+  return data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
+};
 
 const AIAnalysis = () => {
-  const insights = [
-    {
-      type: "performance",
-      title: "McLaren em Ascensão",
-      description: "A McLaren demonstra a maior evolução de performance, com Piastri e Norris consistentemente pontuando alto. O desenvolvimento do carro mostra sinais positivos para o restante da temporada.",
-      confidence: 92,
-      icon: <Zap className="w-5 h-5" />
-    },
-    {
-      type: "strategy",
-      title: "Red Bull Perdendo Ritmo", 
-      description: "Verstappen ainda é competitivo, mas a Red Bull não demonstra a dominância dos anos anteriores. Problemas de desenvolvimento podem afetar o final da temporada.",
-      confidence: 78,
-      icon: <AlertCircle className="w-5 h-5" />
-    },
-    {
-      type: "prediction",
-      title: "Batalha pelo Título",
-      description: "Com base nos dados atuais, temos uma das temporadas mais competitivas dos últimos anos. Piastri emerge como forte candidato ao título.",
-      confidence: 85,
-      icon: <Target className="w-5 h-5" />
-    }
-  ];
+  const { data: standings } = useQuery({
+    queryKey: ["currentStandingsForAI", 2025],
+    queryFn: fetchStandings,
+  });
+
+  const participants = standings?.map((d: any) => ({
+    name: d.Driver.givenName + " " + d.Driver.familyName,
+    team: d.Constructors[0]?.name,
+    points: Number(d.points),
+    position: Number(d.position)
+  })) ?? [];
+
+  // Geração das análises realmente baseadas nos atuais líderes do campeonato!
+  let insights: Array<{ type: string; title: string; description: string; confidence: number; icon: any }> = [];
+  if (participants.length > 0) {
+    // Exemplo: campeão atual, top 2 e time em ascensão real
+    const leader = participants[0];
+    const vice = participants[1];
+    const teamLeaders = participants.filter((p) => p.team === leader.team);
+    const lastPlace = participants[participants.length - 1];
+
+    insights = [
+      {
+        type: "performance",
+        title: `${leader.team} dominando`,
+        description: `A equipe ${leader.team} lidera com ${teamLeaders.map(p => p.name).join(" e ")}, abrindo vantagem no campeonato.`,
+        confidence: 94,
+        icon: <Zap className="w-5 h-5" />,
+      },
+      {
+        type: "battle",
+        title: "Batalha pelo Vice",
+        description: `Disputa intensa pelo segundo lugar entre ${leader.name} e ${vice.name}. O campeonato permanece aberto!`,
+        confidence: 89,
+        icon: <Target className="w-5 h-5" />,
+      },
+      {
+        type: "surpresa",
+        title: "Olho nos que podem surpreender",
+        description: `Pilotos como ${lastPlace.name} buscam pontuar e avançar nas próximas etapas.`,
+        confidence: 77,
+        icon: <AlertCircle className="w-5 h-5" />,
+      },
+    ];
+  }
 
   const methodology = [
     "Análise de dados históricos dos últimos 10 anos",
@@ -84,4 +115,3 @@ const AIAnalysis = () => {
 };
 
 export default AIAnalysis;
-

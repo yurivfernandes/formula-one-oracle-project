@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 
 // Etapas chave (exemplos: Espanha, Silverstone, Bélgica)
@@ -79,17 +78,25 @@ export const useTeamRaceTrends = () => {
     }
   }
 
-  // Montar matriz por equipe, preenchendo com 0 onde não pontuaram
+  // Construir matriz por equipe, preenchendo com 0 onde não pontuaram
   const teams = Array.from(teamNameMap.keys());
   const teamPointsHistory: Record<string, Array<{ round: number; points: number }>> = {};
   teams.forEach(teamNorm => {
-    teamPointsHistory[teamNorm] = allRounds.map(round => ({
-      round,
-      points: teamPointsByRound[teamNorm]?.[round] || 0,
-    }));
+    teamPointsHistory[teamNorm] = races.map(race => {
+      const round = parseInt(race.round);
+      // Soma todos os pilotos do time naquela corrida
+      let pts = 0;
+      for (const result of race.Results) {
+        if (normalizeTeamName(result.Constructor.name) === teamNorm) {
+          pts += Number(result.points) || 0;
+        }
+      }
+      return { round, points: pts };
+    });
   });
 
   // Rounds para análise de tendência (últimos 3 e 6 rounds)
+  const allRounds: number[] = races.map(r => parseInt(r.round));
   const last3Rounds = allRounds.slice(-3);
   const last6Rounds = allRounds.slice(-6);
 
@@ -98,6 +105,7 @@ export const useTeamRaceTrends = () => {
     team: string;
     last3: number;
     last6: number;
+    trendStatus: "up" | "down" | "stable";
     upgradeImpact: number;
     rounds: number[];
   }[] = [];
@@ -111,10 +119,19 @@ export const useTeamRaceTrends = () => {
       last6 = history.filter(e => last6Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
     }
 
+    // Nova lógica para tendência
+    let trendStatus: "up" | "down" | "stable" = "stable";
+    if (last3 > (last6 / 2)) {
+      trendStatus = "up";
+    } else if (last3 < (last6 / 2)) {
+      trendStatus = "down";
+    } // se for igual, permanece "stable"
+
     trends.push({
       team: teamNameMap.get(teamNorm) || teamNorm,
       last3,
       last6,
+      trendStatus,
       rounds: last6Rounds,
       upgradeImpact: 0, // será calculado depois
     });
