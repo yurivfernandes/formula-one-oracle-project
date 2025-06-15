@@ -506,8 +506,7 @@ const RaceByRaceStandings = () => {
                   const hasRaceResult = !!racePoints[race.round];
                   const hasSprintResult = !!sprintPoints[race.round];
 
-                  // Se tem pelo menos um resultado, não mostrar placeholder
-                  // Só mostra "-" se não tem NENHUM resultado da sprint nem da corrida
+                  // O quadrado "-" só aparece caso não tenha NENHUM resultado (nem sprint, nem corrida)
                   return (
                     <TableCell
                       key={race.round}
@@ -528,7 +527,7 @@ const RaceByRaceStandings = () => {
                             {sprintPointsValue}
                           </span>
                         )}
-                        {/* Placeholder para rounds sem resultado */}
+                        {/* Placeholder para rounds sem nenhum resultado */}
                         {!(hasRaceResult || hasSprintResult) && viewType === "all" && (
                           <span className="text-gray-500 text-lg">-</span>
                         )}
