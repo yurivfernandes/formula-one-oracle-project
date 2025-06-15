@@ -167,8 +167,8 @@ const LiveTimingPage = () => {
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
                     <th className="px-2 py-2 text-left font-semibold w-28">Piloto</th>
-                    {/* Corrigido: nome visível no cabeçalho para equipe/logo, largura idêntica ao corpo */}
-                    <th className="px-1 py-2 text-center font-semibold w-16">Equipe</th>
+                    {/* Corrigir: largura idêntica para cabeçalho e body da equipe */}
+                    <th className="px-1 py-2 text-center font-semibold w-14">Equipe</th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th
                         key={visibleLapRange[0] + i + 1}
@@ -184,8 +184,7 @@ const LiveTimingPage = () => {
                     <tr 
                       key={driver.id} 
                       className={`border-b hover:bg-gray-50 ${
-                        index < 10 ? 'bg-white' :
-                        'bg-gray-100'
+                        index < 10 ? 'bg-white' : 'bg-gray-100'
                       }`}
                     >
                       {/* Posição + mudança */}
@@ -193,7 +192,6 @@ const LiveTimingPage = () => {
                         {driver.position}
                         <span className="ml-1 flex items-center gap-0">
                           {getPositionChangeIcon(driver.position, driver.startingPosition)}
-                          {/* Mostra texto SÓ se a mudança não for 0 */}
                           {(() => {
                             const change = driver.startingPosition - driver.position;
                             if (change === 0) return null;
@@ -216,9 +214,9 @@ const LiveTimingPage = () => {
                           <span className="font-mono font-semibold text-red-700 text-base">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: logo centralizado, largura idêntica ao TH */}
-                      <td className="px-1 py-2">
-                        <div className="flex items-center justify-center w-12 h-6 mx-auto">
+                      {/* Equipe: logo centralizado, largura fixa igual ao TH, sem padding lateral extra */}
+                      <td className="py-2 w-14">
+                        <div className="flex items-center justify-center w-full h-6">
                           <TeamLogo teamName={driver.team} className="w-8 h-5" />
                         </div>
                       </td>
