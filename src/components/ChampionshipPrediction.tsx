@@ -117,6 +117,11 @@ const fetchHistoricalData = async (): Promise<HistoricalData[]> => {
 };
 
 const calculatePrediction = (currentStandings: any[], historicalData: HistoricalData[]): PredictionData[] => {
+  // Obter o número da corrida atual
+  const currentRound = 10; // Aproximadamente na décima corrida
+  const totalRounds = 24; // Total de corridas em 2025
+  const remainingRounds = totalRounds - currentRound;
+  
   return currentStandings.map((standing, index) => {
     const driverId = standing.Driver.driverId;
     const currentPoints = parseInt(standing.points);
@@ -127,6 +132,9 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
       ? driverHistory.reduce((sum, h) => sum + h.points, 0) / driverHistory.length 
       : currentPoints;
     
+    // Calcular média de pontos por corrida atual
+    const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
+    
     // Calcular tendência baseada nos últimos 3 anos
     const recentHistory = driverHistory.filter(h => h.year >= 2022).sort((a, b) => b.year - a.year);
     let trend: 'up' | 'down' | 'stable' = 'stable';
@@ -135,16 +143,40 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
       const recentAvg = recentHistory.slice(0, 2).reduce((sum, h) => sum + h.points, 0) / 2;
       const olderAvg = recentHistory.slice(2).reduce((sum, h) => sum + h.points, 0) / Math.max(1, recentHistory.length - 2);
       
-      if (recentAvg > olderAvg * 1.1) trend = 'up';
-      else if (recentAvg < olderAvg * 0.9) trend = 'down';
+      if (recentAvg > olderAvg * 1.15) trend = 'up';
+      else if (recentAvg < olderAvg * 0.85) trend = 'down';
     }
     
-    // Predição simples baseada na posição atual e histórico
-    const positionMultiplier = Math.max(0.1, 1 - (index * 0.05));
-    const predictedPoints = Math.round(currentPoints + (historicalAverage * positionMultiplier * 0.3));
+    // Modelo de predição mais realista
+    let projectedFinalPoints = currentPoints;
     
-    // Probabilidade de vitória baseada na posição atual
-    const probability = Math.max(0, 100 - (index * 15));
+    if (currentRound > 0) {
+      // Calcular performance atual vs histórica
+      const performanceRatio = currentPointsPerRace / Math.max(1, historicalAverage / 20); // Assumindo ~20 corridas históricas
+      
+      // Ajustar baseado na tendência
+      let trendMultiplier = 1.0;
+      if (trend === 'up') trendMultiplier = 1.1;
+      else if (trend === 'down') trendMultiplier = 0.9;
+      
+      // Projetar pontos restantes baseado na performance atual ajustada
+      const projectedPointsPerRaceRemaining = currentPointsPerRace * trendMultiplier * performanceRatio;
+      const projectedRemainingPoints = projectedPointsPerRaceRemaining * remainingRounds;
+      
+      projectedFinalPoints = Math.round(currentPoints + projectedRemainingPoints);
+    }
+    
+    // Garantir que a predição seja realista (não menor que os pontos atuais)
+    const predictedPoints = Math.max(currentPoints, projectedFinalPoints);
+    
+    // Probabilidade de vitória baseada na posição atual e pontos projetados
+    const maxPredictedPoints = Math.max(...currentStandings.map((_, i) => {
+      const pts = parseInt(currentStandings[i].points);
+      const ppr = currentRound > 0 ? pts / currentRound : 0;
+      return Math.max(pts, pts + (ppr * remainingRounds * 1.1));
+    }));
+    
+    const probability = Math.max(0, Math.min(100, (predictedPoints / maxPredictedPoints) * 100));
     
     return {
       driver: standing.Driver,
@@ -233,15 +265,15 @@ const ChampionshipPrediction = () => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center bg-white/10 rounded-lg p-2">
                     <img 
                       src={getTeamLogo(prediction.constructor.name)} 
                       alt={prediction.constructor.name}
-                      className="w-12 h-8 object-contain"
+                      className="w-12 h-8 object-contain filter brightness-0 invert"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
-                        target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium">${prediction.constructor.name}</span>`;
+                        target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium px-2">${prediction.constructor.name}</span>`;
                       }}
                     />
                   </div>

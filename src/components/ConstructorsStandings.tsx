@@ -83,8 +83,8 @@ const ConstructorsStandings = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
-        <div className="p-6 border-b border-red-800/30">
+      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-red-800/30 bg-black/50">
           <h2 className="text-2xl font-bold text-white mb-2">Classificação dos Construtores 2025</h2>
           <p className="text-gray-300">A carregar dados da temporada...</p>
         </div>
@@ -104,7 +104,7 @@ const ConstructorsStandings = () => {
 
   if (isError) {
     return (
-      <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 p-6 text-white text-center">
+      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6 text-white text-center shadow-2xl">
         <h2 className="text-2xl font-bold text-red-500 mb-2">Erro ao carregar dados</h2>
         <p className="text-gray-300 mb-4">Não foi possível buscar a classificação dos construtores.</p>
         <p className="text-sm text-gray-500">{error.message}</p>
@@ -114,7 +114,7 @@ const ConstructorsStandings = () => {
 
   if (!standingsList || standingsList.ConstructorStandings.length === 0) {
     return (
-      <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 p-6 text-white text-center">
+      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6 text-white text-center shadow-2xl">
         <h2 className="text-2xl font-bold text-white mb-2">Temporada 2025</h2>
         <p className="text-gray-300">Ainda não há dados de classificação de construtores para esta temporada.</p>
       </div>
@@ -122,8 +122,8 @@ const ConstructorsStandings = () => {
   }
 
   return (
-    <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
-      <div className="p-6 border-b border-red-800/30">
+    <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
+      <div className="p-6 border-b border-red-800/30 bg-black/50">
         <h2 className="text-2xl font-bold text-white mb-2">Classificação dos Construtores 2025</h2>
         <p className="text-gray-300">Pontuação após {standingsList.round} corridas</p>
       </div>
@@ -131,11 +131,11 @@ const ConstructorsStandings = () => {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-red-800/30">
-              <TableHead className="text-red-400 font-bold w-16">Pos</TableHead>
-              <TableHead className="text-red-400 font-bold min-w-[200px]">Equipe</TableHead>
-              <TableHead className="text-red-400 font-bold text-center">Pontos</TableHead>
-              <TableHead className="text-red-400 font-bold text-center">Vitórias</TableHead>
+            <TableRow className="border-red-800/30 bg-black/50">
+              <TableHead className="text-gray-300 font-bold w-16">Pos</TableHead>
+              <TableHead className="text-gray-300 font-bold min-w-[200px]">Equipe</TableHead>
+              <TableHead className="text-gray-300 font-bold text-center">Pontos</TableHead>
+              <TableHead className="text-gray-300 font-bold text-center">Vitórias</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -145,22 +145,30 @@ const ConstructorsStandings = () => {
                 className="border-red-800/30 hover:bg-red-900/20 transition-colors"
               >
                 <TableCell className="font-bold text-white text-center">
-                  {constructor.position === "1" && <span className="text-yellow-400 mr-1">👑</span>}
-                  {constructor.position}
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    constructor.position === "1" ? 'bg-yellow-500 text-black' : 
+                    constructor.position === "2" ? 'bg-gray-400 text-black' : 
+                    constructor.position === "3" ? 'bg-amber-600 text-white' : 
+                    'bg-gray-600 text-white'
+                  }`}>
+                    {constructor.position}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     <span className="text-lg">{getNationalityFlag(constructor.Constructor.nationality)}</span>
-                    <img 
-                      src={getTeamLogo(constructor.Constructor.name)} 
-                      alt={constructor.Constructor.name}
-                      className="w-12 h-8 object-contain"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        target.parentElement!.innerHTML = `<span class="text-white text-sm font-medium">${constructor.Constructor.name}</span>`;
-                      }}
-                    />
+                    <div className="bg-white/10 rounded-lg p-2 flex items-center justify-center">
+                      <img 
+                        src={getTeamLogo(constructor.Constructor.name)} 
+                        alt={constructor.Constructor.name}
+                        className="w-12 h-8 object-contain filter brightness-0 invert"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.parentElement!.innerHTML = `<span class="text-white text-sm font-medium px-2">${constructor.Constructor.name}</span>`;
+                        }}
+                      />
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-white font-bold text-lg text-center">
