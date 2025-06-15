@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import Championship from "./pages/Championship";
 import Prediction from "./pages/Prediction";
 import RaceSimulation from "./pages/RaceSimulation";
-import RaceWeekend from "./pages/RaceWeekend";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +23,6 @@ const App = () => (
           <Route path="/championship" element={<Championship />} />
           <Route path="/prediction" element={<Prediction />} />
           <Route path="/simulation" element={<RaceSimulation />} />
-          <Route path="/race-weekend" element={<RaceWeekend />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
