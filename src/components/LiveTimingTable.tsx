@@ -21,6 +21,9 @@ interface LiveTimingTableProps {
 export default function LiveTimingTable({
   raceStatus, drivers, lapTimes, visibleLapRange, totalLaps
 }: LiveTimingTableProps) {
+  // Para status "before", sempre mostrar 5 colunas de volta (L1 a L5)
+  const beforeLapRange = [0, 5];
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -30,7 +33,15 @@ export default function LiveTimingTable({
               <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
               <th className={`px-2 py-2 font-semibold w-28 text-left`}>Piloto</th>
               <th className={`px-1 py-2 font-semibold w-24 text-left`}>Equipe</th>
-              {/* Cabeçalho das voltas */}
+              {raceStatus === "before" &&
+                Array.from({ length: beforeLapRange[1] - beforeLapRange[0] }, (_, i) => (
+                  <th
+                    key={beforeLapRange[0] + i + 1}
+                    className="px-2 py-2 text-center font-semibold w-20 text-xs"
+                  >
+                    {`L${beforeLapRange[0] + i + 1}`}
+                  </th>
+                ))}
               {raceStatus === "live" && totalLaps > 0 &&
                 Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                   <th
@@ -43,7 +54,7 @@ export default function LiveTimingTable({
             </tr>
           </thead>
           <tbody>
-            {/* Antes da corrida: grid do qualifying */}
+            {/* Antes da corrida: grid do qualifying + voltas em branco */}
             {raceStatus === "before" && drivers.map((driver, index) => (
               <tr
                 key={driver.id}
@@ -63,6 +74,15 @@ export default function LiveTimingTable({
                     <span className="font-semibold">{driver.team}</span>
                   </div>
                 </td>
+                {/* 5 colunas das voltas: usa tempo se houver, senão "-" */}
+                {Array.from({ length: 5 }).map((_, lapIdx) => (
+                  <td
+                    key={lapIdx}
+                    className="px-2 py-2 text-center font-mono text-xs text-gray-800 whitespace-nowrap"
+                  >
+                    {(lapTimes[driver.id] && lapTimes[driver.id][lapIdx]) ? lapTimes[driver.id][lapIdx] : "-"}
+                  </td>
+                ))}
               </tr>
             ))}
             {/* Durante a corrida: posição atual + tempos de volta */}
@@ -104,3 +124,4 @@ export default function LiveTimingTable({
     </div>
   );
 }
+
