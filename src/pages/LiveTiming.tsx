@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Zap, Wifi, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Zap, Wifi, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLogo from "@/components/TeamLogo";
+import LapNavigation from "@/components/LapNavigation";
 
 // Dados mockados mais realistas para live timing
 const DRIVERS_DATA = [
@@ -61,17 +62,22 @@ const GP_INFO = {
   currentLap: "15/70",
 };
 
+const TOTAL_LAPS = 15; // Usando o dado mockado, mas poderia ser dinâmico
+
 const LiveTimingPage = () => {
   const [lapTimes, setLapTimes] = useState(generateLapTimes());
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [isConnected, setIsConnected] = useState(true);
 
-  // Atualização automática a cada 2 minutos
+  // Para navegação: mostrar últimas 5 por padrão
+  const [visibleLapRange, setVisibleLapRange] = useState<[number, number]>([Math.max(0, TOTAL_LAPS - 5), TOTAL_LAPS]);
+
+  // Atualização automática a cada 1 minuto e meio
   useEffect(() => {
     const interval = setInterval(() => {
       setLapTimes(generateLapTimes());
       setLastUpdate(new Date());
-    }, 120000); // 2 minutos
+    }, 90000); // 1.5 minutos = 90 segundos
 
     return () => clearInterval(interval);
   }, []);
@@ -87,11 +93,11 @@ const LiveTimingPage = () => {
   const getPositionChangeIcon = (currentPos: number, startingPos: number) => {
     const change = startingPos - currentPos;
     if (change > 0) {
-      return <TrendingUp className="w-4 h-4 text-green-600" />;
+      return <ArrowUp className="w-4 h-4 text-green-600" />;
     } else if (change < 0) {
-      return <TrendingDown className="w-4 h-4 text-red-600" />;
+      return <ArrowDown className="w-4 h-4 text-red-600" />;
     } else {
-      return <Minus className="w-4 h-4 text-gray-500" />;
+      return <span className="w-4 h-4 text-gray-500 font-bold">=</span>;
     }
   };
 
@@ -134,9 +140,18 @@ const LiveTimingPage = () => {
             <p className="text-blue-800 text-sm">
               <strong>Fonte de dados:</strong> Os tempos e informações exibidos são provenientes da API oficial da Fórmula 1. 
               A precisão e disponibilidade dos dados não são de nossa responsabilidade. 
-              Atualização automática a cada 2 minutos durante a corrida.
+              Atualização automática a cada 1 minuto e meio durante a corrida.
             </p>
           </div>
+
+          {/* Navegação de voltas */}
+          <LapNavigation
+            totalLaps={TOTAL_LAPS}
+            visibleLapRange={visibleLapRange}
+            onNavigate={setVisibleLapRange}
+            canShowLess={visibleLapRange[0] > 0}
+            canShowMore={visibleLapRange[1] < TOTAL_LAPS}
+          />
 
           {/* Tabela de Live Timing */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -146,11 +161,11 @@ const LiveTimingPage = () => {
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
                     <th className="px-3 py-2 text-left font-semibold w-6"></th>
-                    <th className="px-3 py-2 text-left font-semibold w-16">Piloto</th>
-                    <th className="px-3 py-2 text-left font-semibold min-w-20">Equipe</th>
-                    {Array.from({ length: 15 }, (_, i) => (
-                      <th key={i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
-                        L{i + 1}
+                    <th className="px-3 py-2 text-left font-semibold w-28">Piloto</th>
+                    <th className="px-3 py-2 text-left font-semibold w-20">Equipe</th>
+                    {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
+                      <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
+                        L{visibleLapRange[0] + i + 1}
                       </th>
                     ))}
                   </tr>
@@ -161,7 +176,8 @@ const LiveTimingPage = () => {
                       key={driver.id} 
                       className={`border-b hover:bg-gray-50 ${
                         index < 3 ? 'bg-green-50' : 
-                        index >= 17 ? 'bg-red-50' : 'bg-white'
+                        index < 10 ? 'bg-white' :
+                        'bg-gray-100'
                       }`}
                     >
                       <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
@@ -176,20 +192,26 @@ const LiveTimingPage = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 min-w-[120px]">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700">{driver.id}</span>
+                          <span className="ml-1 font-medium text-gray-700">{driver.name}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2">
-                        <TeamLogo teamName={driver.team} className="w-16 h-10" />
+                        <div className="flex items-center gap-1">
+                          <TeamLogo teamName={driver.team} className="w-14 h-7" />
+                          <span className="text-xs ml-1">{driver.team}</span>
+                        </div>
                       </td>
-                      {lapTimes[driver.id]?.map((time, lapIndex) => (
-                        <td key={lapIndex} className="px-2 py-2 text-center font-mono text-xs text-gray-800">
-                          {time}
-                        </td>
-                      ))}
+                      {lapTimes[driver.id]
+                        .slice(visibleLapRange[0], visibleLapRange[1])
+                        .map((time, lapIndex) => (
+                          <td key={lapIndex + visibleLapRange[0]} className="px-2 py-2 text-center font-mono text-xs text-gray-800">
+                            {time}
+                          </td>
+                        ))}
                     </tr>
                   ))}
                 </tbody>
@@ -205,22 +227,18 @@ const LiveTimingPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-white border border-gray-200 rounded"></div>
-              <span>Zona de pontuação</span>
+              <span>Zona de pontuação (até o 10º)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-50 border border-red-200 rounded"></div>
-              <span>Zona de eliminação</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-600" />
+              <ArrowUp className="w-4 h-4 text-green-600" />
               <span>Ganhou posições</span>
             </div>
             <div className="flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-red-600" />
+              <ArrowDown className="w-4 h-4 text-red-600" />
               <span>Perdeu posições</span>
             </div>
             <div className="flex items-center gap-2">
-              <Minus className="w-4 h-4 text-gray-500" />
+              <span className="w-4 h-4 flex items-center justify-center text-gray-500 font-bold">=</span>
               <span>Mesma posição</span>
             </div>
           </div>
