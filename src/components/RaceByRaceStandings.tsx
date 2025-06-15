@@ -162,7 +162,7 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
   "Mexico": { nome: "México", flag: "🇲🇽" },
   "Brazil": { nome: "Brasil", flag: "🇧🇷" },
   "Qatar": { nome: "Catar", flag: "🇶🇦" },
-  "United Arab Emirates": { nome: "Emirados Árabes Unidos", flag: "🇦🇪" },
+  "United Arab Emirates": { nome: "Abu Dhabi", flag: "🇦🇪" },
   "Las Vegas": { nome: "Las Vegas", flag: "🎲" },
 };
 
@@ -430,13 +430,11 @@ const RaceByRaceStandings = () => {
               </TableHead>
               {racesToShow.map((race) => {
                 const c = getCountryPTBR(race.Circuit.Location.country);
-                // Corrigir Abu Dhabi:
-                const nome = race.Circuit.Location.country === "United Arab Emirates"
-                  ? "Abu Dhabi"
-                  : c.nome;
-                const flag = race.Circuit.Location.country === "United Arab Emirates"
-                  ? "🇦🇪"
-                  : c.flag;
+                // Corrigir Abu Dhabi e usar PT-BR:
+                const nome = c.nome;
+                const flag = c.flag;
+                // Nome do GP no formato "GP de <nome>" sempre:
+                const gpNome = `GP de ${nome}`;
                 return (
                   <TableHead
                     key={race.round}
@@ -445,14 +443,14 @@ const RaceByRaceStandings = () => {
                     <div className="flex flex-col items-center py-2">
                       <span className="text-2xl mb-1">{flag}</span>
                       <span className="text-xs font-medium text-gray-300">
-                        {nome}
+                        {gpNome}
                       </span>
                       <div className="flex gap-1 mt-2">
                         {sprintResultsMap[race.round] && (
-                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
+                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">Sprint</span>
                         )}
                         {raceResultsMap[race.round] && (
-                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
+                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">Corrida</span>
                         )}
                       </div>
                     </div>
@@ -477,10 +475,13 @@ const RaceByRaceStandings = () => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
-                        index === 0 ? 'bg-yellow-500 text-black' : 
-                        index === 1 ? 'bg-gray-400 text-black' : 
-                        index === 2 ? 'bg-amber-700 text-white' : 
-                        'bg-gray-700 text-white'
+                        index === 0
+                          ? 'bg-yellow-500 text-black'
+                          : index === 1
+                          ? 'bg-gray-400 text-black'
+                          : index === 2
+                          ? 'bg-amber-700 text-white' // Bronze discreto para 3º lugar
+                          : 'bg-gray-700 text-white'
                       }`}>
                         {index + 1}
                       </span>
@@ -500,8 +501,8 @@ const RaceByRaceStandings = () => {
                   const totalRoundPoints = racePointsValue + sprintPointsValue;
 
                   return (
-                    <TableCell 
-                      key={race.round} 
+                    <TableCell
+                      key={race.round}
                       className={`text-white text-center font-medium py-4 ${
                         !(hasRaceResult || hasSprintResult) && viewType === "all" ? 'text-gray-500' : ''
                       } bg-black`}
@@ -512,16 +513,10 @@ const RaceByRaceStandings = () => {
                           {racePointsValue}
                         </span>
                       )}
-                      {/* Sprint: mostra apenas se existir e NÃO duplicar valor de corrida */}
+                      {/* Sprint */}
                       {hasSprintResult && (
-                        <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
+                        <span className="text-sm bg-yellow-400 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block">
                           {sprintPointsValue}
-                        </span>
-                      )}
-                      {/* Somente exibe o total se tivermos pontos em ambos e ambos forem > 0 e são realmente valores diferentes (ou um deles 0) */}
-                      {(hasRaceResult && hasSprintResult && (racePointsValue > 0 || sprintPointsValue > 0)) && (
-                        <span className="text-base font-bold text-white bg-gray-700 px-2 py-1 rounded-lg min-w-[32px] block">
-                          {totalRoundPoints}
                         </span>
                       )}
                       {/* Placeholder para rounds sem resultado */}
@@ -534,11 +529,14 @@ const RaceByRaceStandings = () => {
                 <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-black z-10 border-l border-red-800/30 py-4">
                   <div className="flex flex-col items-center">
                     <span className={`${
-                      index === 0 ? 'text-yellow-400' : 
-                      index === 1 ? 'text-gray-300' : 
-                      index === 2 ? 'text-amber-500' : 
-                      'text-white'
-                    }`}>
+                      index === 0
+                        ? 'text-yellow-400'
+                        : index === 1
+                        ? 'text-gray-300'
+                        : index === 2
+                        ? 'text-amber-500' // Laranja/bronze para 3º
+                        : 'text-white'
+                  }`}>
                       {totalPoints}
                     </span>
                     <span className="text-xs text-gray-400 font-normal">pts</span>

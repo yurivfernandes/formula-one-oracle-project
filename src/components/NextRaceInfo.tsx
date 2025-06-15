@@ -67,7 +67,7 @@ const NextRaceInfo = () => {
 
   const now = new Date();
 
-  // Encontra qual é a próxima (ou atual) corrida
+  // Descobre o próximo round
   const nextRace = races?.find((race: any) => {
     const raceDateTime = new Date(
       `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
@@ -75,7 +75,6 @@ const NextRaceInfo = () => {
     return raceDateTime >= now;
   });
 
-  // Determina o número da próxima etapa ainda não disputada
   const currentRoundNum = races?.find((r: any) => {
     const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
     return dt >= now;
@@ -86,28 +85,37 @@ const NextRaceInfo = () => {
       }).round)
     : CURRENT_ROUND + 1;
 
-  // Calcula corridas restantes
+  // Corridas restantes (inclui a atual e próximas)
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
 
-  // --- CORREÇÃO: Sprint restantes são as sprints cujo round é >= currentRoundNum ---
-  const sprintRounds = (sprints ?? []).map((s: any) => parseInt(s.round));
+  // Sprints restantes: pega rounds de sprints futuros comparando rounds do sprint calendar especificamente
+  let sprintRounds: number[] = [];
+  if (sprints) {
+    sprintRounds = sprints.map((s: any) => parseInt(s.round));
+  }
   const sprintsLeft = sprintRounds.filter(round => round >= currentRoundNum).length;
 
-  // Pontos restantes corridas principais e sprint
+  // Pontuação máxima restante
   const pontosGrandPrix = racesLeft * 25;
   const pontosSprint = sprintsLeft * 8;
   const pontosPilotos = pontosGrandPrix + pontosSprint;
-  const pontosConstrutores =
-    racesLeft * (25 + 18) +
-    sprintsLeft * (8 + 7);
+  const pontosConstrutores = racesLeft * (25 + 18) + sprintsLeft * (8 + 7);
 
-  const proxima = nextRace
-    ? {
-        nome: nextRace.raceName,
-        pais: getCountryPTBR(nextRace.Circuit.Location.country),
-        data: format(parseISO(nextRace.date), "PPP", { locale: ptBR }),
-      }
-    : null;
+  // Tradução PT-BR da próxima corrida:
+  let proxima = null;
+  if (nextRace) {
+    const paisPTBR = getCountryPTBR(nextRace.Circuit.Location.country);
+    proxima = {
+      nome: nextRace.raceName, // Vamos substituir pelo PT-BR na table
+      pais: paisPTBR,
+      data: format(parseISO(nextRace.date), "PPP", { locale: ptBR }),
+    };
+    // Se existir nome PT-BR do circuito ou GP pode atribuir aqui
+    if (paisPTBR && paisPTBR.nome) {
+      // Exibe GP com nome PTBR se encontrado
+      proxima.nome = `GP de ${paisPTBR.nome}`;
+    }
+  }
 
   return (
     <div className="mb-6">
@@ -163,3 +171,4 @@ const NextRaceInfo = () => {
 };
 
 export default NextRaceInfo;
+
