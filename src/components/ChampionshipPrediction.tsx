@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Users, TrendingUp } from "lucide-react";
 import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
@@ -44,7 +43,6 @@ const ChampionshipPrediction = () => {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <TeamLogo teamName={driver.constructor?.name} className="w-6 h-6" />
-                      <span>{driver.constructor?.name}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold">{driver.predictedPoints}</TableCell>
