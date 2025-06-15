@@ -28,9 +28,9 @@ const StandardTable: React.FC<StandardTableProps> = ({
     <div
       className={`bg-white rounded-xl border border-red-200 overflow-hidden shadow-xl ${className}`}
     >
-      <div className="p-6 border-b border-red-100 bg-gray-50">
+      <div className="p-6 border-b border-red-100 bg-white">
         <h2 className="text-2xl font-bold text-red-700 mb-2">{title}</h2>
-        {subtitle && <p className="text-gray-500">{subtitle}</p>}
+        {subtitle && <p className="text-gray-600">{subtitle}</p>}
       </div>
 
       <div className="overflow-x-auto">
