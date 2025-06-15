@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import PredictionExplanation from "./PredictionExplanation";
+import StandardTable from "./StandardTable";
+import TeamLogo from "./TeamLogo";
 
 // Tipos de dados
 interface Driver {
@@ -131,8 +132,23 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
       ? driverHistory.reduce((sum, h) => sum + h.points, 0) / driverHistory.length 
       : currentPoints;
     
-    // Calcular média de pontos por corrida atual (mais conservadora)
+    // Calcular média de pontos por corrida com análise de tendência da temporada atual
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
+    
+    // Análise da evolução do campeonato 2025 - McLaren dominante
+    let teamPerformanceMultiplier = 1.0;
+    const teamName = standing.Constructors[0].name;
+    
+    // Ajustes baseados na performance real das equipes em 2025
+    if (teamName === "McLaren") {
+      teamPerformanceMultiplier = 1.15; // McLaren está dominando
+    } else if (teamName === "Red Bull") {
+      teamPerformanceMultiplier = 0.92; // Red Bull perdeu competitividade
+    } else if (teamName === "Ferrari") {
+      teamPerformanceMultiplier = 1.05; // Ferrari competitiva
+    } else if (teamName === "Mercedes") {
+      teamPerformanceMultiplier = 0.95; // Mercedes em recuperação
+    }
     
     // Calcular tendência baseada nos últimos 3 anos
     const recentHistory = driverHistory.filter(h => h.year >= 2022).sort((a, b) => b.year - a.year);
@@ -146,43 +162,57 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
       else if (recentAvg < olderAvg * 0.9) trend = 'down';
     }
     
-    // Modelo de predição mais conservador e realista
+    // Modelo de predição refinado baseado na performance da temporada 2025
     let projectedFinalPoints = currentPoints;
     
     if (currentRound > 0) {
-      // Fator de declínio para segunda metade da temporada (mais realista)
-      const seasonProgressFactor = 0.85; // Performance tende a diminuir ligeiramente
+      // Análise específica da temporada 2025 - corridas mais competitivas
+      const seasonCompetitiveFactor = 1.08; // Temporada mais competitiva que 2024
       
-      // Ajustar baseado na tendência (menos agressivo)
+      // Ajustar baseado na tendência do piloto
       let trendMultiplier = 1.0;
-      if (trend === 'up') trendMultiplier = 1.05; // Reduzido de 1.1 para 1.05
-      else if (trend === 'down') trendMultiplier = 0.95; // Reduzido de 0.9 para 0.95
+      if (trend === 'up') trendMultiplier = 1.08;
+      else if (trend === 'down') trendMultiplier = 0.94;
       
-      // Limitar pontos por corrida a um máximo mais realista
-      const maxPointsPerRace = 15; // Raramente alguém média mais que isso
-      const adjustedPointsPerRace = Math.min(currentPointsPerRace * trendMultiplier * seasonProgressFactor, maxPointsPerRace);
+      // Fator de progressão da temporada (performance pode variar)
+      const seasonProgressionFactor = index < 5 ? 0.98 : 0.92; // Top 5 mantém melhor ritmo
       
-      const projectedRemainingPoints = adjustedPointsPerRace * remainingRounds;
+      // Calcular pontuação projetada com base na competitividade atual
+      const adjustedPointsPerRace = currentPointsPerRace * 
+                                   teamPerformanceMultiplier * 
+                                   trendMultiplier * 
+                                   seasonCompetitiveFactor * 
+                                   seasonProgressionFactor;
+      
+      // Limitar pontos por corrida a um máximo realista para 2025
+      const maxPointsPerRace = index === 0 ? 18 : (index < 3 ? 16 : (index < 8 ? 12 : 8));
+      const finalPointsPerRace = Math.min(adjustedPointsPerRace, maxPointsPerRace);
+      
+      const projectedRemainingPoints = finalPointsPerRace * remainingRounds;
       projectedFinalPoints = Math.round(currentPoints + projectedRemainingPoints);
     }
     
-    // Garantir limites realistas baseados em dados históricos
-    const maxRealisticPoints = 450; // Baseado nos recordes históricos
+    // Garantir limites realistas baseados na evolução do esporte
+    // 2025 é mais competitivo, então recordes podem ser quebrados moderadamente
+    const maxRealisticPoints = 520; // Ligeiramente maior que o recorde de 2023
     const predictedPoints = Math.min(Math.max(currentPoints, projectedFinalPoints), maxRealisticPoints);
     
-    // Probabilidade de vitória mais realista
+    // Probabilidade de vitória mais refinada baseada na situação atual
     const leadingPoints = currentStandings[0] ? parseInt(currentStandings[0].points) : currentPoints;
     const pointsGap = leadingPoints - currentPoints;
-    const maxPossibleGain = remainingRounds * 25; // Máximo teórico
+    const maxPossibleGain = remainingRounds * 25;
     
     let probability = 0;
     if (index === 0) {
-      // Líder atual tem vantagem significativa
-      probability = Math.max(60, Math.min(95, 80 - (pointsGap / maxPossibleGain) * 100));
+      // Líder atual - probabilidade baseada na vantagem e performance da equipe
+      const leadAdvantage = pointsGap === 0 ? 0 : -pointsGap;
+      const teamStrength = teamPerformanceMultiplier;
+      probability = Math.max(70, Math.min(95, 75 + (leadAdvantage / 10) + (teamStrength - 1) * 30));
     } else {
-      // Outros pilotos baseado na diferença de pontos
+      // Outros pilotos - análise mais sofisticada
       const catchUpProbability = Math.max(0, (maxPossibleGain - pointsGap) / maxPossibleGain);
-      probability = Math.min(35, catchUpProbability * 100);
+      const teamFactor = (teamPerformanceMultiplier - 0.8) * 50; // Converte para percentual
+      probability = Math.min(40, (catchUpProbability * 100 * 0.6) + teamFactor);
     }
     
     return {
@@ -190,7 +220,7 @@ const calculatePrediction = (currentStandings: any[], historicalData: Historical
       constructor: standing.Constructors[0],
       currentPoints,
       predictedPoints,
-      probability: Math.round(probability),
+      probability: Math.max(0, Math.round(probability)),
       trend,
       historicalAverage: Math.round(historicalAverage)
     };
@@ -212,14 +242,19 @@ const ChampionshipPrediction = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-red-800/30 bg-black/50">
-          <h2 className="text-2xl font-bold text-white mb-2">Predição do Campeonato 2025</h2>
-          <p className="text-gray-300">Analisando dados históricos...</p>
-        </div>
-        <div className="p-6">
-          <Skeleton className="h-96 w-full" />
-        </div>
+      <div>
+        <PredictionExplanation />
+        <StandardTable
+          title="Predição do Campeonato 2025"
+          subtitle="Analisando dados históricos..."
+          headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência", "Média Histórica"]}
+        >
+          <TableRow>
+            <TableCell colSpan={8}>
+              <Skeleton className="h-96 w-full" />
+            </TableCell>
+          </TableRow>
+        </StandardTable>
       </div>
     );
   }
@@ -232,95 +267,65 @@ const ChampionshipPrediction = () => {
     <div>
       <PredictionExplanation />
       
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-red-800/30 bg-black/50">
-          <h2 className="text-3xl font-bold text-white mb-2">Predição do Campeonato 2025</h2>
-          <p className="text-gray-300">Baseado em dados históricos dos últimos 10 anos</p>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-red-800/30 bg-black/50">
-                <TableHead className="text-gray-300 font-bold min-w-[50px]">Pos</TableHead>
-                <TableHead className="text-gray-300 font-bold min-w-[200px]">Piloto</TableHead>
-                <TableHead className="text-gray-300 font-bold min-w-[100px]">Equipe</TableHead>
-                <TableHead className="text-gray-300 font-bold text-center min-w-[100px]">Pts Atuais</TableHead>
-                <TableHead className="text-gray-300 font-bold text-center min-w-[100px]">Pts Preditos</TableHead>
-                <TableHead className="text-gray-300 font-bold text-center min-w-[120px]">Probabilidade</TableHead>
-                <TableHead className="text-gray-300 font-bold text-center min-w-[100px]">Tendência</TableHead>
-                <TableHead className="text-gray-300 font-bold text-center min-w-[100px]">Média Histórica</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {predictions.map((prediction, index) => (
-                <TableRow 
-                  key={prediction.driver.driverId} 
-                  className="border-red-800/30 hover:bg-red-900/20 transition-colors"
-                >
-                  <TableCell className="text-white font-bold">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      index === 0 ? 'bg-yellow-500 text-black' : 
-                      index === 1 ? 'bg-gray-400 text-black' : 
-                      index === 2 ? 'bg-amber-600 text-white' : 
-                      'bg-gray-600 text-white'
-                    }`}>
-                      {index + 1}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-white">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg">{getNationalityFlag(prediction.driver.nationality)}</span>
-                      <span className="font-semibold">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center bg-white/10 rounded-lg p-2">
-                      <img 
-                        src={getTeamLogo(prediction.constructor.name)} 
-                        alt={prediction.constructor.name}
-                        className="w-12 h-8 object-contain brightness-0 invert"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.parentElement!.innerHTML = `<span class="text-white text-xs font-medium px-2">${prediction.constructor.name}</span>`;
-                        }}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white text-center font-bold text-lg">
-                    {prediction.currentPoints}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="text-red-400 font-bold text-lg">
-                      {prediction.predictedPoints}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-col items-center space-y-2">
-                      <span className="text-white font-medium">{prediction.probability}%</span>
-                      <Progress 
-                        value={prediction.probability} 
-                        className="w-20 h-2"
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center">
-                      {prediction.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-400" />}
-                      {prediction.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-400" />}
-                      {prediction.trend === 'stable' && <Minus className="w-5 h-5 text-yellow-400" />}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white text-center font-medium">
-                    {prediction.historicalAverage}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <StandardTable
+        title="Predição do Campeonato 2025"
+        subtitle="Baseado em dados históricos e performance atual da temporada"
+        headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência", "Média Histórica"]}
+      >
+        {predictions.map((prediction, index) => (
+          <TableRow 
+            key={prediction.driver.driverId} 
+            className="border-red-800/50 hover:bg-red-900/20 transition-colors"
+          >
+            <TableCell className="text-white font-bold min-w-[50px]">
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                index === 0 ? 'bg-yellow-500 text-black' : 
+                index === 1 ? 'bg-gray-400 text-black' : 
+                index === 2 ? 'bg-amber-600 text-white' : 
+                'bg-gray-600 text-white'
+              }`}>
+                {index + 1}
+              </span>
+            </TableCell>
+            <TableCell className="text-white min-w-[200px]">
+              <div className="flex items-center space-x-3">
+                <span className="text-lg">{getNationalityFlag(prediction.driver.nationality)}</span>
+                <span className="font-semibold">{`${prediction.driver.givenName} ${prediction.driver.familyName}`}</span>
+              </div>
+            </TableCell>
+            <TableCell className="min-w-[100px]">
+              <TeamLogo teamName={prediction.constructor.name} />
+            </TableCell>
+            <TableCell className="text-white text-center font-bold text-lg min-w-[100px]">
+              {prediction.currentPoints}
+            </TableCell>
+            <TableCell className="text-center min-w-[100px]">
+              <span className="text-red-400 font-bold text-lg">
+                {prediction.predictedPoints}
+              </span>
+            </TableCell>
+            <TableCell className="text-center min-w-[120px]">
+              <div className="flex flex-col items-center space-y-2">
+                <span className="text-white font-medium">{prediction.probability}%</span>
+                <Progress 
+                  value={prediction.probability} 
+                  className="w-20 h-2"
+                />
+              </div>
+            </TableCell>
+            <TableCell className="text-center min-w-[100px]">
+              <div className="flex items-center justify-center">
+                {prediction.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-400" />}
+                {prediction.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-400" />}
+                {prediction.trend === 'stable' && <Minus className="w-5 h-5 text-yellow-400" />}
+              </div>
+            </TableCell>
+            <TableCell className="text-white text-center font-medium min-w-[100px]">
+              {prediction.historicalAverage}
+            </TableCell>
+          </TableRow>
+        ))}
+      </StandardTable>
     </div>
   );
 };

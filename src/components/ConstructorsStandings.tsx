@@ -1,8 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import StandardTable from "./StandardTable";
+import TeamLogo from "./TeamLogo";
 
 // --- Tipos de dados da API ---
 interface Constructor {
@@ -83,28 +83,26 @@ const ConstructorsStandings = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-red-800/30 bg-black/50">
-          <h2 className="text-2xl font-bold text-white mb-2">Classificação dos Construtores 2025</h2>
-          <p className="text-gray-300">A carregar dados da temporada...</p>
-        </div>
-        <div className="p-6 space-y-3">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-4 p-2">
-              <Skeleton className="h-6 w-10" />
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-6 w-12 ml-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
+      <StandardTable
+        title="Classificação dos Construtores 2025"
+        subtitle="A carregar dados da temporada..."
+        headers={["Pos", "Equipe", "Pontos", "Vitórias"]}
+      >
+        {[...Array(10)].map((_, i) => (
+          <TableRow key={i} className="border-red-800/50">
+            <TableCell><Skeleton className="h-6 w-10" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-48" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+          </TableRow>
+        ))}
+      </StandardTable>
     );
   }
 
   if (isError) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6 text-white text-center shadow-2xl">
+      <div className="bg-gray-900 rounded-xl border border-red-800/50 p-6 text-white text-center shadow-2xl">
         <h2 className="text-2xl font-bold text-red-500 mb-2">Erro ao carregar dados</h2>
         <p className="text-gray-300 mb-4">Não foi possível buscar a classificação dos construtores.</p>
         <p className="text-sm text-gray-500">{error.message}</p>
@@ -114,75 +112,56 @@ const ConstructorsStandings = () => {
 
   if (!standingsList || standingsList.ConstructorStandings.length === 0) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-red-800/30 p-6 text-white text-center shadow-2xl">
-        <h2 className="text-2xl font-bold text-white mb-2">Temporada 2025</h2>
-        <p className="text-gray-300">Ainda não há dados de classificação de construtores para esta temporada.</p>
-      </div>
+      <StandardTable
+        title="Temporada 2025"
+        subtitle="Ainda não há dados de classificação de construtores para esta temporada."
+        headers={["Pos", "Equipe", "Pontos", "Vitórias"]}
+      >
+        <TableRow>
+          <TableCell colSpan={4} className="text-center text-gray-300">
+            Nenhum dado disponível
+          </TableCell>
+        </TableRow>
+      </StandardTable>
     );
   }
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-red-800/30 overflow-hidden shadow-2xl">
-      <div className="p-6 border-b border-red-800/30 bg-black/50">
-        <h2 className="text-2xl font-bold text-white mb-2">Classificação dos Construtores 2025</h2>
-        <p className="text-gray-300">Pontuação após {standingsList.round} corridas</p>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-red-800/30 bg-black/50">
-              <TableHead className="text-gray-300 font-bold w-16">Pos</TableHead>
-              <TableHead className="text-gray-300 font-bold min-w-[200px]">Equipe</TableHead>
-              <TableHead className="text-gray-300 font-bold text-center">Pontos</TableHead>
-              <TableHead className="text-gray-300 font-bold text-center">Vitórias</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {standingsList.ConstructorStandings.map((constructor) => (
-              <TableRow 
-                key={constructor.Constructor.constructorId} 
-                className="border-red-800/30 hover:bg-red-900/20 transition-colors"
-              >
-                <TableCell className="font-bold text-white text-center">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    constructor.position === "1" ? 'bg-yellow-500 text-black' : 
-                    constructor.position === "2" ? 'bg-gray-400 text-black' : 
-                    constructor.position === "3" ? 'bg-amber-600 text-white' : 
-                    'bg-gray-600 text-white'
-                  }`}>
-                    {constructor.position}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-lg">{getNationalityFlag(constructor.Constructor.nationality)}</span>
-                    <div className="bg-white/10 rounded-lg p-2 flex items-center justify-center">
-                      <img 
-                        src={getTeamLogo(constructor.Constructor.name)} 
-                        alt={constructor.Constructor.name}
-                        className="w-12 h-8 object-contain filter brightness-0 invert"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.parentElement!.innerHTML = `<span class="text-white text-sm font-medium px-2">${constructor.Constructor.name}</span>`;
-                        }}
-                      />
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-white font-bold text-lg text-center">
-                  {constructor.points}
-                </TableCell>
-                <TableCell className="text-white text-center font-medium">
-                  {constructor.wins}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    <StandardTable
+      title="Classificação dos Construtores 2025"
+      subtitle={`Pontuação após ${standingsList.round} corridas`}
+      headers={["Pos", "Equipe", "Pontos", "Vitórias"]}
+    >
+      {standingsList.ConstructorStandings.map((constructor) => (
+        <TableRow 
+          key={constructor.Constructor.constructorId} 
+          className="border-red-800/50 hover:bg-red-900/20 transition-colors"
+        >
+          <TableCell className="font-bold text-white text-center w-16">
+            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+              constructor.position === "1" ? 'bg-yellow-500 text-black' : 
+              constructor.position === "2" ? 'bg-gray-400 text-black' : 
+              constructor.position === "3" ? 'bg-amber-600 text-white' : 
+              'bg-gray-600 text-white'
+            }`}>
+              {constructor.position}
+            </span>
+          </TableCell>
+          <TableCell className="min-w-[200px]">
+            <div className="flex items-center space-x-3">
+              <span className="text-lg">{getNationalityFlag(constructor.Constructor.nationality)}</span>
+              <TeamLogo teamName={constructor.Constructor.name} />
+            </div>
+          </TableCell>
+          <TableCell className="text-white font-bold text-lg text-center">
+            {constructor.points}
+          </TableCell>
+          <TableCell className="text-white text-center font-medium">
+            {constructor.wins}
+          </TableCell>
+        </TableRow>
+      ))}
+    </StandardTable>
   );
 };
 

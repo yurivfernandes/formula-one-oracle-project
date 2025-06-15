@@ -1,0 +1,47 @@
+
+import React from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+interface StandardTableProps {
+  title: string;
+  subtitle?: string;
+  headers: string[];
+  children: React.ReactNode;
+  className?: string;
+}
+
+const StandardTable: React.FC<StandardTableProps> = ({ 
+  title, 
+  subtitle, 
+  headers, 
+  children, 
+  className = "" 
+}) => {
+  return (
+    <div className={`bg-gray-900 rounded-xl border border-red-800/50 overflow-hidden shadow-2xl ${className}`}>
+      <div className="p-6 border-b border-red-800/50 bg-black/80">
+        <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+        {subtitle && <p className="text-gray-300">{subtitle}</p>}
+      </div>
+      
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-red-800/50 bg-black/80">
+              {headers.map((header, index) => (
+                <TableHead key={index} className="text-gray-300 font-bold">
+                  {header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {children}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+export default StandardTable;
