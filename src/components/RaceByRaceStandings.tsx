@@ -506,6 +506,8 @@ const RaceByRaceStandings = () => {
                   const hasRaceResult = !!racePoints[race.round];
                   const hasSprintResult = !!sprintPoints[race.round];
 
+                  // Se tem pelo menos um resultado, não mostrar placeholder
+                  // Só mostra "-" se não tem NENHUM resultado da sprint nem da corrida
                   return (
                     <TableCell
                       key={race.round}
