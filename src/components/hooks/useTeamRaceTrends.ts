@@ -8,6 +8,12 @@ const upgradeEvents = [
   { round: 13, name: "Bélgica" },
 ];
 
+// Função utilitária para normalizar nomes de equipes
+function normalizeTeamName(name: string) {
+  // Pode-se expandir para tratar variações conhecidas, por hora lowercase trim
+  return name.trim().toLowerCase();
+}
+
 export const useTeamRaceTrends = () => {
   const { data: races, isLoading } = useQuery({
     queryKey: ["races2025"],
@@ -23,51 +29,46 @@ export const useTeamRaceTrends = () => {
 
   // Ordenar corridas por round ascendente
   const sortedRaces = [...races].sort((a, b) => parseInt(a.round) - parseInt(b.round));
-
-  // Descobrir todos os rounds presentes no campeonato
   const allRounds: number[] = sortedRaces.map(r => parseInt(r.round));
 
-  // Extraí todas as equipes que aparecem em qualquer corrida do ano
-  const allTeams = new Set<string>();
+  // Construir um Map de nome-normalizado->nomeOriginal para mapeamento seguro nas trends
+  const teamNameMap = new Map<string, string>();
   for (const race of sortedRaces) {
     for (const result of race.Results) {
-      allTeams.add(result.Constructor.name);
+      const canonical = normalizeTeamName(result.Constructor.name);
+      if (!teamNameMap.has(canonical)) teamNameMap.set(canonical, result.Constructor.name);
     }
   }
 
-  // Para cada equipe, construir um array de { round, points } para TODOS os rounds (mesmo com zero)
-  const teamPointsByRace: Record<string, Array<{ round: number; points: number }>> = {};
-  for (const team of allTeams) {
-    // Inicializa a lista completa, preenchida com zeros
-    teamPointsByRace[team] = allRounds.map(round => ({ round, points: 0 }));
-  }
-
+  // Para cada round, calcular pontos por equipe (nome-normalizado)
+  const teamPointsByRound: Record<string, { [round: number]: number }> = {};
   for (const race of sortedRaces) {
     const round = parseInt(race.round);
-    // Para cada resultado, somar pontos da equipe naquele round
-    const pointsByTeam: Record<string, number> = {};
+
+    // Para cada piloto, some pontos para o construtor nome-normalizado
     for (const result of race.Results) {
-      const team = result.Constructor.name;
+      const teamNorm = normalizeTeamName(result.Constructor.name);
       const pts = Number(result.points) || 0;
-      pointsByTeam[team] = (pointsByTeam[team] || 0) + pts;
+      if (!teamPointsByRound[teamNorm]) teamPointsByRound[teamNorm] = {};
+      teamPointsByRound[teamNorm][round] = (teamPointsByRound[teamNorm][round] || 0) + pts;
     }
-    // Atualiza os pontos nesse round para cada equipe que pontuou
-    for (const [team, pts] of Object.entries(pointsByTeam)) {
-      const histArr = teamPointsByRace[team];
-      if (histArr) {
-        // Encontra a entrada correspondente ao round e ajusta pontos
-        const entry = histArr.find(e => e.round === round);
-        if (entry) entry.points = pts;
-      }
-    }
-    // Equipes que não pontuaram já tem "0" registrado no array inicializado
   }
 
-  // Quais são os N últimos rounds realizados?
+  // Montar matriz por equipe, preenchendo com 0 onde não pontuaram
+  const teams = Array.from(teamNameMap.keys());
+  const teamPointsHistory: Record<string, Array<{ round: number; points: number }>> = {};
+  teams.forEach(teamNorm => {
+    teamPointsHistory[teamNorm] = allRounds.map(round => ({
+      round,
+      points: teamPointsByRound[teamNorm]?.[round] || 0,
+    }));
+  });
+
+  // Rounds para análise de tendência (últimos 3 e 6 rounds)
   const last3Rounds = allRounds.slice(-3);
   const last6Rounds = allRounds.slice(-6);
 
-  // Agora calcula tendências reais das últimas 3/6 etapas
+  // Construir as tendências para todas as equipes (apenas times que participaram de 2025)
   const trends: {
     team: string;
     last3: number;
@@ -76,15 +77,17 @@ export const useTeamRaceTrends = () => {
     rounds: number[];
   }[] = [];
 
-  for (const [team, history] of Object.entries(teamPointsByRace)) {
-    // Ordena pelo round crescente
-    const ordered = [...history].sort((a, b) => a.round - b.round);
+  for (const teamNorm of teams) {
+    const history = teamPointsHistory[teamNorm];
 
-    const last3 = ordered.filter(e => last3Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
-    const last6 = ordered.filter(e => last6Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
+    let last3 = 0, last6 = 0;
+    if (history.length > 0) {
+      last3 = history.filter(e => last3Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
+      last6 = history.filter(e => last6Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
+    }
 
     trends.push({
-      team,
+      team: teamNameMap.get(teamNorm) || teamNorm,
       last3,
       last6,
       rounds: last6Rounds,
@@ -95,7 +98,9 @@ export const useTeamRaceTrends = () => {
   // Calcula impacto do upgrade: compara pontos 2 etapas antes e 2 depois do round do upgrade
   const keyEvent = upgradeEvents[0];
   for (const trend of trends) {
-    const history = [...(teamPointsByRace[trend.team])].sort((a, b) => a.round - b.round);
+    // Usar nome normalizado para buscar em teamPointsHistory
+    const teamNorm = normalizeTeamName(trend.team);
+    const history = teamPointsHistory[teamNorm];
     let before = 0, after = 0;
     for (const r of history) {
       if (r.round === keyEvent.round - 1 || r.round === keyEvent.round - 2) before += r.points;
@@ -110,3 +115,4 @@ export const useTeamRaceTrends = () => {
     upgradeEvents,
   };
 };
+
