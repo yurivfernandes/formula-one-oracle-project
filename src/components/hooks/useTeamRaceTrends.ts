@@ -20,27 +20,33 @@ export const useTeamRaceTrends = () => {
     },
   });
 
-  if (isLoading || !races || races.length === 0) return { isLoading: true, trends: [] as any[] };
+  if (isLoading || !races || races.length === 0)
+    return { isLoading: true, trends: [] as any[] };
 
-  // Refatorado: calcular pontos nas últimas 3 e 6 corridas corretamente
-  // Cria mapa equipe -> [corridas, pontosPorCorrida]
-  const teamRacePoints: Record<string, number[]> = {};
+  // Mapeia: team -> [{ round, points }]
+  const teamPointsByRace: Record<string, Array<{ round: number, points: number }>> = {};
 
-  for (const race of races) {
+  // Ordena as corridas por round ascendente
+  const sortedRaces = [...races].sort((a, b) => parseInt(a.round) - parseInt(b.round));
+
+  for (const race of sortedRaces) {
     const round = parseInt(race.round);
-    // Agrupa e ordena para garantir corretamente o slicing no fim
+
+    // Soma pontos da equipe nesta corrida (agrupar por team)
+    const pointsByTeam: Record<string, number> = {};
     for (const result of race.Results) {
       const team = result.Constructor.name;
       const pts = parseInt(result.points);
-      if (!teamRacePoints[team]) teamRacePoints[team] = [];
-      teamRacePoints[team].push(pts);
+      pointsByTeam[team] = (pointsByTeam[team] || 0) + pts;
     }
+    // Para cada equipe, adiciona o acumulado da corrida à estrutura
+    Object.entries(pointsByTeam).forEach(([team, points]) => {
+      if (!teamPointsByRace[team]) teamPointsByRace[team] = [];
+      teamPointsByRace[team].push({ round, points });
+    });
   }
 
-  // Assegura que array de pontos de cada equipe seja do tamanho correto (ordenado do mais antigo ao mais novo)
-  Object.values(teamRacePoints).forEach(arr => arr.reverse());
-
-  // Agora calcula as tendências considerando só pontos de provas recentes
+  // Agora, para cada equipe, calcula last3, last6, e o impacto pós-upgrade
   const trends: {
     team: string;
     last3: number;
@@ -49,14 +55,18 @@ export const useTeamRaceTrends = () => {
     rounds: number[];
   }[] = [];
 
-  for (const [team, pointsArr] of Object.entries(teamRacePoints)) {
-    const last3 = pointsArr.slice(0, 3).reduce((a, b) => a + b, 0);
-    const last6 = pointsArr.slice(0, 6).reduce((a, b) => a + b, 0);
+  for (const [team, pointsArr] of Object.entries(teamPointsByRace)) {
+    // Ordena do round mais recente para o mais antigo
+    const ordered = [...pointsArr].sort((a, b) => b.round - a.round);
+
+    const last3 = ordered.slice(0, 3).reduce((acc, curr) => acc + curr.points, 0);
+    const last6 = ordered.slice(0, 6).reduce((acc, curr) => acc + curr.points, 0);
+
     trends.push({
       team,
       last3,
       last6,
-      rounds: [],
+      rounds: ordered.slice(0, 6).map(e => e.round),
       upgradeImpact: 0, // calculado abaixo
     });
   }
@@ -64,23 +74,13 @@ export const useTeamRaceTrends = () => {
   // Cálculo de impacto pós-upgrade: pontos das 2 corridas antes e depois do evento
   const keyEvent = upgradeEvents[0];
   for (const trend of trends) {
-    // Descobrir quais rounds essa equipe fez pontos
-    const teamResults = races
-      .map(race => {
-        const result = race.Results.find((res: any) => res.Constructor.name === trend.team);
-        return {
-          round: parseInt(race.round),
-          points: result ? parseInt(result.points) : 0,
-        };
-      })
-      .sort((a, b) => a.round - b.round);
-
-    // pega pontos nas 2 corridas antes e depois do upgrade
-    let before = 0;
-    let after = 0;
-    for (const res of teamResults) {
-      if (res.round === keyEvent.round - 1 || res.round === keyEvent.round - 2) before += res.points;
-      if (res.round === keyEvent.round + 1 || res.round === keyEvent.round + 2) after += res.points;
+    // Busca na ordem crescente de round
+    const pointsArr = [...(teamPointsByRace[trend.team])].sort((a, b) => a.round - b.round);
+    // Encontra pontos nas 2 corridas antes e depois do upgrade
+    let before = 0, after = 0;
+    for (const r of pointsArr) {
+      if (r.round === keyEvent.round - 1 || r.round === keyEvent.round - 2) before += r.points;
+      if (r.round === keyEvent.round + 1 || r.round === keyEvent.round + 2) after += r.points;
     }
     trend.upgradeImpact = after - before;
   }
@@ -91,3 +91,4 @@ export const useTeamRaceTrends = () => {
     upgradeEvents,
   };
 };
+
