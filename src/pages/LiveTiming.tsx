@@ -166,15 +166,30 @@ const LiveTimingPage = () => {
                 <thead className="bg-red-600 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
-                    <th className="px-2 py-2 text-left font-semibold w-28">Piloto</th>
-                    {/* Corrigir: largura idêntica para cabeçalho e body da equipe */}
-                    <th className="px-1 py-2 text-center font-semibold w-14">Equipe</th>
+                    <th
+                      className={`px-2 py-2 font-semibold w-28 ${
+                        visibleLapRange[1] - visibleLapRange[0] === 5
+                          ? "text-left"
+                          : "text-left"
+                      }`}
+                    >
+                      Piloto
+                    </th>
+                    <th
+                      className={`px-1 py-2 font-semibold w-14 ${
+                        visibleLapRange[1] - visibleLapRange[0] === 5
+                          ? "text-left"
+                          : "text-center"
+                      }`}
+                    >
+                      Equipe
+                    </th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
                       <th
                         key={visibleLapRange[0] + i + 1}
                         className="px-2 py-2 text-center font-semibold w-20 text-xs"
                       >
-                        L{visibleLapRange[0] + i + 1}
+                        {`L${visibleLapRange[0] + i + 1}`}
                       </th>
                     ))}
                   </tr>
@@ -208,15 +223,43 @@ const LiveTimingPage = () => {
                         </span>
                       </td>
                       {/* Piloto: bandeira + ID */}
-                      <td className="px-2 py-2 whitespace-nowrap">
+                      <td
+                        className={`px-2 py-2 whitespace-nowrap ${
+                          visibleLapRange[1] - visibleLapRange[0] === 5
+                            ? ""
+                            : ""
+                        }`}
+                        style={
+                          visibleLapRange[1] - visibleLapRange[0] === 5
+                            ? { textAlign: "left" }
+                            : undefined
+                        }
+                      >
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700 text-base">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: logo centralizado, largura fixa igual ao TH, sem padding lateral extra */}
-                      <td className="py-2 w-14">
-                        <div className="flex items-center justify-center w-full h-6">
+                      {/* Equipe: logo centralizado ou alinhado à esquerda */}
+                      <td
+                        className={`py-2 w-14 ${
+                          visibleLapRange[1] - visibleLapRange[0] === 5
+                            ? ""
+                            : ""
+                        }`}
+                        style={
+                          visibleLapRange[1] - visibleLapRange[0] === 5
+                            ? { textAlign: "left" }
+                            : { textAlign: "center" }
+                        }
+                      >
+                        <div
+                          className={`flex items-center h-6 ${
+                            visibleLapRange[1] - visibleLapRange[0] === 5
+                              ? ""
+                              : "justify-center w-full"
+                          }`}
+                        >
                           <TeamLogo teamName={driver.team} className="w-8 h-5" />
                         </div>
                       </td>
