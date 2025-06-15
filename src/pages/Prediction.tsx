@@ -46,8 +46,15 @@ const Prediction = () => {
         {/* Header */}
         <div className="mb-8">
           <Link to="/">
-            <Button variant="ghost" className="text-white hover:text-red-400 mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button 
+              variant="ghost"
+              className="text-white hover:text-red-400 mb-4 border border-red-800/60 hover:bg-red-900/30"
+              style={{
+                // Remove qualquer possível foco azul residual
+                boxShadow: "0 0 0 2px rgba(244,63,94,0.8)"
+              }}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4 text-red-400" />
               Voltar para Home
             </Button>
           </Link>
@@ -65,23 +72,23 @@ const Prediction = () => {
           <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30">
             <TabsTrigger 
               value="championship" 
-              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
+              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500"
             >
-              <Target className="mr-2 h-4 w-4" />
+              <Target className="mr-2 h-4 w-4 text-red-400" />
               Predição Final
             </TabsTrigger>
             <TabsTrigger 
               value="trends"
-              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
+              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500"
             >
-              <TrendingUp className="mr-2 h-4 w-4" />
+              <TrendingUp className="mr-2 h-4 w-4 text-red-400" />
               Tendências
             </TabsTrigger>
             <TabsTrigger 
               value="analysis"
-              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white"
+              className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500"
             >
-              <Brain className="mr-2 h-4 w-4" />
+              <Brain className="mr-2 h-4 w-4 text-red-400" />
               Análise IA
             </TabsTrigger>
           </TabsList>
