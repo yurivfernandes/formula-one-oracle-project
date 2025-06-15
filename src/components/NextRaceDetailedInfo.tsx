@@ -71,6 +71,7 @@ const fetchRaces = async () => {
   const data = await res.json();
   return data.MRData.RaceTable.Races;
 };
+
 const fetchSprints = async () => {
   const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/sprint/");
   const data = await res.json();
@@ -86,37 +87,43 @@ const fetchSchedule = async (round: string) => {
 const CURRENT_ROUND = 10;
 
 const NextRaceDetailedInfo = () => {
+  // All hooks must be called at the top level
   const { data: races, isLoading: loadingRaces } = useQuery({
     queryKey: ["races", 2025],
     queryFn: fetchRaces,
   });
+  
   const { data: sprints, isLoading: loadingSprints } = useQuery({
     queryKey: ["sprintRaces", 2025],
     queryFn: fetchSprints,
   });
 
-  if (loadingRaces || loadingSprints) {
-    return <Skeleton className="h-40 w-full bg-black/30 rounded-xl mb-8" />;
-  }
-
-  // Definir próxima corrida
+  // Find next race first
   const now = new Date();
   const nextRaceObj = races?.find((race: any) => {
     const dt = new Date(`${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`);
     return dt >= now;
   });
-  if (!nextRaceObj) return (
-    <div className="bg-gradient-to-r from-red-900/40 to-black/60 border border-red-500/30 rounded-xl px-5 py-6 text-center text-white font-semibold mb-6">
-      🏁 Temporada finalizada
-    </div>
-  );
 
-  // Buscar detalhes/horários do round da próxima corrida
+  // This hook must always be called, but only enabled when we have a next race
   const { data: nextRaceFull, isLoading: loadingSchedule } = useQuery({
-    queryKey: ["raceSchedule", nextRaceObj.round],
+    queryKey: ["raceSchedule", nextRaceObj?.round],
     queryFn: () => fetchSchedule(nextRaceObj.round),
     enabled: Boolean(nextRaceObj),
   });
+
+  // Now handle loading states and early returns
+  if (loadingRaces || loadingSprints) {
+    return <Skeleton className="h-40 w-full bg-black/30 rounded-xl mb-8" />;
+  }
+
+  if (!nextRaceObj) {
+    return (
+      <div className="bg-gradient-to-r from-red-900/40 to-black/60 border border-red-500/30 rounded-xl px-5 py-6 text-center text-white font-semibold mb-6">
+        🏁 Temporada finalizada
+      </div>
+    );
+  }
 
   // Cálculo pontos restantes
   const currentRoundNum = parseInt(nextRaceObj.round ?? CURRENT_ROUND + 1);
@@ -308,4 +315,3 @@ const NextRaceDetailedInfo = () => {
 };
 
 export default NextRaceDetailedInfo;
-
