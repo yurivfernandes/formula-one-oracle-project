@@ -1,7 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Trophy, Flag, Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
 
 const Index = () => {
   return (
@@ -37,6 +37,11 @@ const Index = () => {
           </div>
         </div>
       </nav>
+
+      {/* AVISO DA PRÓXIMA CORRIDA DETALHADO */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <NextRaceDetailedInfo />
+      </div>
 
       {/* Hero Section */}
       <div className="relative overflow-hidden">
