@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 const NAV_LINKS = [
   { to: "/championship", label: "Campeonato" },
   { to: "/prediction", label: "Predição" },
-  { to: "/race-weekend", label: "GP do Canadá" }
+  { to: "/race-weekend", label: "Próximo GP" }
 ];
 
 export default function SiteHeader() {

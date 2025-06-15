@@ -32,17 +32,19 @@ const ChampionshipPrediction = () => {
             </TableHeader>
             <TableBody>
               {drivers.map((driver, index) => (
-                <TableRow key={driver.name} className={index < 3 ? "bg-yellow-50" : ""}>
+                <TableRow key={driver.driver?.driverId || index} className={index < 3 ? "bg-yellow-50" : ""}>
                   <TableCell className="font-medium">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 text-white text-sm font-bold">
                       {index + 1}
                     </div>
                   </TableCell>
-                  <TableCell className="font-semibold">{driver.name}</TableCell>
+                  <TableCell className="font-semibold">
+                    {driver.driver?.givenName} {driver.driver?.familyName}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <TeamLogo teamName={driver.team} className="w-6 h-6" />
-                      <span>{driver.team}</span>
+                      <TeamLogo teamName={driver.constructor?.name} className="w-6 h-6" />
+                      <span>{driver.constructor?.name}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold">{driver.predictedPoints}</TableCell>
