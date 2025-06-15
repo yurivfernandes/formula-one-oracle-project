@@ -4,6 +4,8 @@ import { Flag, ArrowLeft, TrendingUp, Brain, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChampionshipPrediction from "@/components/ChampionshipPrediction";
+import TrendsAnalysis from "@/components/TrendsAnalysis";
+import AIAnalysis from "@/components/AIAnalysis";
 
 const Prediction = () => {
   return (
@@ -89,17 +91,11 @@ const Prediction = () => {
           </TabsContent>
           
           <TabsContent value="trends" className="mt-8">
-            <div className="bg-gray-900 rounded-xl border border-red-800/30 p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">Tendências Históricas</h2>
-              <p className="text-gray-300">Em desenvolvimento...</p>
-            </div>
+            <TrendsAnalysis />
           </TabsContent>
 
           <TabsContent value="analysis" className="mt-8">
-            <div className="bg-gray-900 rounded-xl border border-red-800/30 p-8">
-              <h2 className="text-2xl font-bold text-white mb-4">Análise com IA</h2>
-              <p className="text-gray-300">Em desenvolvimento...</p>
-            </div>
+            <AIAnalysis />
           </TabsContent>
         </Tabs>
       </div>

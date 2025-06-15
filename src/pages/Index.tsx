@@ -27,6 +27,12 @@ const Index = () => {
               >
                 Campeonato
               </Link>
+              <Link 
+                to="/prediction" 
+                className="text-white hover:text-red-400 transition-colors font-medium"
+              >
+                Predição
+              </Link>
             </div>
           </div>
         </div>
