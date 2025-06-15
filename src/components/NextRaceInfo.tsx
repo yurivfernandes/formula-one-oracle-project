@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Award } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -67,19 +66,32 @@ const NextRaceInfo = () => {
     return <Skeleton className="h-20 w-full bg-black/30 rounded-xl mb-4" />;
   }
 
-  // Determinar próxima corrida (data futura) e rounds restantes
-  const today = new Date();
-  const nextRace = races?.find(
-    (race: any) => new Date(race.date) > today
-  );
+  // Corrige: Seleciona a próxima corrida, inclusive se for hoje mas ainda não ocorreu (considerando horário UTC como data/hora da corrida)
+  const now = new Date();
+  const nextRace = races?.find((race: any) => {
+    const raceDateTime = new Date(
+      `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
+    );
+    return raceDateTime >= now;
+  });
 
   // Listar rounds futuros (incluindo as que ainda não foram realizadas)
   const futureRounds = races
-    ? races.filter((race: any) => Number(race.round) > CURRENT_ROUND)
+    ? races.filter((race: any) => {
+        const raceDateTime = new Date(
+          `${race.date}${race.time ? "T" + race.time : "T12:00:00Z"}`
+        );
+        return raceDateTime > now;
+      })
     : [];
   // Sprints futuros (com round > CURRENT_ROUND)
   const futureSprints = sprints
-    ? sprints.filter((s: any) => Number(s.round) > CURRENT_ROUND)
+    ? sprints.filter((s: any) => {
+        const sprintDateTime = new Date(
+          `${s.date}${s.time ? "T" + s.time : "T12:00:00Z"}`
+        );
+        return sprintDateTime > now;
+      })
     : [];
 
   const racesLeft = futureRounds.length;
@@ -131,19 +143,25 @@ const NextRaceInfo = () => {
           <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2 border border-red-800/30">
             <Award className="w-5 h-5 text-yellow-400" />
             <div className="flex flex-col text-white text-xs">
-              <span><b>Pontos pilotos restantes: </b>
+              <span>
+                <b>Pontos pilotos restantes: </b>
                 <span className="text-red-400 text-base font-bold">{pontosPilotos}</span>
               </span>
-              <span className="text-gray-400">({racesLeft} corridas e {sprintsLeft} sprints)</span>
+              <span className="text-gray-400">
+                ({racesLeft} corridas e {sprintsLeft} sprints)
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2 border border-red-800/30">
             <Award className="w-5 h-5 text-gray-200" />
             <div className="flex flex-col text-white text-xs">
-              <span><b>Pontos construtores restantes: </b>
+              <span>
+                <b>Pontos construtores restantes: </b>
                 <span className="text-red-400 text-base font-bold">{pontosConstrutores}</span>
               </span>
-              <span className="text-gray-400">({racesLeft} corridas e {sprintsLeft} sprints)</span>
+              <span className="text-gray-400">
+                ({racesLeft} corridas e {sprintsLeft} sprints)
+              </span>
             </div>
           </div>
         </div>
