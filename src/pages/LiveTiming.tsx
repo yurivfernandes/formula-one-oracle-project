@@ -167,10 +167,13 @@ const LiveTimingPage = () => {
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold w-16">Pos</th>
                     <th className="px-2 py-2 text-left font-semibold w-28">Piloto</th>
-                    {/* Cabeçalho vazio da equipe para alinhar corretamente */}
-                    <th className="px-2 py-2 text-center font-semibold w-12"></th>
+                    {/* Corrigido: nome visível no cabeçalho para equipe/logo, largura idêntica ao corpo */}
+                    <th className="px-1 py-2 text-center font-semibold w-16">Equipe</th>
                     {Array.from({ length: visibleLapRange[1] - visibleLapRange[0] }, (_, i) => (
-                      <th key={visibleLapRange[0] + i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
+                      <th
+                        key={visibleLapRange[0] + i + 1}
+                        className="px-2 py-2 text-center font-semibold w-20 text-xs"
+                      >
                         L{visibleLapRange[0] + i + 1}
                       </th>
                     ))}
@@ -206,20 +209,20 @@ const LiveTimingPage = () => {
                           })()}
                         </span>
                       </td>
-                      {/* Piloto: bandeira + ID abreviada */}
+                      {/* Piloto: bandeira + ID */}
                       <td className="px-2 py-2 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700 text-base">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: apenas logo, CENTRALIZADO, SEM padding lateral extra */}
-                      <td className="px-2 py-2">
-                        <div className="flex items-center justify-center">
+                      {/* Equipe: logo centralizado, largura idêntica ao TH */}
+                      <td className="px-1 py-2">
+                        <div className="flex items-center justify-center w-12 h-6 mx-auto">
                           <TeamLogo teamName={driver.team} className="w-8 h-5" />
                         </div>
                       </td>
-                      {/* Tempos de volta: sempre se alinham diretamente à direita do logo do time */}
+                      {/* Tempos de volta */}
                       {lapTimes[driver.id]
                         .slice(visibleLapRange[0], visibleLapRange[1])
                         .map((time, lapIndex) => (
