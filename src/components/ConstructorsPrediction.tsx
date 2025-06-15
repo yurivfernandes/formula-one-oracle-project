@@ -7,19 +7,6 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 
-interface Constructor {
-  constructorId: string;
-  name: string;
-}
-
-interface ConstructorPrediction {
-  constructor: Constructor;
-  currentPoints: number;
-  predictedPoints: number;
-  probability: number;
-  trend: 'up' | 'down' | 'stable';
-}
-
 const fetchConstructorStandings = async () => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorStandings/');
   if (!response.ok) throw new Error('Erro ao buscar classificação de construtores');
@@ -28,7 +15,6 @@ const fetchConstructorStandings = async () => {
 };
 
 const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction[] => {
-  // Verificar se standings é um array válido
   if (!Array.isArray(standings) || standings.length === 0) {
     return [];
   }
@@ -36,46 +22,60 @@ const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction
   const currentRound = 10;
   const totalRounds = 24;
   const remainingRounds = totalRounds - currentRound;
-  
-  return standings.slice(0, 4).map((standing, index) => {
+  // DOIS CARROS, por corrida, máximo 1-2 = 25+18=43
+  const maxByTeam = totalRounds * (25 + 18);
+
+  // Ajustar com predição dos pilotos: prevenir incoerência (a soma dos preditos dos pilotos da equipe)
+  // Muito difícil que um time bata 900+ pts; vamos limitar a algo realista pra F1 atual
+  return standings.map((standing, index) => {
     const currentPoints = parseInt(standing.points);
     const teamName = standing.Constructor.name;
-    
+
     let teamPerformanceMultiplier = 1.0;
     if (teamName === "McLaren") {
-      teamPerformanceMultiplier = 1.15;
+      teamPerformanceMultiplier = 1.10;
     } else if (teamName === "Red Bull") {
-      teamPerformanceMultiplier = 0.92;
+      teamPerformanceMultiplier = 0.95;
     } else if (teamName === "Ferrari") {
       teamPerformanceMultiplier = 1.05;
     } else if (teamName === "Mercedes") {
-      teamPerformanceMultiplier = 0.95;
+      teamPerformanceMultiplier = 0.97;
     }
-    
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
-    const adjustedPointsPerRace = currentPointsPerRace * teamPerformanceMultiplier;
-    const projectedRemainingPoints = adjustedPointsPerRace * remainingRounds;
-    const predictedPoints = Math.round(currentPoints + projectedRemainingPoints);
-    
+
+    // Limitar média máxima dupla a 36pts/corrida (p1-p2 todo GP é impossível)
+    let predictedPerRace = Math.min(currentPointsPerRace * teamPerformanceMultiplier, 37);
+
+    const projectedRemainingPoints = predictedPerRace * remainingRounds;
+    let predictedPoints = Math.round(currentPoints + projectedRemainingPoints);
+
+    // Nunca ultrapassar o teórico máximo
+    predictedPoints = Math.min(predictedPoints, maxByTeam, 650);
+
     const leadingPoints = standings[0] ? parseInt(standings[0].points) : currentPoints;
     const pointsGap = leadingPoints - currentPoints;
-    const maxPossibleGain = remainingRounds * 44; // 2 carros podem somar até 44 pontos por corrida
-    
+    const maxPossibleGain = remainingRounds * 43; // 2 carros podem somar até 43 pontos por corrida GP
+
     let probability = 0;
     if (index === 0) {
       probability = Math.max(70, Math.min(95, 75 + (teamPerformanceMultiplier - 1) * 30));
     } else {
       const catchUpProbability = Math.max(0, (maxPossibleGain - pointsGap) / maxPossibleGain);
-      const teamFactor = (teamPerformanceMultiplier - 0.8) * 50;
-      probability = Math.min(40, (catchUpProbability * 100 * 0.6) + teamFactor);
+      const teamFactor = (teamPerformanceMultiplier - 0.9) * 40;
+      probability = Math.min(40, (catchUpProbability * 100 * 0.55) + teamFactor);
     }
-    
+
+    // Definir tendência
+    let trend: 'up' | 'down' | 'stable' = 'stable';
+    if (teamPerformanceMultiplier > 1.05) trend = 'up';
+    else if (teamPerformanceMultiplier < 0.96) trend = 'down';
+
     return {
       constructor: standing.Constructor,
       currentPoints,
       predictedPoints,
       probability: Math.max(0, Math.round(probability)),
-      trend: teamPerformanceMultiplier > 1.0 ? 'up' : teamPerformanceMultiplier < 1.0 ? 'down' : 'stable'
+      trend
     };
   });
 };
@@ -92,11 +92,12 @@ const ConstructorsPrediction = () => {
         title="Predição Construtores 2025 - Top 4"
         subtitle="Análise das equipes favoritas ao título"
         headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+        className="bg-black border border-red-800"
       >
         <TableRow>
           <TableCell colSpan={6}>
             <div className="bg-black">
-              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-48 w-full bg-black" />
             </div>
           </TableCell>
         </TableRow>
@@ -110,6 +111,7 @@ const ConstructorsPrediction = () => {
         title="Predição Construtores 2025 - Top 4"
         subtitle="Erro ao carregar dados"
         headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+        className="bg-black border border-red-800"
       >
         <TableRow>
           <TableCell colSpan={6} className="text-center text-red-400">
@@ -120,18 +122,19 @@ const ConstructorsPrediction = () => {
     );
   }
 
-  const predictions = constructorStandings ? calculateConstructorPrediction(constructorStandings) : [];
+  const predictions = constructorStandings ? calculateConstructorPrediction(constructorStandings).slice(0, 4) : [];
 
   return (
     <StandardTable
       title="Predição Construtores 2025 - Top 4"
       subtitle="Análise das equipes favoritas ao título de construtores"
       headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+      className="bg-black border border-red-800"
     >
       {predictions.map((prediction, index) => (
         <TableRow
           key={prediction.constructor.constructorId}
-          className="border-red-800/70 hover:bg-red-900/30 transition-colors"
+          className="border-red-800/80 hover:bg-red-900/30 transition-colors"
         >
           <TableCell className="text-white font-bold">
             <span
@@ -142,7 +145,7 @@ const ConstructorsPrediction = () => {
                   ? "bg-gray-400 text-black"
                   : index === 2
                   ? "bg-amber-700 text-white"
-                  : "bg-gray-700 text-white"
+                  : "bg-gray-800 text-white"
               }`}
             >
               {index + 1}

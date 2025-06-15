@@ -118,114 +118,132 @@ const fetchHistoricalData = async (): Promise<HistoricalData[]> => {
   return historicalData;
 };
 
+// Função de cálculo de pontuação máxima possível numa temporada
+const getMaxPointsPerSeason = (totalRounds: number) => {
+  // 25 (p1) + 18 (p2) por corrida, por equipe (pódio duplo) = 43 x totalRounds
+  // Por piloto = 25 x totalRounds (vitórias em todas)
+  // Ex: 24 corridas → piloto: 600, equipe: 1032
+  return {
+    maxByDriver: totalRounds * 25,
+    maxByTeam: totalRounds * (25 + 18),
+  };
+};
+
 const calculatePrediction = (currentStandings: any[], historicalData: HistoricalData[]): PredictionData[] => {
   const currentRound = 10;
   const totalRounds = 24;
   const remainingRounds = totalRounds - currentRound;
-  
-  return currentStandings.map((standing, index) => {
+  const { maxByDriver, maxByTeam } = getMaxPointsPerSeason(totalRounds);
+
+  // Mapeia todos os pilotos e já agrupa para somar os pontos por equipe ao final:
+  let predictions = currentStandings.map((standing, index) => {
     const driverId = standing.Driver.driverId;
     const currentPoints = parseInt(standing.points);
-    
+
     // Buscar dados históricos do piloto
     const driverHistory = historicalData.filter(h => h.driver.driverId === driverId);
-    const historicalAverage = driverHistory.length > 0 
-      ? driverHistory.reduce((sum, h) => sum + h.points, 0) / driverHistory.length 
-      : currentPoints;
-    
-    // Calcular média de pontos por corrida com análise de tendência da temporada atual
+
+    // Média histórica, ponderando mais os anos recentes
+    let historicalAverage = currentPoints;
+    if (driverHistory.length > 0) {
+      // Peso para anos mais recentes: 70% três últimos, 30% anteriores
+      const recent = driverHistory.filter(h => h.year >= 2022);
+      const older = driverHistory.filter(h => h.year < 2022);
+      const recentAvg = recent.length > 0 ? recent.reduce((sum, h) => sum + h.points, 0) / recent.length : 0;
+      const olderAvg = older.length > 0 ? older.reduce((sum, h) => sum + h.points, 0) / older.length : 0;
+      historicalAverage = recentAvg * 0.7 + olderAvg * 0.3;
+    }
+
+    // Média de pontos por corrida atual
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
-    
-    // Análise da evolução do campeonato 2025 - McLaren dominante
+
+    // Fator equipe (manter gap pequeno entre dupla, exceto no caso de amplo domínio)
+    const team = standing.Constructors[0].name;
     let teamPerformanceMultiplier = 1.0;
-    const teamName = standing.Constructors[0].name;
-    
-    // Ajustes baseados na performance real das equipes em 2025
-    if (teamName === "McLaren") {
-      teamPerformanceMultiplier = 1.15; // McLaren está dominando
-    } else if (teamName === "Red Bull") {
-      teamPerformanceMultiplier = 0.92; // Red Bull perdeu competitividade
-    } else if (teamName === "Ferrari") {
-      teamPerformanceMultiplier = 1.05; // Ferrari competitiva
-    } else if (teamName === "Mercedes") {
-      teamPerformanceMultiplier = 0.95; // Mercedes em recuperação
+    if (team === "McLaren") {
+      teamPerformanceMultiplier = 1.10;
+    } else if (team === "Red Bull") {
+      teamPerformanceMultiplier = 0.95;
+    } else if (team === "Ferrari") {
+      teamPerformanceMultiplier = 1.05;
+    } else if (team === "Mercedes") {
+      teamPerformanceMultiplier = 0.97;
     }
-    
-    // Calcular tendência baseada nos últimos 3 anos
-    const recentHistory = driverHistory.filter(h => h.year >= 2022).sort((a, b) => b.year - a.year);
-    let trend: 'up' | 'down' | 'stable' = 'stable';
-    
-    if (recentHistory.length >= 2) {
-      const recentAvg = recentHistory.slice(0, 2).reduce((sum, h) => sum + h.points, 0) / 2;
-      const olderAvg = recentHistory.slice(2).reduce((sum, h) => sum + h.points, 0) / Math.max(1, recentHistory.length - 2);
-      
-      if (recentAvg > olderAvg * 1.1) trend = 'up';
-      else if (recentAvg < olderAvg * 0.9) trend = 'down';
-    }
-    
-    // Modelo de predição refinado baseado na performance da temporada 2025
-    let projectedFinalPoints = currentPoints;
-    
-    if (currentRound > 0) {
-      // Análise específica da temporada 2025 - corridas mais competitivas
-      const seasonCompetitiveFactor = 1.08; // Temporada mais competitiva que 2024
-      
-      // Ajustar baseado na tendência do piloto
-      let trendMultiplier = 1.0;
-      if (trend === 'up') trendMultiplier = 1.08;
-      else if (trend === 'down') trendMultiplier = 0.94;
-      
-      // Fator de progressão da temporada (performance pode variar)
-      const seasonProgressionFactor = index < 5 ? 0.98 : 0.92; // Top 5 mantém melhor ritmo
-      
-      // Calcular pontuação projetada com base na competitividade atual
-      const adjustedPointsPerRace = currentPointsPerRace * 
-                                   teamPerformanceMultiplier * 
-                                   trendMultiplier * 
-                                   seasonCompetitiveFactor * 
-                                   seasonProgressionFactor;
-      
-      // Limitar pontos por corrida a um máximo realista para 2025
-      const maxPointsPerRace = index === 0 ? 18 : (index < 3 ? 16 : (index < 8 ? 12 : 8));
-      const finalPointsPerRace = Math.min(adjustedPointsPerRace, maxPointsPerRace);
-      
-      const projectedRemainingPoints = finalPointsPerRace * remainingRounds;
-      projectedFinalPoints = Math.round(currentPoints + projectedRemainingPoints);
-    }
-    
-    // Garantir limites realistas baseados na evolução do esporte
-    // 2025 é mais competitivo, então recordes podem ser quebrados moderadamente
-    const maxRealisticPoints = 520; // Ligeiramente maior que o recorde de 2023
-    const predictedPoints = Math.min(Math.max(currentPoints, projectedFinalPoints), maxRealisticPoints);
-    
-    // Probabilidade de vitória mais refinada baseada na situação atual
-    const leadingPoints = currentStandings[0] ? parseInt(currentStandings[0].points) : currentPoints;
-    const pointsGap = leadingPoints - currentPoints;
-    const maxPossibleGain = remainingRounds * 25;
-    
-    let probability = 0;
-    if (index === 0) {
-      // Líder atual - probabilidade baseada na vantagem e performance da equipe
-      const leadAdvantage = pointsGap === 0 ? 0 : -pointsGap;
-      const teamStrength = teamPerformanceMultiplier;
-      probability = Math.max(70, Math.min(95, 75 + (leadAdvantage / 10) + (teamStrength - 1) * 30));
-    } else {
-      // Outros pilotos - análise mais sofisticada
-      const catchUpProbability = Math.max(0, (maxPossibleGain - pointsGap) / maxPossibleGain);
-      const teamFactor = (teamPerformanceMultiplier - 0.8) * 50; // Converte para percentual
-      probability = Math.min(40, (catchUpProbability * 100 * 0.6) + teamFactor);
-    }
-    
+
+    // O máximo de pontos que o piloto pode fazer daqui até o fim:
+    const maxPossibleToGain = remainingRounds * 25;
+    // Projeção realista do piloto (mantendo ritmo, ponderado pelo desempenho atual/histórico)
+    let predicted = currentPoints;
+    // Média entre pontos por corrida recente (comperformance) e histórico recente
+    let predictedPerRace = (currentPointsPerRace * 0.7 + (historicalAverage / totalRounds) * 0.3) * teamPerformanceMultiplier;
+
+    // Não pode passar do máximo por corrida (25), geralmente fica entre 10~20 nos bons pilotos
+    predictedPerRace = Math.min(predictedPerRace, 21);
+
+    // Projetar para corridas restantes
+    predicted += Math.round(predictedPerRace * remainingRounds);
+
+    // Nunca passar do máximo absoluto (vitória em todas), nem ultrapassar recordes históricos
+    predicted = Math.min(predicted, maxByDriver, 420);
+
     return {
       driver: standing.Driver,
       constructor: standing.Constructors[0],
       currentPoints,
-      predictedPoints,
-      probability: Math.max(0, Math.round(probability)),
-      trend,
-      historicalAverage: Math.round(historicalAverage)
+      predictedPoints: Math.max(currentPoints, Math.round(predicted)),
+      probability: 0, // Preencher depois
+      trend: "stable", // Preencher depois
+      historicalAverage: Math.round(historicalAverage),
     };
-  }).sort((a, b) => b.predictedPoints - a.predictedPoints);
+  });
+
+  // Ajuste para manter a soma dos pilotos da equipe <= máximo possível da equipe
+  const pilotsByTeam: Record<string, PredictionData[]> = {};
+  predictions.forEach((p) => {
+    if (!pilotsByTeam[p.constructor.name]) pilotsByTeam[p.constructor.name] = [];
+    pilotsByTeam[p.constructor.name].push(p);
+  });
+  Object.entries(pilotsByTeam).forEach(([team, list]) => {
+    const total = list.reduce((s, v) => s + v.predictedPoints, 0);
+    if (total > maxByTeam) {
+      // Reduzir proporcionalmente
+      list.forEach((p) => {
+        p.predictedPoints = Math.round((p.predictedPoints / total) * maxByTeam);
+      });
+    }
+  });
+
+  // Agora definir probabilidades e tendência
+  // O líder tem maior probabilidade, e depende do gap de pontos, forma e equipe
+  const sortedCurrent = [...predictions].sort((a, b) => b.currentPoints - a.currentPoints);
+  const leadingPoints = sortedCurrent[0] ? sortedCurrent[0].currentPoints : 0;
+  predictions = predictions.map((p, idx) => {
+    // Probabilidade: depende gap + performance equipe + histórico
+    let chance = 30; // base
+    const gap = leadingPoints - p.currentPoints;
+    if (idx === 0) {
+      chance = 70 + (p.predictedPoints > 320 ? 10 : 0) + (p.constructor.name === "McLaren" ? 7 : 0);
+    } else {
+      // Quanto menor o gap, mais chance, mas nunca acima de 40 para não ser incoerente
+      chance = Math.round(35 - gap * 0.12 + (p.constructor.name === "McLaren" ? 3 : 0) + (p.historicalAverage > 150 ? 2 : 0));
+      chance = Math.max(2, Math.min(40, chance));
+    }
+
+    // Tendência
+    const recent = p.historicalAverage;
+    let trend: 'up' | 'down' | 'stable' = 'stable';
+    if (recent > 170) trend = "up";
+    else if (recent < 70) trend = "down";
+
+    return {
+      ...p,
+      probability: Math.max(0, Math.min(100, chance)),
+      trend,
+    };
+  });
+
+  // Ordenar por pontos preditos
+  return predictions.sort((a, b) => b.predictedPoints - a.predictedPoints);
 };
 
 const ChampionshipPrediction = () => {
@@ -249,10 +267,12 @@ const ChampionshipPrediction = () => {
           title="Predição Pilotos 2025 - Top 6"
           subtitle="Analisando dados históricos..."
           headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+          // TEMAS PRETO E VERMELHO
+          className="bg-black border border-red-800"
         >
           <TableRow>
             <TableCell colSpan={7}>
-              <Skeleton className="h-96 w-full" />
+              <Skeleton className="h-96 w-full bg-black" />
             </TableCell>
           </TableRow>
         </StandardTable>
@@ -273,18 +293,19 @@ const ChampionshipPrediction = () => {
         title="Predição Pilotos 2025 - Top 6"
         subtitle="Análise dos pilotos favoritos ao título mundial"
         headers={["Pos", "Piloto", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+        className="bg-black border border-red-800"
       >
         {predictions.map((prediction, index) => (
           <TableRow 
             key={prediction.driver.driverId} 
-            className="border-red-800/50 hover:bg-red-900/20 transition-colors"
+            className="border-red-800/80 hover:bg-red-900/30 transition-colors"
           >
             <TableCell className="text-white font-bold">
               <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 index === 0 ? 'bg-yellow-500 text-black' : 
                 index === 1 ? 'bg-gray-400 text-black' : 
                 index === 2 ? 'bg-amber-600 text-white' : 
-                'bg-gray-600 text-white'
+                'bg-gray-800 text-white'
               }`}>
                 {index + 1}
               </span>
@@ -311,7 +332,7 @@ const ChampionshipPrediction = () => {
                 <span className="text-white font-medium">{prediction.probability}%</span>
                 <Progress 
                   value={prediction.probability} 
-                  className="w-20 h-2"
+                  className="w-20 h-2 bg-red-900"
                 />
               </div>
             </TableCell>
@@ -332,3 +353,8 @@ const ChampionshipPrediction = () => {
 };
 
 export default ChampionshipPrediction;
+
+// AVISO DE REFACTOR:
+//
+// O arquivo ChampionshipPrediction.tsx está muito grande (acima de 300 linhas).
+// Recomendo que peça para refatorar em componentes menores prontamente!
