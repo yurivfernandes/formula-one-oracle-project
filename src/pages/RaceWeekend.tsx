@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Flag, Calendar, Clock, MapPin, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -120,13 +121,7 @@ const RaceWeekend = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-6 text-center">
-              <Link to="/race-weekend/live">
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                  Acompanhar Live Timing
-                </Button>
-              </Link>
-            </div>
+            {/* Botão para live timing removido conforme solicitado */}
           </div>
         </section>
       </main>

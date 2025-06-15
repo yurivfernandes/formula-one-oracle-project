@@ -2,20 +2,21 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight, Wrench, TrendingUp } from "lucide-react";
 import { useTeamRaceTrends } from "./hooks/useTeamRaceTrends";
+import TeamLogo from "./TeamLogo";
 
 const TeamTrends = () => {
   const { trends, isLoading, upgradeEvents } = useTeamRaceTrends();
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-red-800/30 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-red-800/30 rounded-lg p-6 mb-8 mt-16">
         <h3 className="text-lg text-gray-900">Carregando tendências dinâmicas...</h3>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-red-800/30 rounded-lg p-6 mb-8">
+    <div className="bg-white border border-red-800/30 rounded-lg p-6 mb-8 mt-16">
       <h3 className="text-lg flex items-center text-gray-900 mb-4">
         <TrendingUp className="w-5 h-5 text-red-500 mr-2" />
         Tendências Dinâmicas das Equipes (Atualização Espanha & Últimas Corridas)
@@ -25,9 +26,9 @@ const TeamTrends = () => {
           <Card className="bg-white border-red-800/30 shadow" key={trend.team}>
             <CardHeader>
               <CardTitle className="text-gray-900 flex items-center space-x-2">
-                <span>{trend.team}</span>
-                {trend.upgradeImpact > 0 && <Wrench className="text-green-400 w-4 h-4" />}
-                {trend.upgradeImpact < 0 && <Wrench className="text-red-400 w-4 h-4" />}
+                <TeamLogo teamName={trend.team} className="w-16 h-10" />
+                {trend.upgradeImpact > 0 && <Wrench className="text-green-400 w-4 h-4 ml-1" />}
+                {trend.upgradeImpact < 0 && <Wrench className="text-red-400 w-4 h-4 ml-1" />}
               </CardTitle>
             </CardHeader>
             <CardContent>

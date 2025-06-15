@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Users, TrendingUp } from "lucide-react";
 import { useChampionshipPrediction } from "./hooks/useChampionshipPrediction";
@@ -42,7 +43,7 @@ const ChampionshipPrediction = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <TeamLogo teamName={driver.constructor?.name} className="w-6 h-6" />
+                      <TeamLogo teamName={driver.constructor?.name} className="w-16 h-10" />
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold">{driver.predictedPoints}</TableCell>
@@ -68,52 +69,7 @@ const ChampionshipPrediction = () => {
       </Card>
 
       {/* Quarta seção - Análise de Tendências */}
-      <Card className="border-red-200">
-        <CardHeader className="bg-red-50">
-          <CardTitle className="flex items-center gap-2 text-red-700">
-            <TrendingUp className="h-5 w-5" />
-            Análise de Tendências da Temporada
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-red-700">Favoritos para Vitórias</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Max Verstappen</span>
-                  <span className="text-red-600 font-semibold">12-14 vitórias</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Lando Norris</span>
-                  <span className="text-red-600 font-semibold">4-6 vitórias</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Charles Leclerc</span>
-                  <span className="text-red-600 font-semibold">3-5 vitórias</span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-red-700">Batalhas a Observar</h3>
-              <div className="space-y-2">
-                <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
-                  <div className="font-medium">Título de Pilotos</div>
-                  <div className="text-sm text-gray-600">Verstappen vs Norris</div>
-                </div>
-                <div className="p-3 bg-green-50 rounded border-l-4 border-green-400">
-                  <div className="font-medium">P3 no Campeonato</div>
-                  <div className="text-sm text-gray-600">Leclerc vs Piastri vs Russell</div>
-                </div>
-                <div className="p-3 bg-orange-50 rounded border-l-4 border-orange-400">
-                  <div className="font-medium">Construtores</div>
-                  <div className="text-sm text-gray-600">Red Bull vs McLaren</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Removendo a seção de tendências irreais */}
     </div>
   );
 };
