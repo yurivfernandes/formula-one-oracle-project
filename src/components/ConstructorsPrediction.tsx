@@ -86,8 +86,6 @@ const ConstructorsPrediction = () => {
     queryFn: fetchConstructorStandings,
   });
 
-  console.log('Constructor standings data:', constructorStandings);
-
   if (isLoading) {
     return (
       <StandardTable
@@ -97,7 +95,9 @@ const ConstructorsPrediction = () => {
       >
         <TableRow>
           <TableCell colSpan={6}>
-            <Skeleton className="h-48 w-full" />
+            <div className="bg-black">
+              <Skeleton className="h-48 w-full" />
+            </div>
           </TableCell>
         </TableRow>
       </StandardTable>
@@ -129,17 +129,22 @@ const ConstructorsPrediction = () => {
       headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
     >
       {predictions.map((prediction, index) => (
-        <TableRow 
-          key={prediction.constructor.constructorId} 
-          className="border-red-800/50 hover:bg-red-900/20 transition-colors"
+        <TableRow
+          key={prediction.constructor.constructorId}
+          className="border-red-800/70 hover:bg-red-900/30 transition-colors"
         >
           <TableCell className="text-white font-bold">
-            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-              index === 0 ? 'bg-yellow-500 text-black' : 
-              index === 1 ? 'bg-gray-400 text-black' : 
-              index === 2 ? 'bg-amber-600 text-white' : 
-              'bg-gray-600 text-white'
-            }`}>
+            <span
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                index === 0
+                  ? "bg-yellow-500 text-black"
+                  : index === 1
+                  ? "bg-gray-400 text-black"
+                  : index === 2
+                  ? "bg-amber-700 text-white"
+                  : "bg-gray-700 text-white"
+              }`}
+            >
               {index + 1}
             </span>
           </TableCell>
@@ -157,17 +162,14 @@ const ConstructorsPrediction = () => {
           <TableCell className="text-center">
             <div className="flex flex-col items-center space-y-2">
               <span className="text-white font-medium">{prediction.probability}%</span>
-              <Progress 
-                value={prediction.probability} 
-                className="w-20 h-2"
-              />
+              <Progress value={prediction.probability} className="w-20 h-2 bg-red-900" />
             </div>
           </TableCell>
           <TableCell className="text-center">
             <div className="flex items-center justify-center">
-              {prediction.trend === 'up' && <TrendingUp className="w-5 h-5 text-green-400" />}
-              {prediction.trend === 'down' && <TrendingDown className="w-5 h-5 text-red-400" />}
-              {prediction.trend === 'stable' && <Minus className="w-5 h-5 text-yellow-400" />}
+              {prediction.trend === "up" && <TrendingUp className="w-5 h-5 text-green-400" />}
+              {prediction.trend === "down" && <TrendingDown className="w-5 h-5 text-red-400" />}
+              {prediction.trend === "stable" && <Minus className="w-5 h-5 text-yellow-400" />}
             </div>
           </TableCell>
         </TableRow>

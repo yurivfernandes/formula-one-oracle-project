@@ -60,7 +60,7 @@ const fetchDriversStandings = async (): Promise<DriverStanding[]> => {
 
 const DriversStandings = () => {
   const { data: standings, isLoading, error } = useQuery({
-    queryKey: ['driversStandings', 2025],
+    queryKey: ["driversStandings", 2025],
     queryFn: fetchDriversStandings,
   });
 
@@ -73,7 +73,9 @@ const DriversStandings = () => {
       >
         <TableRow>
           <TableCell colSpan={5}>
-            <Skeleton className="h-96 w-full" />
+            <div className="bg-black">
+              <Skeleton className="h-96 w-full" />
+            </div>
           </TableCell>
         </TableRow>
       </StandardTable>
@@ -103,17 +105,22 @@ const DriversStandings = () => {
       headers={["Pos", "Piloto", "Equipe", "Pontos", "Vitórias"]}
     >
       {standings?.map((standing: any) => (
-        <TableRow 
-          key={standing.Driver.driverId} 
-          className="border-red-800/50 hover:bg-red-900/20 transition-colors"
+        <TableRow
+          key={standing.Driver.driverId}
+          className="border-red-800/70 hover:bg-red-900/30 transition-colors"
         >
           <TableCell className="text-white font-bold">
-            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-              standing.position === '1' ? 'bg-yellow-500 text-black' : 
-              standing.position === '2' ? 'bg-gray-400 text-black' : 
-              standing.position === '3' ? 'bg-amber-600 text-white' : 
-              'bg-gray-600 text-white'
-            }`}>
+            <span
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                standing.position === "1"
+                  ? "bg-yellow-500 text-black"
+                  : standing.position === "2"
+                  ? "bg-gray-400 text-black"
+                  : standing.position === "3"
+                  ? "bg-amber-700 text-white"
+                  : "bg-gray-700 text-white"
+              }`}
+            >
               {standing.position}
             </span>
           </TableCell>
