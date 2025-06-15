@@ -335,7 +335,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                   <div className="flex items-center gap-4">
                     <span className="text-4xl">{proxima.pais.flag}</span>
                     <div>
-                      <p className="text-2xl font-bold text-red-400 mb-1">{proxima.nome}</p>
+                      <p className="text-2xl font-bold text-red-700 mb-1">{proxima.nome}</p>
                       <div className="flex items-center gap-2 text-gray-700">
                         <MapPin className="w-4 h-4 text-red-400" />
                         <span className="text-sm">{proxima.circuito}</span>
@@ -345,9 +345,9 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                 </div>
               </div>
             </div>
-            {/* Próxima sessão com fundo melhorado */}
+            {/* Próxima sessão: cor sólida branca */}
             {nextSession && (
-              <div className="bg-gradient-to-br from-red-100 via-yellow-50 to-white border-2 border-yellow-300 rounded-xl p-6 shadow-lg">
+              <div className="bg-white border border-yellow-300 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-2">
                   <Zap className="w-6 h-6 text-yellow-500 animate-pulse" />
                   <span className="text-yellow-600 font-bold text-lg">PRÓXIMA SESSÃO</span>
@@ -362,7 +362,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
           </div>
           {/* Grid de cronograma e pontos */}
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Cronograma completo */}
+            {/* Cronograma completo: fundo branco, borda cinza clara */}
             <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
               <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
                 <Clock className="w-6 h-6 text-red-400" />
@@ -381,17 +381,17 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                       key={idx} 
                       className={`flex items-center justify-between py-3 px-4 rounded-lg border transition-all duration-300 ${
                         session.isNext 
-                          ? 'bg-gradient-to-r from-red-100 via-yellow-50 to-white border-yellow-300 shadow-lg' 
+                          ? 'bg-yellow-50 border-yellow-200' 
                           : 'border-gray-200 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         {session.isNext && <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />}
-                        <span className={`font-semibold ${session.isNext ? 'text-yellow-600' : 'text-gray-700'}`}>
+                        <span className={`font-semibold ${session.isNext ? 'text-yellow-700' : 'text-gray-700'}`}>
                           {session.label}
                         </span>
                       </div>
-                      <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-700' : 'text-red-500'}`}>
+                      <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-800' : 'text-red-500'}`}>
                         {session.dt}
                       </span>
                     </div>
@@ -399,8 +399,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                 </div>
               )}
             </div>
-
-            {/* Pontos restantes */}
+            {/* Pontos restantes: fundo branco, borda cinza clara */}
             <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
               <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
                 <Award className="w-6 h-6 text-yellow-400" />
@@ -409,18 +408,18 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
               <div className="space-y-4">
                 <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-yellow-600 font-bold text-lg">Campeonato de Pilotos</span>
-                    <span className="text-3xl font-bold text-yellow-700">{pontosPilotos}</span>
+                    <span className="text-yellow-700 font-bold text-lg">Campeonato de Pilotos</span>
+                    <span className="text-3xl font-bold text-yellow-800">{pontosPilotos}</span>
                   </div>
-                  <p className="text-xs text-yellow-500">
+                  <p className="text-xs text-yellow-700">
                     {racesLeft} corridas • {sprintsLeft} sprints restantes
                   </p>
                 </div>
                 
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-gray-600 font-bold text-lg">Campeonato de Construtores</span>
-                    <span className="text-3xl font-bold text-gray-700">{pontosConstrutores}</span>
+                    <span className="text-gray-700 font-bold text-lg">Campeonato de Construtores</span>
+                    <span className="text-3xl font-bold text-gray-800">{pontosConstrutores}</span>
                   </div>
                   <p className="text-xs text-gray-500">
                     {racesLeft} corridas • {sprintsLeft} sprints restantes
