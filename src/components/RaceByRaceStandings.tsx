@@ -170,7 +170,7 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
 
 // --- Funções de Fetch ---
-const F1_SEASON = 2024; // NOTA: Alterado para 2024 para ter dados de sprint para demonstração.
+const F1_SEASON = 2025; // Agora busca dados de 2025 para a tabela
 
 const fetchRaces = async (): Promise<Race[]> => {
   const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/races/`);
