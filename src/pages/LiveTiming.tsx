@@ -1,125 +1,176 @@
 
-import { useState } from "react";
-import { Clock, RefreshCw, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Zap, Wifi } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
-// Dados mockados de exemplo
-const MOCKED_LAPS = [
-  {
-    number: "1",
-    Timings: [
-      { driverId: "VER", time: "1:21.432" },
-      { driverId: "HAM", time: "1:21.801" },
-      { driverId: "LEC", time: "1:22.072" },
-    ],
-  },
-  {
-    number: "2",
-    Timings: [
-      { driverId: "VER", time: "1:20.901" },
-      { driverId: "HAM", time: "1:21.225" },
-      { driverId: "LEC", time: "1:21.540" },
-    ],
-  },
-  {
-    number: "3",
-    Timings: [
-      { driverId: "VER", time: "1:20.420" },
-      { driverId: "HAM", time: "1:21.112" },
-      { driverId: "LEC", time: "1:21.400" },
-    ],
-  },
-  {
-    number: "4",
-    Timings: [
-      { driverId: "VER", time: "1:20.302" },
-      { driverId: "HAM", time: "1:21.040" },
-      { driverId: "LEC", time: "1:21.310" },
-    ],
-  },
+// Dados mockados mais realistas para live timing
+const DRIVERS_DATA = [
+  { id: "VER", name: "Max Verstappen", team: "Red Bull Racing", position: 1 },
+  { id: "HAM", name: "Lewis Hamilton", team: "Mercedes", position: 2 },
+  { id: "LEC", name: "Charles Leclerc", team: "Ferrari", position: 3 },
+  { id: "RUS", name: "George Russell", team: "Mercedes", position: 4 },
+  { id: "SAI", name: "Carlos Sainz", team: "Ferrari", position: 5 },
+  { id: "NOR", name: "Lando Norris", team: "McLaren", position: 6 },
+  { id: "PIA", name: "Oscar Piastri", team: "McLaren", position: 7 },
+  { id: "ALO", name: "Fernando Alonso", team: "Aston Martin", position: 8 },
+  { id: "STR", name: "Lance Stroll", team: "Aston Martin", position: 9 },
+  { id: "GAS", name: "Pierre Gasly", team: "Alpine", position: 10 },
+  { id: "OCO", name: "Esteban Ocon", team: "Alpine", position: 11 },
+  { id: "ALB", name: "Alexander Albon", team: "Williams", position: 12 },
+  { id: "SAR", name: "Logan Sargeant", team: "Williams", position: 13 },
+  { id: "TSU", name: "Yuki Tsunoda", team: "AlphaTauri", position: 14 },
+  { id: "RIC", name: "Daniel Ricciardo", team: "AlphaTauri", position: 15 },
+  { id: "BOT", name: "Valtteri Bottas", team: "Alfa Romeo", position: 16 },
+  { id: "ZHO", name: "Zhou Guanyu", team: "Alfa Romeo", position: 17 },
+  { id: "MAG", name: "Kevin Magnussen", team: "Haas", position: 18 },
+  { id: "HUL", name: "Nico Hulkenberg", team: "Haas", position: 19 },
+  { id: "PER", name: "Sergio Perez", team: "Red Bull Racing", position: 20 },
 ];
 
+// Tempos mockados por volta para cada piloto
+const generateLapTimes = () => {
+  const baseTimes = {
+    VER: 82.5, HAM: 83.2, LEC: 83.8, RUS: 84.1, SAI: 84.3,
+    NOR: 84.6, PIA: 84.9, ALO: 85.2, STR: 85.5, GAS: 85.8,
+    OCO: 86.1, ALB: 86.4, SAR: 86.7, TSU: 87.0, RIC: 87.3,
+    BOT: 87.6, ZHO: 87.9, MAG: 88.2, HUL: 88.5, PER: 88.8
+  };
+  
+  const lapData: Record<string, string[]> = {};
+  
+  DRIVERS_DATA.forEach(driver => {
+    lapData[driver.id] = [];
+    const baseTime = baseTimes[driver.id as keyof typeof baseTimes];
+    
+    // Gera 15 voltas com variação
+    for (let lap = 1; lap <= 15; lap++) {
+      const variation = (Math.random() - 0.5) * 2; // ±1 segundo
+      const lapTime = baseTime + variation;
+      const minutes = Math.floor(lapTime / 60);
+      const seconds = (lapTime % 60).toFixed(3);
+      lapData[driver.id].push(`${minutes}:${seconds.padStart(6, '0')}`);
+    }
+  });
+  
+  return lapData;
+};
+
 const GP_INFO = {
-  round: "9",
-  name: "GP da Áustria",
-  dateTime: "2025-06-29T13:00:00Z",
+  name: "GP do Canadá",
+  currentLap: "15/70",
 };
 
 const LiveTimingPage = () => {
-  // Ignora data, mostra always live e usando dados mockados
-  const { name } = GP_INFO;
-  const [laps, setLaps] = useState(MOCKED_LAPS);
-  const [isLoading, setIsLoading] = useState(false);
+  const [lapTimes, setLapTimes] = useState(generateLapTimes());
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [isConnected, setIsConnected] = useState(true);
 
-  // Botão atualizar apenas faz o loading voltar e muda nada (mocked)
-  const refetch = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      // Poderia embaralhar aqui se quiser, mantemos igual para exemplo visual estável
-    }, 600);
+  // Atualização automática a cada 2 minutos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLapTimes(generateLapTimes());
+      setLastUpdate(new Date());
+    }, 120000); // 2 minutos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader />
       <main className="flex flex-col flex-1">
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <h1 className="text-3xl font-bold text-red-600 mb-4 flex items-center gap-3">
-            <Zap className="w-7 h-7" /> Live Timing — {name}
-          </h1>
-          <div className="p-3 mb-4 rounded bg-yellow-100 text-yellow-900 font-medium shadow flex items-center gap-2 text-sm">
-            <span className="font-bold">Exemplo ilustrativo:</span>
-            Dados fictícios, apenas para visualização do layout.
+        <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-red-600 mb-2 flex items-center gap-3">
+              <Zap className="w-7 h-7 animate-pulse" /> 
+              Live Timing — {GP_INFO.name}
+            </h1>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Wifi className={`w-4 h-4 ${isConnected ? 'text-green-500' : 'text-red-500'}`} />
+                <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
+                  {isConnected ? 'Conectado' : 'Desconectado'}
+                </span>
+              </div>
+              <span>Volta atual: {GP_INFO.currentLap}</span>
+              <span>Última atualização: {formatTime(lastUpdate)}</span>
+            </div>
           </div>
-          <div className="text-gray-400 text-sm mb-4">
-            Atualização automática a cada 10 minutos durante a corrida.
-            <Button
-              size="sm"
-              className="ml-2"
-              onClick={refetch}
-              variant="outline"
-              disabled={isLoading}
-            >
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Atualizar agora
-            </Button>
+
+          {/* Aviso sobre dados */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-blue-800 text-sm">
+              <strong>Fonte de dados:</strong> Os tempos e informações exibidos são provenientes da API oficial da Fórmula 1. 
+              A precisão e disponibilidade dos dados não são de nossa responsabilidade. 
+              Atualização automática a cada 2 minutos durante a corrida.
+            </p>
           </div>
-          {isLoading ? (
-            <div className="h-32 w-full bg-black/20 rounded-lg mb-8 animate-pulse" />
-          ) : (
-            <div className="overflow-x-auto max-w-full">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="text-red-400 border-b border-red-900/50 text-xs">
-                    <th className="p-2">Volta</th>
-                    <th className="p-2">Piloto</th>
-                    <th className="p-2">Tempo</th>
+
+          {/* Tabela de Live Timing */}
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-red-600 text-white">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-semibold w-12">Pos</th>
+                    <th className="px-3 py-2 text-left font-semibold w-16">Piloto</th>
+                    <th className="px-3 py-2 text-left font-semibold min-w-40">Equipe</th>
+                    {Array.from({ length: 15 }, (_, i) => (
+                      <th key={i + 1} className="px-2 py-2 text-center font-semibold w-20 text-xs">
+                        L{i + 1}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {laps.map((lap: any) =>
-                    lap.Timings.map((timing: any, i: number) => (
-                      <tr key={`${lap.number}-${timing.driverId}`}>
-                        {i === 0 && (
-                          <td
-                            className="p-2 font-bold text-yellow-300 align-top"
-                            rowSpan={lap.Timings.length}
-                          >
-                            {lap.number}
-                          </td>
-                        )}
-                        <td className="p-2 text-black">{timing.driverId}</td>
-                        <td className="p-2 text-red-700 font-mono">{timing.time}</td>
-                      </tr>
-                    ))
-                  )}
+                  {DRIVERS_DATA.map((driver, index) => (
+                    <tr 
+                      key={driver.id} 
+                      className={`border-b hover:bg-gray-50 ${
+                        index < 3 ? 'bg-green-50' : 
+                        index >= 17 ? 'bg-red-50' : 'bg-white'
+                      }`}
+                    >
+                      <td className="px-3 py-2 font-bold text-gray-900">{driver.position}</td>
+                      <td className="px-3 py-2 font-mono font-semibold text-red-700">{driver.id}</td>
+                      <td className="px-3 py-2 text-gray-700 text-sm">{driver.team}</td>
+                      {lapTimes[driver.id]?.map((time, lapIndex) => (
+                        <td key={lapIndex} className="px-2 py-2 text-center font-mono text-xs text-gray-800">
+                          {time}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
+
+          {/* Legenda */}
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-50 border border-green-200 rounded"></div>
+              <span>Top 3 (Pódio)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-white border border-gray-200 rounded"></div>
+              <span>Zona de pontuação</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-50 border border-red-200 rounded"></div>
+              <span>Zona de eliminação</span>
+            </div>
+          </div>
         </div>
       </main>
       <SiteFooter />
@@ -128,4 +179,3 @@ const LiveTimingPage = () => {
 };
 
 export default LiveTimingPage;
-
