@@ -1,10 +1,38 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Award } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Bandeiras extras para países
+// Tradução dos nomes dos GPs para português brasileiro
+const gpNamesPTBR: { [key: string]: string } = {
+  "Australian Grand Prix": "GP da Austrália",
+  "Chinese Grand Prix": "GP da China",
+  "Japanese Grand Prix": "GP do Japão",
+  "Bahrain Grand Prix": "GP do Bahrein",
+  "Saudi Arabian Grand Prix": "GP da Arábia Saudita",  
+  "Miami Grand Prix": "GP de Miami",
+  "Emilia Romagna Grand Prix": "GP da Emília-Romanha",
+  "Monaco Grand Prix": "GP de Mônaco",
+  "Spanish Grand Prix": "GP da Espanha",
+  "Canadian Grand Prix": "GP do Canadá",
+  "Austrian Grand Prix": "GP da Áustria",
+  "British Grand Prix": "GP da Grã-Bretanha",
+  "Hungarian Grand Prix": "GP da Hungria",
+  "Belgian Grand Prix": "GP da Bélgica",
+  "Dutch Grand Prix": "GP da Holanda",
+  "Italian Grand Prix": "GP da Itália",
+  "Azerbaijan Grand Prix": "GP do Azerbaijão",
+  "Singapore Grand Prix": "GP de Singapura",
+  "United States Grand Prix": "GP dos Estados Unidos",
+  "Mexico City Grand Prix": "GP do México",
+  "São Paulo Grand Prix": "GP de São Paulo",
+  "Las Vegas Grand Prix": "GP de Las Vegas",
+  "Qatar Grand Prix": "GP do Catar",
+  "Abu Dhabi Grand Prix": "GP de Abu Dhabi"
+};
+
 const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
   "Australia": { nome: "Austrália", flag: "🇦🇺" },
   "China": { nome: "China", flag: "🇨🇳" },
@@ -33,7 +61,9 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 const getCountryPTBR = (country: string) =>
   countryPTBR[country] || { nome: country, flag: "🏁" };
 
-// Pontuação oficial F1 (corrida principal e sprint)
+const getGPNamePTBR = (raceName: string) =>
+  gpNamesPTBR[raceName] || raceName;
+
 const GRAND_PRIX_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]; // Top 10
 const SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1]; // Top 8
 
@@ -88,7 +118,6 @@ const NextRaceInfo = () => {
 
   // Corridas restantes incluem a próxima e todas posteriores
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
-  // Sprints restantes: rounds maiores ou iguais ao currentRoundNum
   const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
 
   // Pontos restantes corridas principais e sprint
@@ -102,7 +131,7 @@ const NextRaceInfo = () => {
   // Info da próxima corrida:
   const proxima = nextRace
     ? {
-        nome: nextRace.raceName,
+        nome: getGPNamePTBR(nextRace.raceName),
         pais: getCountryPTBR(nextRace.Circuit.Location.country),
         data: format(parseISO(nextRace.date), "PPP", { locale: ptBR }),
       }
@@ -110,47 +139,47 @@ const NextRaceInfo = () => {
 
   return (
     <div className="mb-6">
-      <div className="bg-black/40 border border-red-800/40 rounded-xl px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow">
+      <div className="bg-white border border-red-200 rounded-xl px-5 py-4 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <CalendarDays className="w-7 h-7 text-red-500" />
           <div>
-            <span className="text-white font-medium text-sm">Próxima Corrida:</span>
-            <div className="flex items-center gap-2 text-lg font-bold text-red-400">
+            <span className="text-gray-700 font-medium text-sm">Próxima Corrida:</span>
+            <div className="flex items-center gap-2 text-lg font-bold text-red-700">
               {proxima ? (
                 <>
                   <span>{proxima.pais.flag}</span>
                   <span>{proxima.nome}</span>
-                  <span className="text-gray-300 text-base font-normal ml-2">
+                  <span className="text-gray-500 text-base font-normal ml-2">
                     {proxima.data}
                   </span>
                 </>
               ) : (
-                <span className="text-white">Temporada finalizada</span>
+                <span className="text-gray-900">Temporada finalizada</span>
               )}
             </div>
           </div>
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2 border border-red-800/30">
-            <Award className="w-5 h-5 text-yellow-400" />
-            <div className="flex flex-col text-white text-xs">
+          <div className="flex items-center gap-2 bg-yellow-50 rounded-lg px-3 py-2 border border-yellow-100">
+            <Award className="w-5 h-5 text-yellow-500" />
+            <div className="flex flex-col text-yellow-900 text-xs">
               <span>
                 <b>Pontos pilotos restantes: </b>
-                <span className="text-red-400 text-base font-bold">{pontosPilotos}</span>
+                <span className="text-red-700 text-base font-bold">{pontosPilotos}</span>
               </span>
-              <span className="text-gray-400">
+              <span className="text-yellow-700">
                 ({racesLeft} corridas e {sprintsLeft} sprints)
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-2 border border-red-800/30">
-            <Award className="w-5 h-5 text-gray-200" />
-            <div className="flex flex-col text-white text-xs">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+            <Award className="w-5 h-5 text-gray-400" />
+            <div className="flex flex-col text-gray-700 text-xs">
               <span>
                 <b>Pontos construtores restantes: </b>
-                <span className="text-red-400 text-base font-bold">{pontosConstrutores}</span>
+                <span className="text-red-700 text-base font-bold">{pontosConstrutores}</span>
               </span>
-              <span className="text-gray-400">
+              <span className="text-gray-500">
                 ({racesLeft} corridas e {sprintsLeft} sprints)
               </span>
             </div>
@@ -162,3 +191,4 @@ const NextRaceInfo = () => {
 };
 
 export default NextRaceInfo;
+

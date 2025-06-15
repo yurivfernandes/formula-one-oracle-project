@@ -233,9 +233,9 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
               </a>
             )}
           </div>
-          {/* Proxima sessão com visual melhorado */}
+          {/* Próxima sessão com visual branco e detalhes leves */}
           {nextSession && (
-            <div className="bg-gradient-to-br from-red-100 via-yellow-50 to-white border-2 border-yellow-300 rounded-xl px-8 py-7 shadow-xl flex flex-col items-center">
+            <div className="bg-white border-2 border-yellow-400 rounded-xl px-8 py-7 shadow flex flex-col items-center">
               <div className="flex items-center gap-3 mb-2">
                 <Zap className="w-6 h-6 text-yellow-500 animate-pulse" />
                 <span className="text-yellow-600 font-bold text-lg">PRÓXIMA SESSÃO</span>
