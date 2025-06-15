@@ -198,17 +198,17 @@ const LiveTimingPage = () => {
                           </span>
                         </div>
                       </td>
-                      {/* Piloto: só ID e bandeira */}
+                      {/* Piloto: bandeira + ID */}
                       <td className="px-3 py-2 min-w-[80px]">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{driver.country}</span>
                           <span className="font-mono font-semibold text-red-700">{driver.id}</span>
                         </div>
                       </td>
-                      {/* Equipe: só logo */}
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
-                          <TeamLogo teamName={driver.team} className="w-10 h-6" />
+                      {/* Equipe: apenas logo, padding reduzido e centralizado */}
+                      <td className="px-1 py-2">
+                        <div className="flex items-center justify-center">
+                          <TeamLogo teamName={driver.team} className="w-8 h-5" />
                         </div>
                       </td>
                       {/* Tempos de volta */}
