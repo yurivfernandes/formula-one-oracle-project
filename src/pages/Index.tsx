@@ -1,14 +1,11 @@
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Trophy, Calendar, TrendingUp, Flag, Github, Linkedin, Zap } from "lucide-react";
+import { Trophy, Calendar, TrendingUp, Flag } from "lucide-react";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
-import { useLiveTimingWindow } from "@/hooks/useLiveTimingWindow";
 
 // Hero principal do site
 const SiteHero = () => {
-  const liveTiming = useLiveTimingWindow();
-
   return (
     <section className="bg-white pt-20 pb-16 border-b border-red-100">
       <div className="max-w-3xl mx-auto px-4 text-center flex flex-col items-center">
@@ -27,20 +24,12 @@ const SiteHero = () => {
             <Button variant="outline" className="border-red-600 text-red-700">Próximo GP</Button>
           </a>
         </div>
-        {liveTiming && (
-          <a
-            href="/race-weekend/live"
-            className="mt-2 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-800 border border-green-300 font-semibold shadow-lg text-lg animate-pulse transition hover:bg-green-200"
-            style={{ animation: "pulse 1.5s infinite"}}
-          >
-            <Zap className="w-5 h-5 text-green-700 animate-pulse" />
-            Acesse o Live Timing AGORA!
-          </a>
-        )}
       </div>
     </section>
   );
 };
+
+// ... keep existing code (HISTORY_CARDS constant and rest of the component)
 
 const HISTORY_CARDS = [
   {
