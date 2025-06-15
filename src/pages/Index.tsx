@@ -71,7 +71,7 @@ const Index = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-red-700 mb-4">
-                História da <span className="text-red-500">Fórmula 1</span>
+                História da Fórmula 1
               </h2>
               <p className="text-lg text-gray-500 max-w-2xl mx-auto">
                 Desde 1950, a Fórmula 1 representa o ápice do automobilismo mundial
