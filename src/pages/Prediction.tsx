@@ -41,11 +41,9 @@ const Prediction = () => {
           </div>
         </div>
       </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Informativo da próxima corrida e pontos restantes */}
         <NextRaceInfo />
-        {/* Header */}
         <div className="mb-8">
           <Link to="/">
             <Button 
@@ -60,7 +58,6 @@ const Prediction = () => {
               Voltar para Home
             </Button>
           </Link>
-          
           <h1 className="text-4xl font-bold text-white mb-2">
             Predição do Campeonato F1 2025
           </h1>
@@ -68,8 +65,6 @@ const Prediction = () => {
             Análise baseada em dados históricos dos últimos 10 anos
           </p>
         </div>
-
-        {/* Prediction Content */}
         <Tabs defaultValue="championship" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30">
             <TabsTrigger 
@@ -94,15 +89,12 @@ const Prediction = () => {
               Análise IA
             </TabsTrigger>
           </TabsList>
-          
           <TabsContent value="championship" className="mt-8">
             <ChampionshipPrediction />
           </TabsContent>
-          
           <TabsContent value="trends" className="mt-8">
             <TrendsAnalysis />
           </TabsContent>
-
           <TabsContent value="analysis" className="mt-8">
             <AIAnalysis />
           </TabsContent>
