@@ -170,8 +170,10 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
 
 // --- Funções de Fetch ---
+const F1_SEASON = 2024; // NOTA: Alterado para 2024 para ter dados de sprint para demonstração.
+
 const fetchRaces = async (): Promise<Race[]> => {
-  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
+  const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/races/`);
   if (!response.ok) {
     throw new Error('Erro ao buscar calendário de corridas');
   }
@@ -184,7 +186,7 @@ const fetchRaceResults = async (): Promise<Race[]> => {
   
   for (let page = 1; page <= 6; page++) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${(page - 1) * 30}&limit=30`);
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/results/?offset=${(page - 1) * 30}&limit=30`);
       if (!response.ok) {
         console.warn(`Erro ao buscar página ${page} dos resultados`);
         continue;
@@ -210,7 +212,7 @@ const fetchSprintResults = async (): Promise<Race[]> => {
   
   for (let page = 1; page <= 6; page++) {
     try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${(page - 1) * 30}&limit=30`);
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/sprint/?offset=${(page - 1) * 30}&limit=30`);
       if (!response.ok) {
         console.warn(`Erro ao buscar página ${page} dos resultados de Sprint`);
         continue;
@@ -232,13 +234,13 @@ const fetchSprintResults = async (): Promise<Race[]> => {
 };
 
 const fetchDriverStandings = async (): Promise<StandingsList> => {
-  const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
+  const response = await fetch(`https://api.jolpi.ca/ergast/f1/${F1_SEASON}/driverstandings.json`);
   if (!response.ok) {
     throw new Error('A resposta da rede não foi bem-sucedida');
   }
   const data: ErgastResponse = await response.json();
   if (!data.MRData.StandingsTable.StandingsLists.length) {
-    return { season: "2025", round: "0", DriverStandings: [] };
+    return { season: `${F1_SEASON}`, round: "0", DriverStandings: [] };
   }
   return data.MRData.StandingsTable.StandingsLists[0];
 };
@@ -247,22 +249,22 @@ const RaceByRaceStandings = () => {
   const [viewType, setViewType] = useState<"all" | "completed">("completed");
   
   const { data: allRaces, isLoading: isLoadingRaces } = useQuery({
-    queryKey: ['races', 2025],
+    queryKey: ['races', F1_SEASON],
     queryFn: fetchRaces,
   });
 
   const { data: raceResults, isLoading: isLoadingResults } = useQuery({
-    queryKey: ['raceResults', 2025],
+    queryKey: ['raceResults', F1_SEASON],
     queryFn: fetchRaceResults,
   });
 
   const { data: sprintResults, isLoading: isLoadingSprints } = useQuery({
-    queryKey: ['sprintResults', 2025],
+    queryKey: ['sprintResults', F1_SEASON],
     queryFn: fetchSprintResults,
   });
 
   const { data: standingsList, isLoading: isLoadingStandings } = useQuery({
-    queryKey: ['driverStandings', 2025],
+    queryKey: ['driverStandings', F1_SEASON],
     queryFn: fetchDriverStandings,
   });
 
@@ -272,7 +274,7 @@ const RaceByRaceStandings = () => {
     return (
       <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
         <div className="p-6 border-b border-red-800/30">
-          <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida 2025</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Resultados Corrida a Corrida {F1_SEASON}</h2>
           <p className="text-gray-300">A carregar dados das corridas...</p>
         </div>
         <div className="p-6">
@@ -380,7 +382,7 @@ const RaceByRaceStandings = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-3xl font-bold text-red-500 mb-2">
-              Temporada F1 2025 - Corrida a Corrida
+              Temporada F1 {F1_SEASON} - Corrida a Corrida
             </h2>
             <p className="text-gray-300">Pontos por corrida e sprint de cada piloto</p>
           </div>
