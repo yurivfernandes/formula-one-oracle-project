@@ -375,14 +375,14 @@ const RaceByRaceStandings = () => {
   const nextRace = allRaces?.find(race => new Date(race.date) > today);
 
   return (
-    <div className="bg-black rounded-xl border border-red-800/70 overflow-hidden">
-      <div className="p-6 border-b border-red-800/50 bg-black">
+    <div className="bg-white rounded-xl border border-red-800/70 overflow-hidden">
+      <div className="p-6 border-b border-red-800/50 bg-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-3xl font-bold text-red-500 mb-2">
+            <h2 className="text-3xl font-bold text-red-700 mb-2">
               Temporada F1 2025 - Corrida a Corrida
             </h2>
-            <p className="text-gray-300">Pontos por corrida e sprint de cada piloto</p>
+            <p className="text-gray-600">Pontos por corrida e sprint de cada piloto</p>
           </div>
           <div className="flex items-center gap-4">
             {nextRace && (
@@ -396,19 +396,19 @@ const RaceByRaceStandings = () => {
               value={viewType}
               onValueChange={(value: "all" | "completed") => setViewType(value)}
             >
-              <SelectTrigger className="w-[200px] bg-black border-red-800/50 text-white">
+              <SelectTrigger className="w-[200px] bg-white border-red-800/50 text-red-800">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black border-red-800/30">
+              <SelectContent className="bg-white border-red-800/30 text-red-800">
                 <SelectItem
                   value="completed"
-                  className="text-white hover:bg-red-900/30 focus:bg-red-900/30"
+                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5"
                 >
                   Apenas Realizadas
                 </SelectItem>
                 <SelectItem
                   value="all"
-                  className="text-white hover:bg-red-900/30 focus:bg-red-900/30"
+                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5"
                 >
                   Calendário Completo
                 </SelectItem>
@@ -421,11 +421,11 @@ const RaceByRaceStandings = () => {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-red-800/60 bg-black">
-              <TableHead className="text-red-400 font-bold sticky left-0 bg-black min-w-[220px] z-20 border-r border-red-800/30">
+            <TableRow className="border-red-800/60 bg-white">
+              <TableHead className="text-red-700 font-bold sticky left-0 bg-white min-w-[220px] z-20 border-r border-red-800/30">
                 Piloto
               </TableHead>
-              <TableHead className="text-red-400 font-bold sticky left-[220px] bg-black min-w-[100px] z-20 border-r border-red-800/30">
+              <TableHead className="text-red-700 font-bold sticky left-[220px] bg-white min-w-[100px] z-20 border-r border-red-800/30">
                 Equipe
               </TableHead>
               {racesToShow.map((race) => {
@@ -440,11 +440,11 @@ const RaceByRaceStandings = () => {
                 return (
                   <TableHead
                     key={race.round}
-                    className="text-red-400 font-bold text-center min-w-[120px] bg-black"
+                    className="text-red-700 font-bold text-center min-w-[120px] bg-white"
                   >
                     <div className="flex flex-col items-center py-2">
                       <span className="text-2xl mb-1">{flag}</span>
-                      <span className="text-xs font-medium text-gray-300">
+                      <span className="text-xs font-medium text-gray-500">
                         {nome}
                       </span>
                       <div className="flex gap-1 mt-2">
@@ -459,7 +459,7 @@ const RaceByRaceStandings = () => {
                   </TableHead>
                 );
               })}
-              <TableHead className="text-red-400 font-bold text-center min-w-[100px] sticky right-0 bg-black z-20 border-l border-red-800/30">
+              <TableHead className="text-red-700 font-bold text-center min-w-[100px] sticky right-0 bg-white z-20 border-l border-red-800/30">
                 <div className="flex flex-col items-center">
                   <span className="text-lg">🏆</span>
                   <span className="text-sm">Total</span>
@@ -471,16 +471,16 @@ const RaceByRaceStandings = () => {
             {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => (
               <TableRow
                 key={driverId}
-                className="border-red-800/30 hover:bg-red-900/30 transition-colors"
+                className="border-red-800/30 hover:bg-red-900/5 transition-colors"
               >
-                <TableCell className="sticky left-0 bg-black text-white z-10 border-r border-red-800/30 py-4">
+                <TableCell className="sticky left-0 bg-white text-red-900 z-10 border-r border-red-800/30 py-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
                         index === 0 ? 'bg-yellow-500 text-black' : 
                         index === 1 ? 'bg-gray-400 text-black' : 
                         index === 2 ? 'bg-amber-700 text-white' : 
-                        'bg-gray-700 text-white'
+                        'bg-gray-200 text-gray-900'
                       }`}>
                         {index + 1}
                       </span>
@@ -489,7 +489,7 @@ const RaceByRaceStandings = () => {
                     <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
                   </div>
                 </TableCell>
-                <TableCell className="sticky left-[220px] bg-black z-10 border-r border-red-800/30 py-4">
+                <TableCell className="sticky left-[220px] bg-white z-10 border-r border-red-800/30 py-4">
                   <TeamLogo teamName={constructor.name} />
                 </TableCell>
                 {racesToShow.map((race) => {
@@ -501,14 +501,12 @@ const RaceByRaceStandings = () => {
                   const totalRoundPoints =
                     (hasRaceResult ? racePointsValue : 0) +
                     (hasSprintResult ? sprintPointsValue : 0);
-
-                  // SOLUÇÃO: Exibir cada pontuação separadamente! Só mostra o total caso haja pontos nos dois.
                   return (
                     <TableCell 
                       key={race.round} 
-                      className={`text-white text-center font-medium py-4 ${
-                        !hasAnyResult && viewType === "all" ? 'text-gray-500' : ''
-                      } bg-black`}
+                      className={`text-red-900 text-center font-medium py-4 ${
+                        !hasAnyResult && viewType === "all" ? 'text-gray-400' : ''
+                      } bg-white`}
                     >
                       {hasRaceResult && (
                         <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
@@ -520,35 +518,34 @@ const RaceByRaceStandings = () => {
                           {sprintPointsValue}
                         </span>
                       )}
-                      {/* Só exibe o total se houver pontos em ambos (corrida & sprint) e eles forem > 0*/}
                       {(hasRaceResult && hasSprintResult && totalRoundPoints > 0) && (
-                        <span className="text-base font-bold text-white bg-gray-700 px-2 py-1 rounded-lg min-w-[32px] block">
+                        <span className="text-base font-bold text-red-900 bg-gray-200 px-2 py-1 rounded-lg min-w-[32px] block">
                           {totalRoundPoints}
                         </span>
                       )}
                       {!hasAnyResult && viewType === "all" && (
-                        <span className="text-gray-500 text-lg">-</span>
+                        <span className="text-gray-400 text-lg">-</span>
                       )}
                     </TableCell>
                   );
                 })}
-                <TableCell className="text-white font-bold text-2xl text-center sticky right-0 bg-black z-10 border-l border-red-800/30 py-4">
+                <TableCell className="text-red-900 font-bold text-2xl text-center sticky right-0 bg-white z-10 border-l border-red-800/30 py-4">
                   <div className="flex flex-col items-center">
                     <span className={`${
                       index === 0 ? 'text-yellow-400' : 
-                      index === 1 ? 'text-gray-300' : 
+                      index === 1 ? 'text-gray-400' : 
                       index === 2 ? 'text-amber-500' : 
-                      'text-white'
+                      'text-red-900'
                     }`}>
                       {totalPoints}
                     </span>
-                    <span className="text-xs text-gray-400 font-normal">pts</span>
+                    <span className="text-xs text-gray-500 font-normal">pts</span>
                   </div>
                 </TableCell>
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={racesToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-black">
+                <TableCell colSpan={racesToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-white">
                   Ainda não há resultados de corridas para exibir.
                 </TableCell>
               </TableRow>

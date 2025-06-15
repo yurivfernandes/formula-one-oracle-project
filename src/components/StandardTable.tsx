@@ -40,7 +40,7 @@ const StandardTable: React.FC<StandardTableProps> = ({
               {headers.map((header, index) => (
                 <TableHead
                   key={index}
-                  className="text-red-600 font-bold uppercase tracking-wider bg-white"
+                  className="text-red-700 font-bold uppercase tracking-wider bg-white"
                 >
                   {header}
                 </TableHead>

@@ -4,9 +4,11 @@ import { TrendingUp, TrendingDown, BarChart3, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
+// Inclui posição
 interface TrendData {
   driverId: string;
   name: string;
+  position: number;
   nationality: string;
   constructor: string;
   pointsProgression: number[];
@@ -16,21 +18,23 @@ interface TrendData {
 }
 
 const fetchTrendsData = async (): Promise<TrendData[]> => {
-  // Simulando dados de tendências baseados em dados históricos
+  // Simulação ampliada para top 6 pilotos
   const mockTrends: TrendData[] = [
     {
-      driverId: "piastri",
-      name: "Oscar Piastri",
-      nationality: "Australian",
-      constructor: "McLaren",
-      pointsProgression: [25, 43, 78, 112, 145, 168, 186],
-      trend: 'up',
-      consistency: 85,
-      winRate: 15
+      driverId: "verstappen",
+      name: "Max Verstappen",
+      position: 1,
+      nationality: "Dutch", 
+      constructor: "Red Bull",
+      pointsProgression: [22, 45, 71, 98, 125, 148, 165],
+      trend: 'down',
+      consistency: 90,
+      winRate: 20
     },
     {
       driverId: "norris",
       name: "Lando Norris", 
+      position: 2,
       nationality: "British",
       constructor: "McLaren",
       pointsProgression: [18, 42, 68, 95, 128, 156, 179],
@@ -39,14 +43,48 @@ const fetchTrendsData = async (): Promise<TrendData[]> => {
       winRate: 12
     },
     {
-      driverId: "verstappen",
-      name: "Max Verstappen",
-      nationality: "Dutch", 
+      driverId: "piastri",
+      name: "Oscar Piastri",
+      position: 3,
+      nationality: "Australian",
+      constructor: "McLaren",
+      pointsProgression: [25, 43, 78, 112, 145, 168, 186],
+      trend: 'up',
+      consistency: 85,
+      winRate: 15
+    },
+    {
+      driverId: "leclerc",
+      name: "Charles Leclerc",
+      position: 4,
+      nationality: "Monegasque",
+      constructor: "Ferrari",
+      pointsProgression: [21, 37, 63, 92, 122, 147, 170],
+      trend: 'up',
+      consistency: 80,
+      winRate: 10
+    },
+    {
+      driverId: "sainz",
+      name: "Carlos Sainz",
+      position: 5,
+      nationality: "Spanish",
+      constructor: "Ferrari",
+      pointsProgression: [19, 36, 61, 90, 116, 138, 152],
+      trend: 'stable',
+      consistency: 76,
+      winRate: 7
+    },
+    {
+      driverId: "perez",
+      name: "Sergio Pérez",
+      position: 6,
+      nationality: "Mexican",
       constructor: "Red Bull",
-      pointsProgression: [22, 45, 71, 98, 125, 148, 165],
+      pointsProgression: [15, 32, 56, 79, 97, 123, 134],
       trend: 'down',
-      consistency: 90,
-      winRate: 20
+      consistency: 73,
+      winRate: 4
     }
   ];
   
@@ -62,7 +100,7 @@ const TrendsAnalysis = () => {
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-red-800/30 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Carregando tendências...</h2>
+        <h2 className="text-2xl font-bold text-red-700 mb-4">Carregando tendências...</h2>
       </div>
     );
   }
@@ -70,17 +108,17 @@ const TrendsAnalysis = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-red-800/30 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+        <h2 className="text-2xl font-bold text-red-700 mb-6 flex items-center">
           <BarChart3 className="mr-3 h-6 w-6 text-red-500" />
-          Análise de Tendências
+          Análise de Tendências - Top 6 Pilotos no Campeonato
         </h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {trendsData?.map((driver) => (
+          {trendsData?.slice(0, 6).map((driver) => (
             <Card key={driver.driverId} className="bg-white border-red-800/30 shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-gray-900 flex items-center justify-between">
-                  <span className="text-sm">{driver.name}</span>
+              <CardHeader className="pb-3 flex flex-col gap-1">
+                <CardTitle className="text-gray-900 flex items-center justify-between space-x-3">
+                  <span className="text-sm"><b className="text-red-700">#{driver.position}</b> {driver.name}</span>
                   <div className="flex items-center">
                     {driver.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-400" />}
                     {driver.trend === 'down' && <TrendingDown className="w-4 h-4 text-red-400" />}
