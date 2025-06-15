@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -297,9 +296,23 @@ const RaceByRaceStandings = () => {
 
   // Calcular pontos totais para ordenação
   const driversWithTotals = Object.entries(driverData).map(([driverId, data]) => {
-    const totalRacePoints = Object.values(data.racePoints).reduce((sum, points) => sum + parseInt(points || '0'), 0);
-    const totalSprintPoints = Object.values(data.sprintPoints).reduce((sum, points) => sum + parseInt(points || '0'), 0);
-    const totalPoints = totalRacePoints + totalSprintPoints;
+    let totalPoints = 0;
+    
+    // Sum all race points
+    Object.values(data.racePoints).forEach(points => {
+      const pointValue = parseInt(points || '0');
+      totalPoints += pointValue;
+      console.log(`Driver ${driverId} - Race points: ${pointValue}, Running total: ${totalPoints}`);
+    });
+    
+    // Sum all sprint points
+    Object.values(data.sprintPoints).forEach(points => {
+      const pointValue = parseInt(points || '0');
+      totalPoints += pointValue;
+      console.log(`Driver ${driverId} - Sprint points: ${pointValue}, Running total: ${totalPoints}`);
+    });
+    
+    console.log(`Driver ${driverId} - Final total: ${totalPoints}`);
     return { driverId, ...data, totalPoints };
   }).sort((a, b) => b.totalPoints - a.totalPoints);
 
