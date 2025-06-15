@@ -26,8 +26,8 @@ const TeamTrends = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center space-x-2">
                 <span>{trend.team}</span>
-                {trend.upgradeImpact > 0 && <Wrench className="text-green-400 w-4 h-4" title="Melhora pós-upgrade" />}
-                {trend.upgradeImpact < 0 && <Wrench className="text-red-400 w-4 h-4" title="Piorou pós-upgrade" />}
+                {trend.upgradeImpact > 0 && <Wrench className="text-green-400 w-4 h-4" />}
+                {trend.upgradeImpact < 0 && <Wrench className="text-red-400 w-4 h-4" />}
               </CardTitle>
             </CardHeader>
             <CardContent>
