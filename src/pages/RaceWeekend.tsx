@@ -1,7 +1,6 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Flag, ArrowLeft, Trophy, Clock, Calendar } from "lucide-react";
+import { Flag, ArrowLeft, Trophy, Clock, Calendar, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import QualifyingResults from "@/components/QualifyingResults";
@@ -109,7 +108,10 @@ const RaceWeekend = () => {
                 Predição
               </Link>
               <Link to="/race-weekend" className="text-red-400 font-medium">
-                Fim de Semana
+                {currentRace?.raceName ? `GP do Canadá` : `Próximo GP`}
+              </Link>
+              <Link to="/race-weekend/live" className="text-yellow-400 font-medium flex items-center gap-1">
+                <Zap className="w-5 h-5" /> Live Timing
               </Link>
             </div>
           </div>
