@@ -24,7 +24,10 @@ export const useTeamRaceTrends = () => {
   // Ordenar corridas por round ascendente
   const sortedRaces = [...races].sort((a, b) => parseInt(a.round) - parseInt(b.round));
 
-  // Extraímos todas as equipes que aparecem em qualquer corrida do ano
+  // Descobrir todos os rounds presentes no campeonato
+  const allRounds: number[] = sortedRaces.map(r => parseInt(r.round));
+
+  // Extraí todas as equipes que aparecem em qualquer corrida do ano
   const allTeams = new Set<string>();
   for (const race of sortedRaces) {
     for (const result of race.Results) {
@@ -32,33 +35,39 @@ export const useTeamRaceTrends = () => {
     }
   }
 
-  // Mapeia equipe -> array de { round, points }
-  // Mesmo que a equipe não pontue na etapa, ela terá (round, 0) registrado
-  const teamPointsByRace: Record<string, Array<{ round: number, points: number }>> = {};
+  // Para cada equipe, construir um array de { round, points } para TODOS os rounds (mesmo com zero)
+  const teamPointsByRace: Record<string, Array<{ round: number; points: number }>> = {};
   for (const team of allTeams) {
-    teamPointsByRace[team] = [];
+    // Inicializa a lista completa, preenchida com zeros
+    teamPointsByRace[team] = allRounds.map(round => ({ round, points: 0 }));
   }
 
   for (const race of sortedRaces) {
     const round = parseInt(race.round);
-    // Inicializa pontuação zerada pra cada equipe
+    // Para cada resultado, somar pontos da equipe naquele round
     const pointsByTeam: Record<string, number> = {};
-    for (const team of allTeams) {
-      pointsByTeam[team] = 0;
-    }
-    // Soma pontos dos pilotos para as respectivas equipes nesta corrida
     for (const result of race.Results) {
       const team = result.Constructor.name;
       const pts = Number(result.points) || 0;
-      pointsByTeam[team] += pts;
+      pointsByTeam[team] = (pointsByTeam[team] || 0) + pts;
     }
-    // Grava no histórico de cada equipe
-    Object.entries(pointsByTeam).forEach(([team, points]) => {
-      teamPointsByRace[team].push({ round, points });
-    });
+    // Atualiza os pontos nesse round para cada equipe que pontuou
+    for (const [team, pts] of Object.entries(pointsByTeam)) {
+      const histArr = teamPointsByRace[team];
+      if (histArr) {
+        // Encontra a entrada correspondente ao round e ajusta pontos
+        const entry = histArr.find(e => e.round === round);
+        if (entry) entry.points = pts;
+      }
+    }
+    // Equipes que não pontuaram já tem "0" registrado no array inicializado
   }
 
-  // Agora calcula tendências com slices certeiros das últimas 3/6 etapas (3/6 rounds finais)
+  // Quais são os N últimos rounds realizados?
+  const last3Rounds = allRounds.slice(-3);
+  const last6Rounds = allRounds.slice(-6);
+
+  // Agora calcula tendências reais das últimas 3/6 etapas
   const trends: {
     team: string;
     last3: number;
@@ -68,16 +77,17 @@ export const useTeamRaceTrends = () => {
   }[] = [];
 
   for (const [team, history] of Object.entries(teamPointsByRace)) {
-    // Ordena sempre pelas etapas mais recentes
-    const ordered = [...history].sort((a, b) => b.round - a.round);
-    const last3 = ordered.slice(0, 3).reduce((acc, curr) => acc + curr.points, 0);
-    const last6 = ordered.slice(0, 6).reduce((acc, curr) => acc + curr.points, 0);
+    // Ordena pelo round crescente
+    const ordered = [...history].sort((a, b) => a.round - b.round);
+
+    const last3 = ordered.filter(e => last3Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
+    const last6 = ordered.filter(e => last6Rounds.includes(e.round)).reduce((acc, cur) => acc + cur.points, 0);
 
     trends.push({
       team,
       last3,
       last6,
-      rounds: ordered.slice(0, 6).map(e => e.round),
+      rounds: last6Rounds,
       upgradeImpact: 0, // será calculado depois
     });
   }
@@ -85,7 +95,6 @@ export const useTeamRaceTrends = () => {
   // Calcula impacto do upgrade: compara pontos 2 etapas antes e 2 depois do round do upgrade
   const keyEvent = upgradeEvents[0];
   for (const trend of trends) {
-    // Busca sempre na ordem das corridas (round crescente)
     const history = [...(teamPointsByRace[trend.team])].sort((a, b) => a.round - b.round);
     let before = 0, after = 0;
     for (const r of history) {
@@ -101,4 +110,3 @@ export const useTeamRaceTrends = () => {
     upgradeEvents,
   };
 };
-
