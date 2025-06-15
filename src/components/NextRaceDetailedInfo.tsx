@@ -250,28 +250,28 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
         </div>
         {/* Colapsável: Cronograma */}
         <Collapsible>
-          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-200 bg-black/30 hover:bg-red-900/30 transition rounded-none border-t border-red-900/30">
+          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-700 bg-white hover:bg-gray-100 transition rounded-none border-t border-red-200">
             <span className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-red-400" /> Cronograma Completo
             </span>
             <ChevronDown className="w-5 h-5 text-red-200" />
           </CollapsibleTrigger>
-          <CollapsibleContent className="px-6 py-4">
+          <CollapsibleContent className="px-6 py-4 bg-white border-x border-b border-red-200 rounded-b-xl">
             <div className="space-y-3">
               {sessions.map((session, idx) => (
                 <div 
                   key={idx}
                   className={`flex justify-between items-center py-2 px-3 rounded-lg ${
                     session.isNext
-                      ? "bg-gradient-to-r from-red-600/40 to-yellow-100/10 border border-red-400/60 shadow-lg shadow-red-500/10"
-                      : "bg-black/30 border border-red-800/30 hover:bg-black/40"
+                      ? "bg-yellow-50 border border-yellow-200 shadow"
+                      : "bg-white border border-gray-200"
                   }`}
                 >
-                  <span className={`font-semibold flex gap-2 items-center ${session.isNext ? 'text-yellow-400' : 'text-white'}`}>
+                  <span className={`font-semibold flex gap-2 items-center ${session.isNext ? 'text-yellow-600' : 'text-red-700'}`}>
                     {session.isNext && <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />}
                     {session.label}
                   </span>
-                  <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-300' : 'text-red-300'}`}>
+                  <span className={`font-mono text-sm font-semibold ${session.isNext ? 'text-yellow-800' : 'text-gray-800'}`}>
                     {session.dt}
                   </span>
                 </div>
@@ -282,30 +282,30 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
 
         {/* Colapsável: Pontos Restantes */}
         <Collapsible>
-          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-200 bg-black/30 hover:bg-red-900/30 transition rounded-none border-y border-red-900/30">
+          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-700 bg-white hover:bg-gray-100 transition rounded-none border-t border-red-200">
             <span className="flex items-center gap-2">
               <Award className="w-5 h-5 text-yellow-400" /> Pontos Restantes
             </span>
             <ChevronDown className="w-5 h-5 text-red-200" />
           </CollapsibleTrigger>
-          <CollapsibleContent className="px-6 pb-6">
+          <CollapsibleContent className="px-6 pb-6 bg-white border-x border-b border-red-200 rounded-b-xl">
             <div className="space-y-4 pt-4">
-              <div className="bg-gradient-to-r from-yellow-600/20 to-yellow-500/10 rounded-lg p-4 border border-yellow-400/40">
+              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-yellow-400 font-bold text-lg">Campeonato de Pilotos</span>
-                  <span className="text-3xl font-bold text-yellow-400">{pontosPilotos}</span>
+                  <span className="text-yellow-700 font-bold text-lg">Campeonato de Pilotos</span>
+                  <span className="text-3xl font-bold text-yellow-800">{pontosPilotos}</span>
                 </div>
-                <p className="text-xs text-yellow-200/80">
+                <p className="text-xs text-yellow-700">
                   {racesLeft} corridas • {sprintsLeft} sprints restantes
                 </p>
               </div>
               
-              <div className="bg-gradient-to-r from-gray-600/20 to-gray-500/10 rounded-lg p-4 border border-gray-400/40">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-gray-300 font-bold text-lg">Campeonato de Construtores</span>
-                  <span className="text-3xl font-bold text-gray-300">{pontosConstrutores}</span>
+                  <span className="text-gray-700 font-bold text-lg">Campeonato de Construtores</span>
+                  <span className="text-3xl font-bold text-gray-800">{pontosConstrutores}</span>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   {racesLeft} corridas • {sprintsLeft} sprints restantes
                 </p>
               </div>

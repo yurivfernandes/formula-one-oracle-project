@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Clock, RefreshCw, Zap } from "lucide-react";
@@ -7,6 +8,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
+// ALTERAÇÃO: por padrão agora mostra round 9 (corrida 9)
 const fetchLiveLaps = async (round: string) => {
   const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${round}/laps.json`);
   const data = await res.json();
@@ -14,18 +16,19 @@ const fetchLiveLaps = async (round: string) => {
 };
 
 const getNextGPInfo = () => {
-  // Corrida 10 Canadá -- por padrão
+  // Corrida 9 Áustria -- agora como padrão
   return {
-    round: "10",
-    name: "GP do Canadá",
-    dateTime: "2025-06-15T18:00:00Z"
+    round: "9",
+    name: "GP da Áustria",
+    dateTime: "2025-06-29T13:00:00Z"
   };
 };
 
 const LiveTimingPage = () => {
-  // Permite alternar a prova por query param ?round=10 (default: 10 - Canadá)
+  // Permite alternar a prova por query param ?round=XX
   const [params] = useSearchParams();
-  const round = params.get("round") || "10";
+  // Se não há round no url, padrão é 9
+  const round = params.get("round") || "9";
   const { name, dateTime } = getNextGPInfo();
 
   const [enabled, setEnabled] = useState(true);
