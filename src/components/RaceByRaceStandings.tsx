@@ -508,24 +508,21 @@ const RaceByRaceStandings = () => {
                         !hasAnyResult && viewType === "all" ? 'text-gray-400' : ''
                       } bg-white`}
                     >
-                      {hasRaceResult && (
-                        <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
-                          {racePointsValue}
-                        </span>
-                      )}
-                      {hasSprintResult && (
-                        <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px] block mb-1">
-                          {sprintPointsValue}
-                        </span>
-                      )}
-                      {(hasRaceResult && hasSprintResult && totalRoundPoints > 0) && (
-                        <span className="text-base font-bold text-red-900 bg-gray-200 px-2 py-1 rounded-lg min-w-[32px] block">
-                          {totalRoundPoints}
-                        </span>
-                      )}
-                      {!hasAnyResult && viewType === "all" && (
-                        <span className="text-gray-400 text-lg">-</span>
-                      )}
+                      <div className="flex flex-col gap-1 items-center">
+                        {hasSprintResult && (
+                          <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            {sprintPointsValue}
+                          </span>
+                        )}
+                        {hasRaceResult && (
+                          <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            {racePointsValue}
+                          </span>
+                        )}
+                        {!hasAnyResult && viewType === "all" && (
+                          <span className="text-gray-400 text-lg">-</span>
+                        )}
+                      </div>
                     </TableCell>
                   );
                 })}
