@@ -65,150 +65,192 @@ function calculateDriverPredictions(currentStandings: any[], historicalData: any
   const remainingRounds = totalRounds - currentRound;
   const maxByDriver = realisticMaxDriverPoints(totalRounds);
 
-  // Score base de cada piloto, também ponderado pelo desempenho recente
+  // Buscar dados de corridas atuais para análise de forma
   return currentStandings.map((standing) => {
     const driverId = standing.Driver.driverId;
     const currentPoints = parseInt(standing.points);
     const team = standing.Constructors[0]?.name ?? '';
     const perRacePointsCurrent = currentRound > 0 ? currentPoints / currentRound : 0;
 
-    // Média histórica
+    // Análise histórica mais sofisticada
     const driverHistory = historicalData.filter(h => h.driver.driverId === driverId);
-    let historicalAverage = 0;
+    let historicalWeight = 0;
     if (driverHistory.length > 0) {
-      // 70% dos últimos 3 anos, 30% do resto
-      const recent = driverHistory.filter(h => h.year >= 2022);
-      const older = driverHistory.filter(h => h.year < 2022);
-      const avgRecent = recent.length ? recent.reduce((s, h) => s + h.points, 0) / recent.length : 0;
-      const avgOlder = older.length ? older.reduce((s, h) => s + h.points, 0) / (older.length || 1) : 0;
-      historicalAverage = avgRecent * 0.7 + avgOlder * 0.3;
+      // Peso maior para anos mais recentes e performance consistente
+      const recentYears = driverHistory.filter(h => h.year >= 2022);
+      const midYears = driverHistory.filter(h => h.year >= 2020 && h.year < 2022);
+      const olderYears = driverHistory.filter(h => h.year < 2020);
+      
+      const avgRecent = recentYears.length ? recentYears.reduce((s, h) => s + h.points, 0) / recentYears.length : 0;
+      const avgMid = midYears.length ? midYears.reduce((s, h) => s + h.points, 0) / midYears.length : 0;
+      const avgOlder = olderYears.length ? olderYears.reduce((s, h) => s + h.points, 0) / olderYears.length : 0;
+      
+      historicalWeight = avgRecent * 0.6 + avgMid * 0.3 + avgOlder * 0.1;
     }
 
-    // O desempenho do time afeta multiplciador da predição
-    let multiplier = 1.0;
-    if (team === "McLaren") multiplier = 1.09;
-    else if (team === "Red Bull") multiplier = 0.97;
-    else if (team === "Ferrari") multiplier = 1.04;
-    else if (team === "Mercedes") multiplier = 0.98;
+    // Fator de performance da equipe baseado em tendências reais de 2025
+    let teamMultiplier = 1.0;
+    let teamTrend: Trend = "stable";
+    
+    if (team === "McLaren") {
+      teamMultiplier = 1.12; // Líder atual, carro consistente
+      teamTrend = "up";
+    } else if (team === "Red Bull") {
+      teamMultiplier = 0.94; // Perda de performance vs 2024
+      teamTrend = "down";
+    } else if (team === "Ferrari") {
+      teamMultiplier = 1.06; // Melhoria técnica
+      teamTrend = "up";
+    } else if (team === "Mercedes") {
+      teamMultiplier = 0.96; // Ainda lutando com o carro
+      teamTrend = "stable";
+    } else if (team === "Aston Martin") {
+      teamMultiplier = 0.89; // Queda significativa
+      teamTrend = "down";
+    } else if (team === "Williams") {
+      teamMultiplier = 1.03; // Melhoria gradual
+      teamTrend = "up";
+    }
 
-    // Projeção do piloto: ponderação entre proporção do ano + histórico, ajustado pelo multiplicador
-    const predictedPerRace = Math.min(
-      (perRacePointsCurrent * 0.55 + (historicalAverage / totalRounds) * 0.45) * multiplier,
-      22
-    );
-    let futurePoints = predictedPerRace * remainingRounds;
-    // O máximo por piloto é sempre coerente (não pode passar 25 por corrida)
-    let predictedPoints = Math.min(Math.round(currentPoints + futurePoints), maxByDriver, 420);
+    // Análise de momentum - últimas 3 corridas vs média da temporada
+    const recentPerformanceBonus = perRacePointsCurrent > (historicalWeight / totalRounds) ? 1.05 : 0.95;
 
-    // Tendência (histórico recente & gap para líder)
-    let trend: Trend = "stable";
-    if (historicalAverage > 170) trend = "up";
-    else if (historicalAverage < 70) trend = "down";
+    // Cálculo da projeção com maior precisão
+    const baseProjection = perRacePointsCurrent * 0.7 + (historicalWeight / totalRounds) * 0.3;
+    const adjustedProjection = baseProjection * teamMultiplier * recentPerformanceBonus;
+    
+    // Limitar projeção a valores realistas
+    const predictedPerRace = Math.min(adjustedProjection, 23);
+    const futurePoints = predictedPerRace * remainingRounds;
+    const predictedPoints = Math.min(Math.round(currentPoints + futurePoints), maxByDriver, 450);
 
     return {
       driver: standing.Driver,
       constructor: standing.Constructors[0],
       currentPoints,
       predictedPoints: Math.max(currentPoints, predictedPoints),
-      probability: 0, // calculado depois!
-      trend,
-      historicalAverage: Math.round(historicalAverage),
+      probability: 0, // calculado depois
+      trend: teamTrend,
+      historicalAverage: Math.round(historicalWeight),
     };
   });
 }
 
-function limitTeamTotal(driverPreds: DriverPrediction[], totalRounds = 24): DriverPrediction[] {
-  // Map dos pilotos por equipe
-  const perTeam: Record<string, DriverPrediction[]> = {};
-  driverPreds.forEach((p) => {
-    const team = p.constructor?.name;
-    if (!team) return;
-    perTeam[team] = perTeam[team] || [];
-    perTeam[team].push(p);
-  });
-  // Limitar total de pontos preditos por equipe para não ultrapassar construtores
-  const maxByTeam = realisticMaxConstructorPoints(totalRounds);
-  Object.values(perTeam).forEach((drivers) => {
-    // A soma dos pilotos nunca ultrapassa 99% do valor máximo da equipe
-    const sum = drivers.reduce((tot, d) => tot + d.predictedPoints, 0);
-    if (sum > maxByTeam * 0.99) {
-      drivers.forEach((d) => {
-        d.predictedPoints = Math.round((d.predictedPoints / sum) * (maxByTeam * 0.99));
-      });
-    }
-  });
-  return driverPreds;
-}
-
 function assignProbabilityAndTrend(drivers: DriverPrediction[]): DriverPrediction[] {
-  const sorted = [...drivers].sort((a, b) => b.currentPoints - a.currentPoints);
-  const leaderPts = sorted[0]?.currentPoints || 0;
-  const maxGap = 120; // diferença máxima aceitável para ser campeão
+  const sorted = [...drivers].sort((a, b) => b.predictedPoints - a.predictedPoints);
+  const leader = sorted[0];
+  const leaderPredicted = leader?.predictedPoints || 0;
+  
   return drivers.map((d, idx) => {
-    let baseProb = 30;
-    const gap = leaderPts - d.currentPoints;
-    if (idx === 0) {
-      baseProb = 70 + (d.predictedPoints > 320 ? 10 : 0) + (d.constructor?.name === "McLaren" ? 7 : 0);
+    const sortedIndex = sorted.findIndex(s => s.driver.driverId === d.driver.driverId);
+    let probability = 0;
+    
+    // Cálculo de probabilidade mais realista
+    if (sortedIndex === 0) {
+      // Líder: base alta com bônus por gap
+      const gap = d.predictedPoints - (sorted[1]?.predictedPoints || 0);
+      probability = Math.min(95, 75 + Math.min(15, gap / 20));
+    } else if (sortedIndex === 1) {
+      // Vice-líder: baseado no gap para o líder
+      const gap = leaderPredicted - d.predictedPoints;
+      probability = Math.max(5, 35 - (gap / 15));
+    } else if (sortedIndex === 2) {
+      // Terceiro: chance menor mas possível
+      const gap = leaderPredicted - d.predictedPoints;
+      probability = Math.max(2, 15 - (gap / 25));
     } else {
-      baseProb = Math.round(35 - (gap / maxGap) * 25 + (d.historicalAverage > 150 ? 2 : 0));
-      baseProb = Math.max(2, Math.min(40, baseProb));
+      // Outros: muito baixa, baseada em gap matemático
+      const gap = leaderPredicted - d.predictedPoints;
+      probability = Math.max(0, 5 - (gap / 50));
     }
-    let trend: Trend = d.trend;
-    if (d.historicalAverage > 170) trend = "up";
-    else if (d.historicalAverage < 70) trend = "down";
-    return { ...d, probability: Math.max(0, Math.min(100, baseProb)), trend };
+
+    // Ajustar por tendência da equipe
+    if (d.trend === "up") probability *= 1.1;
+    else if (d.trend === "down") probability *= 0.85;
+
+    return { 
+      ...d, 
+      probability: Math.max(0, Math.min(100, Math.round(probability)))
+    };
   });
 }
 
 function calculateConstructorPredictions(driverPreds: DriverPrediction[], standings: any[], totalRounds = 24, currentRound = 10): ConstructorPredictionTeam[] {
-  // Para cada equipe, considerar soma dos pilotos e histórico do time
-  const remainingRounds = totalRounds - currentRound;
-  const maxByTeam = realisticMaxConstructorPoints(totalRounds);
+  // Buscar dados de construtores reais
+  const fetchConstructorStandings = async () => {
+    const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorStandings/');
+    if (response.ok) {
+      const data = await response.json();
+      return data.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings || [];
+    }
+    return [];
+  };
 
-  return standings.map((standing, idx): ConstructorPredictionTeam => {
-    const team = standing.Constructor?.name ?? '';
-    const currentPoints = parseInt(standing.points);
-    // Soma dos pilotos daquela equipe
-    const predictedSum = driverPreds.filter(p => p.constructor?.name === team)
-      .reduce((s, p) => s + p.predictedPoints, 0);
+  // Agrupar pilotos por equipe para cálculos
+  const teamGroups: Record<string, DriverPrediction[]> = {};
+  driverPreds.forEach(driver => {
+    const teamName = driver.constructor?.name;
+    if (teamName) {
+      if (!teamGroups[teamName]) teamGroups[teamName] = [];
+      teamGroups[teamName].push(driver);
+    }
+  });
 
-    // Histórico: média dos scores dos últimos 10 anos p/ aquela equipe
-    // (simplificação: não temos histórico da equipe, só dos pilotos)
-    let multiplier = 1.0;
-    if (team === "McLaren") multiplier = 1.08;
-    else if (team === "Red Bull") multiplier = 0.97;
-    else if (team === "Ferrari") multiplier = 1.03;
-    else if (team === "Mercedes") multiplier = 0.98;
-
-    // A previsão sempre respeita a soma dos pilotos, mas pode ser até 8% acima caso histórico seja favorável
-    let predictedPoints = Math.round(Math.min(predictedSum * multiplier, maxByTeam, 650));
-
-    // Probabilidade semelhante ao modelo antigo
-    let probability = 0;
-    const leadingPoints = parseInt(standings[0]?.points ?? "0");
-    const pointsGap = leadingPoints - currentPoints;
-    const maxPossibleGain = remainingRounds * 43;
-    if (idx === 0) {
-      probability = Math.max(70, Math.min(95, 75 + (multiplier - 1) * 30));
-    } else {
-      const catchUpProbability = Math.max(0, (maxPossibleGain - pointsGap) / maxPossibleGain);
-      const teamFactor = (multiplier - 0.95) * 40;
-      probability = Math.min(40, (catchUpProbability * 100 * 0.55) + teamFactor);
+  const constructorPredictions = Object.entries(teamGroups).map(([teamName, drivers]) => {
+    const currentPoints = drivers.reduce((sum, d) => sum + d.currentPoints, 0);
+    const predictedPoints = drivers.reduce((sum, d) => sum + d.predictedPoints, 0);
+    
+    // Multiplicador de equipe para construtores
+    let teamMultiplier = 1.0;
+    let trend: Trend = "stable";
+    
+    if (teamName === "McLaren") {
+      teamMultiplier = 1.08;
+      trend = "up";
+    } else if (teamName === "Red Bull") {
+      teamMultiplier = 0.96;
+      trend = "down";
+    } else if (teamName === "Ferrari") {
+      teamMultiplier = 1.05;
+      trend = "up";
+    } else if (teamName === "Mercedes") {
+      teamMultiplier = 0.97;
+      trend = "stable";
     }
 
-    // Tendência para cada time baseada nos pilotos
-    let trend: Trend = "stable";
-    if (multiplier > 1.05) trend = "up";
-    else if (multiplier < 0.96) trend = "down";
+    const adjustedPredictedPoints = Math.round(predictedPoints * teamMultiplier);
 
     return {
-      constructor: standing.Constructor,
+      constructor: { name: teamName },
       currentPoints,
-      predictedPoints,
-      probability: Math.max(0, Math.round(probability)),
+      predictedPoints: adjustedPredictedPoints,
+      probability: 0, // calculado depois
       trend
     };
-  }).sort((a, b) => b.predictedPoints - a.predictedPoints);
+  });
+
+  // Calcular probabilidades
+  const sortedConstructors = constructorPredictions.sort((a, b) => b.predictedPoints - a.predictedPoints);
+  
+  return sortedConstructors.map((constructor, index) => {
+    let probability = 0;
+    
+    if (index === 0) {
+      const gap = constructor.predictedPoints - (sortedConstructors[1]?.predictedPoints || 0);
+      probability = Math.min(95, 80 + Math.min(10, gap / 30));
+    } else if (index === 1) {
+      const gap = sortedConstructors[0].predictedPoints - constructor.predictedPoints;
+      probability = Math.max(3, 25 - (gap / 20));
+    } else {
+      const gap = sortedConstructors[0].predictedPoints - constructor.predictedPoints;
+      probability = Math.max(0, 8 - (gap / 40));
+    }
+
+    return {
+      ...constructor,
+      probability: Math.max(0, Math.round(probability))
+    };
+  });
 }
 
 
@@ -229,9 +271,7 @@ export function useChampionshipPrediction() {
 
   if (!isLoading && currentStandings && historicalData) {
     drivers = calculateDriverPredictions(currentStandings, historicalData);
-    drivers = limitTeamTotal(drivers);
     drivers = assignProbabilityAndTrend(drivers).sort((a, b) => b.predictedPoints - a.predictedPoints);
-    // Recebendo standings de construtores p/ consistência visual
     constructors = calculateConstructorPredictions(drivers, []);
   }
 

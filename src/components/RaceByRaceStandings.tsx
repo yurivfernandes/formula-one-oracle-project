@@ -206,10 +206,8 @@ const fetchRaceResults = async (): Promise<Race[]> => {
 };
 
 const fetchSprintResults = async (): Promise<Race[]> => {
-  const allSprints: Race[] = [];
-  
   try {
-    // Tentar primeiro o endpoint de sprintResults
+    // Usar o endpoint correto da API Ergast para resultados de sprint
     const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprintResults/');
     if (response.ok) {
       const data: RaceResponse = await response.json();
@@ -219,28 +217,8 @@ const fetchSprintResults = async (): Promise<Race[]> => {
     console.warn('Erro ao buscar sprintResults:', error);
   }
   
-  // Fallback para o endpoint original com paginação
-  for (let page = 1; page <= 6; page++) {
-    try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${(page - 1) * 30}&limit=30`);
-      if (!response.ok) {
-        console.warn(`Erro ao buscar página ${page} dos resultados de Sprint`);
-        continue;
-      }
-      const data: RaceResponse = await response.json();
-      const pageSprints = data.MRData.RaceTable.Races;
-      
-      if (pageSprints.length === 0) {
-        break;
-      }
-      
-      allSprints.push(...pageSprints);
-    } catch (error) {
-      console.warn(`Erro ao processar página ${page} de Sprint:`, error);
-    }
-  }
-  
-  return allSprints;
+  // Se não funcionar, retornar array vazio
+  return [];
 };
 
 const fetchDriverStandings = async (): Promise<StandingsList> => {

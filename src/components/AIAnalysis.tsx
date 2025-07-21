@@ -73,7 +73,7 @@ const AIAnalysis = () => {
     position: Number(d.position)
   })) ?? [];
 
-  // Análise baseada nos dados reais de 2025
+  // Análise avançada baseada nos dados reais de 2025
   let insights: Array<{ type: string; title: string; description: string; confidence: number; icon: any }> = [];
   
   if (participants.length > 0 && races && races.length > 0) {
@@ -81,71 +81,100 @@ const AIAnalysis = () => {
     const vice = participants[1];
     const third = participants[2];
     
-    // Calcular vitórias dos top 3
-    const wins = {
-      [leader.name]: 0,
-      [vice.name]: 0,
-      [third.name]: 0
-    };
-
+    // Análise de vitórias e consistência
+    const driverStats: { [key: string]: { wins: number; podiums: number; points: number; races: number; dnfs: number } } = {};
+    
     for (const race of races) {
-      const winner = race.Results[0];
-      const winnerName = winner.Driver.givenName + " " + winner.Driver.familyName;
-      if (wins[winnerName] !== undefined) {
-        wins[winnerName]++;
+      if (race.Results && race.Results.length > 0) {
+        for (let i = 0; i < Math.min(race.Results.length, 20); i++) {
+          const result = race.Results[i];
+          const driverName = result.Driver.givenName + " " + result.Driver.familyName;
+          
+          if (!driverStats[driverName]) {
+            driverStats[driverName] = { wins: 0, podiums: 0, points: 0, races: 0, dnfs: 0 };
+          }
+          
+          driverStats[driverName].races++;
+          driverStats[driverName].points += Number(result.points) || 0;
+          
+          if (result.position === "1") driverStats[driverName].wins++;
+          if (["1", "2", "3"].includes(result.position)) driverStats[driverName].podiums++;
+          if (!result.position || result.position === "\\N") driverStats[driverName].dnfs++;
+        }
       }
     }
 
-    // Calcular pontos por equipe
-    const teamPoints: { [key: string]: number } = {};
+    // Calcular pontos por equipe e dominância
+    const teamStats: { [key: string]: { points: number; wins: number; podiums: number } } = {};
     for (const race of races) {
-      for (const result of race.Results) {
-        const teamName = result.Constructor.name;
-        const points = Number(result.points) || 0;
-        teamPoints[teamName] = (teamPoints[teamName] || 0) + points;
+      if (race.Results) {
+        for (const result of race.Results) {
+          const teamName = result.Constructor.name;
+          const points = Number(result.points) || 0;
+          
+          if (!teamStats[teamName]) {
+            teamStats[teamName] = { points: 0, wins: 0, podiums: 0 };
+          }
+          
+          teamStats[teamName].points += points;
+          if (result.position === "1") teamStats[teamName].wins++;
+          if (["1", "2", "3"].includes(result.position)) teamStats[teamName].podiums++;
+        }
       }
     }
 
-    // Ordenar equipes por pontos
-    const topTeams = Object.entries(teamPoints)
-      .sort(([,a], [,b]) => b - a)
+    const topTeams = Object.entries(teamStats)
+      .sort(([,a], [,b]) => b.points - a.points)
       .slice(0, 3);
 
-    // Análise das últimas 3 corridas
+    // Análise de momentum (últimas 3 corridas)
     const last3Races = races.slice(-3);
-    const recentWinners = last3Races.map(race => {
-      const winner = race.Results[0];
-      return winner.Driver.givenName + " " + winner.Driver.familyName;
-    });
+    const recentPerformance: { [key: string]: number } = {};
+    
+    for (const race of last3Races) {
+      if (race.Results) {
+        for (const result of race.Results) {
+          const driverName = result.Driver.givenName + " " + result.Driver.familyName;
+          const points = Number(result.points) || 0;
+          recentPerformance[driverName] = (recentPerformance[driverName] || 0) + points;
+        }
+      }
+    }
+
+    // Taxa de conversão de vitórias
+    const leaderStats = driverStats[leader.name];
+    const viceStats = driverStats[vice.name];
+    const winRate = leaderStats ? (leaderStats.wins / Math.max(leaderStats.races, 1) * 100) : 0;
+    const consistencyRate = leaderStats ? (leaderStats.podiums / Math.max(leaderStats.races, 1) * 100) : 0;
 
     insights = [
       {
-        type: "championship",
-        title: `${leader.name} lidera com ${leader.points} pontos`,
-        description: `${leader.name} (${leader.team}) está na liderança do campeonato com ${wins[leader.name]} vitórias em ${races.length} corridas disputadas. A diferença para o segundo colocado é de ${leader.points - vice.points} pontos.`,
-        confidence: 95,
+        type: "dominance",
+        title: `${leader.name}: ${winRate.toFixed(0)}% de taxa de vitórias`,
+        description: `${leader.name} (${leader.team}) domina com ${leaderStats?.wins || 0} vitórias em ${races.length} corridas (${winRate.toFixed(1)}% de conversão). Taxa de pódios: ${consistencyRate.toFixed(1)}%. Gap para o vice: ${leader.points - vice.points} pontos - uma diferença que representa aproximadamente ${Math.ceil((leader.points - vice.points) / 25)} vitórias.`,
+        confidence: 94,
         icon: <Zap className="w-5 h-5" />,
       },
       {
-        type: "battle",
-        title: "Disputa pelo Vice-Campeonato",
-        description: `${vice.name} (${vice.team}) ocupa a segunda posição com ${vice.points} pontos, ${vice.points - third.points} pontos à frente de ${third.name}. A disputa pelo vice-campeonato permanece acirrada.`,
-        confidence: 88,
+        type: "momentum",
+        title: `Momentum recente: ${Object.entries(recentPerformance).sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A'}`,
+        description: `Nas últimas 3 corridas, ${Object.entries(recentPerformance).sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A'} teve o melhor desempenho com ${Object.entries(recentPerformance).sort(([,a], [,b]) => b - a)[0]?.[1] || 0} pontos. ${vice.name} precisa de ${Math.ceil((leader.points - vice.points) / (races.length > 15 ? 20 : 25))} corridas perfeitas para alcançar a liderança, considerando ${24 - races.length} corridas restantes.`,
+        confidence: 89,
+        icon: <TrendingUp className="w-5 h-5" />,
+      },
+      {
+        type: "constructor",
+        title: `${topTeams[0][0]}: ${topTeams[0][1].podiums} pódios em ${races.length} corridas`,
+        description: `A equipe ${topTeams[0][0]} tem ${topTeams[0][1].wins} vitórias e ${topTeams[0][1].podiums} pódios, representando ${((topTeams[0][1].podiums / (races.length * 2)) * 100).toFixed(1)}% dos pódios disponíveis. Gap para o segundo colocado: ${topTeams[0][1].points - topTeams[1][1].points} pontos.`,
+        confidence: 91,
         icon: <Target className="w-5 h-5" />,
       },
       {
-        type: "team",
-        title: `${topTeams[0][0]} domina o campeonato de construtores`,
-        description: `A equipe ${topTeams[0][0]} lidera com ${topTeams[0][1]} pontos, seguida por ${topTeams[1][0]} (${topTeams[1][1]} pts) e ${topTeams[2][0]} (${topTeams[2][1]} pts).`,
-        confidence: 92,
+        type: "mathematical",
+        title: `Análise matemática: ${races.length}/${24} corridas disputadas`,
+        description: `Com ${24 - races.length} corridas restantes, o máximo de pontos disponíveis é ${(24 - races.length) * 25}. ${vice.name} precisa superar o gap de ${leader.points - vice.points} pontos, exigindo uma média de ${((leader.points - vice.points + 1) / Math.max(24 - races.length, 1)).toFixed(1)} pontos extras por corrida vs o líder. Probabilidade matemática: ${leader.points - vice.points > (24 - races.length) * 25 ? '0%' : ((1 - (leader.points - vice.points) / ((24 - races.length) * 25)) * 100).toFixed(1) + '%'}.`,
+        confidence: 97,
         icon: <AlertCircle className="w-5 h-5" />,
-      },
-      {
-        type: "recent",
-        title: "Tendência das últimas corridas",
-        description: `Nas últimas 3 corridas, as vitórias foram de: ${recentWinners.join(", ")}. ${recentWinners[recentWinners.length - 1]} venceu a corrida mais recente.`,
-        confidence: 85,
-        icon: <TrendingUp className="w-5 h-5" />,
       }
     ];
   }
