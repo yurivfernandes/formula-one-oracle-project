@@ -138,35 +138,52 @@ function calculateDriverPredictions(currentStandings: any[], historicalData: any
 
 function assignProbabilityAndTrend(drivers: DriverPrediction[]): DriverPrediction[] {
   const sorted = [...drivers].sort((a, b) => b.predictedPoints - a.predictedPoints);
-  const leader = sorted[0];
-  const leaderPredicted = leader?.predictedPoints || 0;
   
-  return drivers.map((d, idx) => {
+  return drivers.map((d) => {
     const sortedIndex = sorted.findIndex(s => s.driver.driverId === d.driver.driverId);
     let probability = 0;
     
-    // Cálculo de probabilidade mais realista
+    // Cálculo de probabilidade baseado na posição na classificação predita
     if (sortedIndex === 0) {
-      // Líder: base alta com bônus por gap
+      // Líder: probabilidade alta, mas ajustada pelo gap
       const gap = d.predictedPoints - (sorted[1]?.predictedPoints || 0);
-      probability = Math.min(95, 75 + Math.min(15, gap / 20));
+      probability = Math.min(92, 70 + Math.min(20, gap / 15));
     } else if (sortedIndex === 1) {
-      // Vice-líder: baseado no gap para o líder
-      const gap = leaderPredicted - d.predictedPoints;
-      probability = Math.max(5, 35 - (gap / 15));
+      // Vice-líder: probabilidade baseada no gap para o líder
+      const gap = sorted[0].predictedPoints - d.predictedPoints;
+      if (gap <= 20) probability = 25; // Gap pequeno = chance real
+      else if (gap <= 50) probability = 15; // Gap médio = chance menor
+      else probability = Math.max(3, 10 - (gap / 20)); // Gap grande = chance mínima
     } else if (sortedIndex === 2) {
-      // Terceiro: chance menor mas possível
-      const gap = leaderPredicted - d.predictedPoints;
-      probability = Math.max(2, 15 - (gap / 25));
+      // Terceiro: chance limitada
+      const gap = sorted[0].predictedPoints - d.predictedPoints;
+      if (gap <= 40) probability = 8;
+      else probability = Math.max(1, 5 - (gap / 30));
     } else {
-      // Outros: muito baixa, baseada em gap matemático
-      const gap = leaderPredicted - d.predictedPoints;
-      probability = Math.max(0, 5 - (gap / 50));
+      // Outros: chances muito baixas
+      const gap = sorted[0].predictedPoints - d.predictedPoints;
+      probability = Math.max(0, 2 - (gap / 60));
     }
 
-    // Ajustar por tendência da equipe
-    if (d.trend === "up") probability *= 1.1;
-    else if (d.trend === "down") probability *= 0.85;
+    // Ajustar por tendência da equipe (mas não muito)
+    if (d.trend === "up") probability *= 1.05;
+    else if (d.trend === "down") probability *= 0.9;
+
+    // Garantir que pilotos com pontuação similar tenham probabilidades similares
+    const pointsGroup = sorted.filter(p => Math.abs(p.predictedPoints - d.predictedPoints) <= 10);
+    if (pointsGroup.length > 1) {
+      const avgProb = pointsGroup.reduce((sum, p) => {
+        const idx = sorted.findIndex(s => s.driver.driverId === p.driver.driverId);
+        let baseProb = 0;
+        if (idx === 0) baseProb = 75;
+        else if (idx === 1) baseProb = 20;
+        else if (idx === 2) baseProb = 8;
+        else baseProb = 2;
+        return sum + baseProb;
+      }, 0) / pointsGroup.length;
+      
+      probability = avgProb + (probability - avgProb) * 0.3; // Converge para a média do grupo
+    }
 
     return { 
       ...d, 

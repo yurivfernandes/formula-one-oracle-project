@@ -207,17 +207,26 @@ const fetchRaceResults = async (): Promise<Race[]> => {
 
 const fetchSprintResults = async (): Promise<Race[]> => {
   try {
-    // Usar o endpoint correto da API Ergast para resultados de sprint
+    console.log('Buscando resultados de sprint...');
     const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprintResults/');
     if (response.ok) {
       const data: RaceResponse = await response.json();
+      console.log('Sprints encontrados:', data.MRData.RaceTable.Races.length);
       return data.MRData.RaceTable.Races;
+    } else {
+      console.warn('Endpoint sprintResults não funcionou, tentando alternativo...');
+      // Tentar endpoint alternativo
+      const altResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprint/');
+      if (altResponse.ok) {
+        const altData: RaceResponse = await altResponse.json();
+        console.log('Sprints do endpoint alternativo:', altData.MRData.RaceTable.Races.length);
+        return altData.MRData.RaceTable.Races;
+      }
     }
   } catch (error) {
     console.warn('Erro ao buscar sprintResults:', error);
   }
   
-  // Se não funcionar, retornar array vazio
   return [];
 };
 
