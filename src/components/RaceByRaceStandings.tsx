@@ -208,6 +208,18 @@ const fetchRaceResults = async (): Promise<Race[]> => {
 const fetchSprintResults = async (): Promise<Race[]> => {
   const allSprints: Race[] = [];
   
+  try {
+    // Tentar primeiro o endpoint de sprintResults
+    const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprintResults/');
+    if (response.ok) {
+      const data: RaceResponse = await response.json();
+      return data.MRData.RaceTable.Races;
+    }
+  } catch (error) {
+    console.warn('Erro ao buscar sprintResults:', error);
+  }
+  
+  // Fallback para o endpoint original com paginação
   for (let page = 1; page <= 6; page++) {
     try {
       const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${(page - 1) * 30}&limit=30`);
