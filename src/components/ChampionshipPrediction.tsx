@@ -79,18 +79,7 @@ const ChampionshipPrediction = () => {
         </CardContent>
       </Card>
 
-      {/* Segunda seção - Predição dos Construtores */}
-      <Card className="border-red-200 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-red-50 to-red-100">
-          <CardTitle className="flex items-center gap-2 text-red-700 text-2xl">
-            <Users className="h-6 w-6" />
-            Campeonato de Construtores 2025
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <ConstructorsPrediction />
-        </CardContent>
-      </Card>
+  {/* ...apenas pilotos, construtores agora é uma aba separada... */}
     </div>
   );
 };

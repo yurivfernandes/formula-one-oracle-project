@@ -159,64 +159,61 @@ const ConstructorsPrediction = () => {
   const predictions = constructorStandings && races ? calculateConstructorPrediction(constructorStandings, races).slice(0, 4) : [];
 
   return (
-    <div>
-      <StandardTable
-        title="Predição Construtores 2025 - Top 4"
-        subtitle="Análise das equipes favoritas ao título de construtores"
-        headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-        className="bg-white border border-red-800"
-      >
-        {predictions.map((prediction, index) => (
-          <TableRow
-            key={prediction.constructor.constructorId}
-            className="border-red-800/80 hover:bg-red-900/10 transition-colors"
-          >
-            <TableCell>
-              <span
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  index === 0
-                    ? "bg-yellow-500 text-black"
-                    : index === 1
-                    ? "bg-gray-400 text-black"
-                    : index === 2
-                    ? "bg-amber-700 text-white"
-                    : "bg-gray-200 text-gray-900"
-                }`}
-              >
-                {index + 1}
+    <StandardTable
+      title="Predição Construtores 2025 - Top 4"
+      subtitle="Análise das equipes favoritas ao título de construtores"
+      headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+      className="bg-white border border-red-800"
+    >
+      {predictions.map((prediction, index) => (
+        <TableRow
+          key={prediction.constructor.constructorId}
+          className="border-red-800/80 hover:bg-red-900/10 transition-colors"
+        >
+          <TableCell>
+            <span
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                index === 0
+                  ? "bg-yellow-500 text-black"
+                  : index === 1
+                  ? "bg-gray-400 text-black"
+                  : index === 2
+                  ? "bg-amber-700 text-white"
+                  : "bg-gray-200 text-gray-900"
+              }`}
+            >
+              {index + 1}
+            </span>
+          </TableCell>
+          <TableCell>
+            <TeamLogo teamName={prediction.constructor.name} />
+          </TableCell>
+          <TableCell className="text-center font-bold text-lg text-gray-900">
+            {prediction.currentPoints}
+          </TableCell>
+          <TableCell className="text-center">
+            <span className="text-red-500 font-bold text-lg">
+              {prediction.predictedPoints}
+            </span>
+          </TableCell>
+          <TableCell className="text-center">
+            <div className="flex flex-col items-center space-y-2">
+              <span className="font-medium text-gray-900">
+                {prediction.probability}%
               </span>
-            </TableCell>
-            <TableCell>
-              <TeamLogo teamName={prediction.constructor.name} />
-            </TableCell>
-            <TableCell className="text-center font-bold text-lg text-gray-900">
-              {prediction.currentPoints}
-            </TableCell>
-            <TableCell className="text-center">
-              <span className="text-red-500 font-bold text-lg">
-                {prediction.predictedPoints}
-              </span>
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex flex-col items-center space-y-2">
-                <span className="font-medium text-gray-900">
-                  {prediction.probability}%
-                </span>
-                <Progress value={prediction.probability} className="w-20 h-2 bg-red-900" />
-              </div>
-            </TableCell>
-            <TableCell className="text-center">
-              <div className="flex items-center justify-center">
-                {prediction.trend === "up" && <TrendingUp className="w-5 h-5 text-green-400" />}
-                {prediction.trend === "down" && <TrendingDown className="w-5 h-5 text-red-400" />}
-                {prediction.trend === "stable" && <Minus className="w-5 h-5 text-yellow-400" />}
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </StandardTable>
-      <TeamTrends />
-    </div>
+              <Progress value={prediction.probability} className="w-20 h-2 bg-red-900" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center">
+            <div className="flex items-center justify-center">
+              {prediction.trend === "up" && <TrendingUp className="w-5 h-5 text-green-400" />}
+              {prediction.trend === "down" && <TrendingDown className="w-5 h-5 text-red-400" />}
+              {prediction.trend === "stable" && <Minus className="w-5 h-5 text-yellow-400" />}
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </StandardTable>
   );
 };
 

@@ -1,26 +1,32 @@
 [
     {
         "round": 2,
-        "raceName": "China"
+        "raceName": "China",
+        "date": "2025-03-22"
     },
     {
         "round": 6,
-        "raceName": "Miami"
+        "raceName": "Miami",
+        "date": "2025-05-03"
     },
     {
         "round": 13,
-        "raceName": "Bélgica"
+        "raceName": "Bélgica",
+        "date": "2025-07-26"
     },
     {
         "round": 19,
-        "raceName": "Austin"
+        "raceName": "Austin",
+        "date": "2025-10-18"
     },
     {
         "round": 21,
-        "raceName": "Brasil"
+        "raceName": "Brasil",
+        "date": "2025-11-08"
     },
     {
         "round": 23,
-        "raceName": "Qatar"
+        "raceName": "Qatar",
+        "date": "2025-11-29"
     }
 ]
