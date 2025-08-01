@@ -91,12 +91,10 @@ export const PWAInstallPrompt: React.FC = () => {
       
       return true;
     };
-
-    // Para Android mobile, mostrar prompt mesmo sem beforeinstallprompt
     const shouldShowMobilePrompt = () => {
       if (isInstalled) return false;
       if (!isMobile) return false;
-      if (isIOS) return false; // iOS tem prompt próprio
+      if (isIOS) return false;
       
       const dismissed = localStorage.getItem('mobile-install-dismissed');
       if (dismissed) {
