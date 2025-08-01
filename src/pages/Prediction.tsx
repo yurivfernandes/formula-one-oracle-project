@@ -8,6 +8,7 @@ import TrendsAnalysis from "@/components/TrendsAnalysis";
 import TeamTrends from "@/components/TeamTrends";
 import AIAnalysis from "@/components/AIAnalysis";
 import NextRaceInfo from "@/components/NextRaceInfo";
+import NextRacePrediction from "@/components/NextRacePrediction";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -38,7 +39,7 @@ const Prediction = () => {
             </p>
           </div>
           <Tabs defaultValue="championship" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30 mb-2 sm:mb-8 h-8 sm:h-10">
+            <TabsList className="grid w-full grid-cols-4 bg-black/40 border border-red-800/30 mb-2 sm:mb-8 h-8 sm:h-10">
               <TabsTrigger 
                 value="championship" 
                 className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500 text-xs px-1 sm:px-3"
@@ -46,6 +47,14 @@ const Prediction = () => {
                 <Target className="mr-0.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
                 <span className="hidden sm:inline">Predição Final</span>
                 <span className="sm:hidden">Predição</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="nextrace"
+                className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500 text-xs px-1 sm:px-3"
+              >
+                <Flag className="mr-0.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
+                <span className="hidden sm:inline">Palpites Corrida</span>
+                <span className="sm:hidden">Palpites</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="trends"
@@ -78,6 +87,10 @@ const Prediction = () => {
                   <ConstructorsPrediction />
                 </TabsContent>
               </Tabs>
+            </TabsContent>
+            {/* Nova aba - Palpites para próxima corrida */}
+            <TabsContent value="nextrace" className="mt-2 sm:mt-8">
+              <NextRacePrediction />
             </TabsContent>
             {/* Tendências: sub-abas para pilotos e equipes */}
             <TabsContent value="trends" className="mt-2 sm:mt-8">
