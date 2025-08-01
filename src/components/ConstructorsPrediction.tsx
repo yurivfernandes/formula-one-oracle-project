@@ -8,6 +8,8 @@ import TeamLogo from "./TeamLogo";
 import { useTeamRaceTrends } from "./hooks/useTeamRaceTrends";
 import TeamTrends from "./TeamTrends";
 
+
+
 // DEFININDO O TIPO PARA EVITAR ERRO!
 interface ConstructorPrediction {
   constructor: any;
@@ -17,6 +19,10 @@ interface ConstructorPrediction {
   trend: "up" | "down" | "stable";
 }
 
+// Importar rounds de sprint de JSON reutilizável
+import sprintRoundsJson from "../data/sprint-rounds-2025.json";
+const SPRINT_ROUNDS_2025: number[] = sprintRoundsJson.map((item: { round: number }) => item.round);
+
 const fetchConstructorStandings = async () => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorStandings/');
   if (!response.ok) throw new Error('Erro ao buscar classificação de construtores');
@@ -24,11 +30,13 @@ const fetchConstructorStandings = async () => {
   return data.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings || [];
 };
 
+
+const F1_SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1];
+
 const calculateConstructorPrediction = (standings: any[], races: any[]): ConstructorPrediction[] => {
   if (!Array.isArray(standings) || standings.length === 0 || !races) {
     return [];
   }
-  
   // Calcular rounds dinâmicos
   const totalRounds = races.length;
   const now = new Date();
@@ -38,7 +46,9 @@ const calculateConstructorPrediction = (standings: any[], races: any[]): Constru
   });
   const currentRound = nextRace ? parseInt(nextRace.round) - 1 : totalRounds;
   const remainingRounds = totalRounds - currentRound;
-  const maxByTeam = totalRounds * (25 + 18);
+  // Sprints restantes
+  const remainingSprintRounds = SPRINT_ROUNDS_2025.filter(r => r > currentRound).length;
+  const maxByTeam = totalRounds * (25 + 18) + remainingSprintRounds * (F1_SPRINT_POINTS[0] + F1_SPRINT_POINTS[1]);
 
   return standings.map((standing, index): ConstructorPrediction => {
     const currentPoints = parseInt(standing.points);
@@ -57,7 +67,10 @@ const calculateConstructorPrediction = (standings: any[], races: any[]): Constru
     const currentPointsPerRace = currentRound > 0 ? currentPoints / currentRound : 0;
     let predictedPerRace = Math.min(currentPointsPerRace * teamPerformanceMultiplier, 37);
     const projectedRemainingPoints = predictedPerRace * remainingRounds;
-    let predictedPoints = Math.round(currentPoints + projectedRemainingPoints);
+    // Projeção de pontos de sprint restantes para construtores (máximo possível, ponderado)
+    // Considerando 2 pilotos por equipe, mas ponderando por performance
+    const sprintPointsProjection = remainingSprintRounds * ((F1_SPRINT_POINTS[0] + F1_SPRINT_POINTS[1]) * 0.5 + predictedPerRace * 0.2);
+    let predictedPoints = Math.round(currentPoints + projectedRemainingPoints + sprintPointsProjection);
     predictedPoints = Math.min(predictedPoints, maxByTeam, 650);
 
     const leadingPoints = standings[0] ? parseInt(standings[0].points) : currentPoints;

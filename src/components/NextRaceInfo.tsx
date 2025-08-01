@@ -73,23 +73,18 @@ const fetchRaces = async () => {
   return data.MRData.RaceTable.Races;
 };
 
-const fetchSprintRaces = async () => {
-  const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/sprint/");
-  const data = await res.json();
-  return data.MRData.RaceTable.Races;
-};
+
+// Importar rounds de sprint do JSON centralizado
+import sprintRoundsJson from "../data/sprint-rounds-2025.json";
+const SPRINT_ROUNDS_2025: number[] = sprintRoundsJson.map((item: { round: number }) => item.round);
 
 const NextRaceInfo = () => {
   const { data: races, isLoading: loadingRaces } = useQuery({
     queryKey: ["races", 2025],
     queryFn: fetchRaces,
   });
-  const { data: sprints, isLoading: loadingSprints } = useQuery({
-    queryKey: ["sprintRaces", 2025],
-    queryFn: fetchSprintRaces,
-  });
 
-  if (loadingRaces || loadingSprints) {
+  if (loadingRaces) {
     return <Skeleton className="h-20 w-full bg-black/30 rounded-xl mb-4" />;
   }
 
@@ -106,9 +101,11 @@ const NextRaceInfo = () => {
   // Determinar round atual baseado na próxima corrida
   const currentRoundNum = nextRace ? parseInt(nextRace.round) : 25;
 
+
   // Corridas restantes incluem a próxima e todas posteriores
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
-  const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
+  // Sprints restantes: rounds de sprint >= currentRoundNum
+  const sprintsLeft = SPRINT_ROUNDS_2025.filter(round => round >= currentRoundNum).length;
 
   // Pontos restantes corridas principais e sprint
   const pontosGrandPrix = racesLeft * 25;

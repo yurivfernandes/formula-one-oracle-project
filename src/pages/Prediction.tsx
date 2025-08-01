@@ -3,7 +3,9 @@ import { Flag, ArrowLeft, TrendingUp, Brain, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChampionshipPrediction from "@/components/ChampionshipPrediction";
+import ConstructorsPrediction from "@/components/ConstructorsPrediction";
 import TrendsAnalysis from "@/components/TrendsAnalysis";
+import TeamTrends from "@/components/TeamTrends";
 import AIAnalysis from "@/components/AIAnalysis";
 import NextRaceInfo from "@/components/NextRaceInfo";
 import SiteHeader from "@/components/SiteHeader";
@@ -59,11 +61,27 @@ const Prediction = () => {
                 Análise IA
               </TabsTrigger>
             </TabsList>
+            {/* Sub-abas para pilotos/construtores na predição final */}
             <TabsContent value="championship" className="mt-8">
-              <ChampionshipPrediction />
+              <Tabs defaultValue="drivers" className="w-full">
+                <TabsList className="mb-4 grid w-full grid-cols-2 bg-red-50 border border-red-200">
+                  <TabsTrigger value="drivers" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white">Pilotos</TabsTrigger>
+                  <TabsTrigger value="constructors" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white">Construtores</TabsTrigger>
+                </TabsList>
+                <TabsContent value="drivers">
+                  <ChampionshipPrediction />
+                </TabsContent>
+                <TabsContent value="constructors">
+                  <ConstructorsPrediction />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
+            {/* Tendências dinâmicas e análise de equipes agora só na aba de tendências */}
             <TabsContent value="trends" className="mt-8">
               <TrendsAnalysis />
+              <div className="mt-8">
+                <TeamTrends />
+              </div>
             </TabsContent>
             <TabsContent value="analysis" className="mt-8">
               <AIAnalysis />

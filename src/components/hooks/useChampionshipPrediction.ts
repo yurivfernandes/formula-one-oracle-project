@@ -52,8 +52,15 @@ const fetchHistoricalData = async () => {
   return historicalData;
 };
 
-// Pontuação F1 para cada posição
+
+// Pontuação F1 para cada posição (corrida principal)
 const F1_POINTS_PER_POSITION = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+// Pontuação Sprint Race oficial F1 (2025): 8, 7, 6, 5, 4, 3, 2, 1 para os 8 primeiros
+const F1_SPRINT_POINTS = [8, 7, 6, 5, 4, 3, 2, 1];
+
+// Importar rounds de sprint de JSON reutilizável
+import sprintRoundsJson from "../../data/sprint-rounds-2025.json";
+const SPRINT_ROUNDS_2025: number[] = sprintRoundsJson.map((item: { round: number }) => item.round);
 
 // Função utilitária para limitar pontuação realista por piloto
 const realisticMaxDriverPoints = (totalRounds: number) => totalRounds * 25;
@@ -61,9 +68,11 @@ const realisticMaxDriverPoints = (totalRounds: number) => totalRounds * 25;
 // Função utilitária para limitar pontuação realista por equipe (pódios duplos, cenário máximo mas improvável)
 const realisticMaxConstructorPoints = (totalRounds: number) => totalRounds * (25 + 18);
 
-function calculateDriverPredictions(currentStandings: any[], historicalData: any[], totalRounds = 24, currentRound = 10): DriverPrediction[] {
+function calculateDriverPredictions(currentStandings: any[], historicalData: any[], totalRounds = 24, currentRound = 10, sprintRounds: number[] = []): DriverPrediction[] {
   const remainingRounds = totalRounds - currentRound;
-  const maxByDriver = realisticMaxDriverPoints(totalRounds);
+  // Calcular sprints restantes
+  const remainingSprintRounds = sprintRounds.filter(r => r > currentRound).length;
+  const maxByDriver = realisticMaxDriverPoints(totalRounds) + remainingSprintRounds * F1_SPRINT_POINTS[0];
 
   // Buscar dados de corridas atuais para análise de forma
   return currentStandings.map((standing) => {
@@ -119,10 +128,13 @@ function calculateDriverPredictions(currentStandings: any[], historicalData: any
     const baseProjection = perRacePointsCurrent * 0.7 + (historicalWeight / totalRounds) * 0.3;
     const adjustedProjection = baseProjection * teamMultiplier * recentPerformanceBonus;
     
-    // Limitar projeção a valores realistas
-    const predictedPerRace = Math.min(adjustedProjection, 23);
-    const futurePoints = predictedPerRace * remainingRounds;
-    const predictedPoints = Math.min(Math.round(currentPoints + futurePoints), maxByDriver, 450);
+
+  // Limitar projeção a valores realistas
+  const predictedPerRace = Math.min(adjustedProjection, 23);
+  const futurePoints = predictedPerRace * remainingRounds;
+  // Projeção de pontos de sprint restantes (máximo possível, mas ponderado por performance)
+  const sprintPointsProjection = remainingSprintRounds * (F1_SPRINT_POINTS[0] * 0.5 + predictedPerRace * 0.2);
+  const predictedPoints = Math.min(Math.round(currentPoints + futurePoints + sprintPointsProjection), maxByDriver, 450);
 
     return {
       driver: standing.Driver,
@@ -192,7 +204,7 @@ function assignProbabilityAndTrend(drivers: DriverPrediction[]): DriverPredictio
   });
 }
 
-function calculateConstructorPredictions(driverPreds: DriverPrediction[], standings: any[], totalRounds = 24, currentRound = 10): ConstructorPredictionTeam[] {
+function calculateConstructorPredictions(driverPreds: DriverPrediction[], standings: any[], totalRounds = 24, currentRound = 10, sprintRounds: number[] = []): ConstructorPredictionTeam[] {
   // Buscar dados de construtores reais
   const fetchConstructorStandings = async () => {
     const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorStandings/');
@@ -215,7 +227,7 @@ function calculateConstructorPredictions(driverPreds: DriverPrediction[], standi
 
   const constructorPredictions = Object.entries(teamGroups).map(([teamName, drivers]) => {
     const currentPoints = drivers.reduce((sum, d) => sum + d.currentPoints, 0);
-    const predictedPoints = drivers.reduce((sum, d) => sum + d.predictedPoints, 0);
+  const predictedPoints = drivers.reduce((sum, d) => sum + d.predictedPoints, 0);
     
     // Multiplicador de equipe para construtores
     let teamMultiplier = 1.0;
@@ -246,6 +258,10 @@ function calculateConstructorPredictions(driverPreds: DriverPrediction[], standi
     };
   });
 
+  // Calcular pontos extras de sprint para construtores (máximo possível, ponderado)
+  // Para cada equipe, considerar que pode pontuar com 2 pilotos nas sprints restantes
+  // (máximo 8+7=15 por sprint, mas ponderar por performance dos pilotos)
+  // Aqui, já está incluso na soma dos pilotos, mas se quiser detalhar, pode ajustar aqui.
   // Calcular probabilidades
   const sortedConstructors = constructorPredictions.sort((a, b) => b.predictedPoints - a.predictedPoints);
   
@@ -307,10 +323,11 @@ export function useChampionshipPrediction() {
       return raceDate >= now;
     });
     const currentRound = nextRace ? parseInt(nextRace.round) - 1 : totalRounds;
-    
-    drivers = calculateDriverPredictions(currentStandings, historicalData, totalRounds, currentRound);
+    // Sprints restantes
+    const sprintRounds = SPRINT_ROUNDS_2025;
+    drivers = calculateDriverPredictions(currentStandings, historicalData, totalRounds, currentRound, sprintRounds);
     drivers = assignProbabilityAndTrend(drivers).sort((a, b) => b.predictedPoints - a.predictedPoints);
-    constructors = calculateConstructorPredictions(drivers, currentStandings, totalRounds, currentRound);
+    constructors = calculateConstructorPredictions(drivers, currentStandings, totalRounds, currentRound, sprintRounds);
   }
 
   return {

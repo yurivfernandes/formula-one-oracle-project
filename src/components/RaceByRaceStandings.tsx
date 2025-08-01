@@ -172,15 +172,10 @@ const fetchDriverStandings = async (): Promise<StandingsList> => {
   return data.MRData.StandingsTable.StandingsLists[0];
 };
 
-// Rounds com sprint em 2025 (conforme calendário oficial)
-const sprintRounds2025 = [
-  "2",  // China
-  "6",  // Miami
-  "13", // Bélgica
-  "19", // Austin
-  "21", // Brasil
-  "23", // Qatar
-];
+
+// Função utilitária para buscar rounds de sprint de um JSON
+import sprintRoundsJson from "../data/sprint-rounds-2025.json";
+const sprintRounds2025: string[] = sprintRoundsJson.map((item: { round: number }) => String(item.round));
 
 const RaceByRaceStandings = () => {
   const [viewType, setViewType] = useState<"all" | "completed">("completed");
