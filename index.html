@@ -1,24 +1,195 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>formula-one-oracle-project</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Formula One Oracle - Previsões e Análises F1</title>
+    <meta name="description" content="Previsões e análises inteligentes da Fórmula 1 powered by AI. Acompanhe classificações, resultados e previsões dos campeonatos." />
+    <meta name="author" content="Formula One Oracle Team" />
+    <meta name="keywords" content="Fórmula 1, F1, previsões, análises, AI, classificações, corridas, campeonato" />
 
-    <meta property="og:title" content="formula-one-oracle-project" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="background-color" content="#ffffff" />
+    <meta name="display" content="standalone" />
+    <meta name="orientation" content="portrait-primary" />
+    
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="F1 Oracle" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    
+    <!-- Microsoft PWA Meta Tags -->
+    <meta name="msapplication-TileColor" content="#dc2626" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Favicon - Atualizado com novo design -->
+    <link rel="icon" type="image/svg+xml" href="/favicon F1 Analytics.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Apple Touch Icons - Novo design -->
+    <link rel="apple-touch-icon" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/favicon F1 Analytics.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon F1 Analytics.svg" />
+
+    <!-- Android Chrome Icons - Novo design -->
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon F1 Analytics.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="96x96" href="/favicon F1 Analytics.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="/favicon F1 Analytics.svg" />
+
+    <!-- Apple Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splashscreens/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+
+    <!-- Open Graph Meta Tags - Otimizado para redes sociais -->
+    <meta property="og:title" content="F1 Analytics - Previsões e Análises Inteligentes da Fórmula 1" />
+    <meta property="og:description" content="Análises avançadas e previsões precisas da Fórmula 1 powered by AI. Acompanhe classificações, resultados e previsões dos campeonatos em tempo real." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="https://formula-one-oracle.vercel.app" />
+    <meta property="og:image" content="https://formula-one-oracle.vercel.app/og-image.svg" />
+    <meta property="og:image:secure_url" content="https://formula-one-oracle.vercel.app/og-image.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="F1 Analytics - Análises Inteligentes da Fórmula 1" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="F1 Analytics" />
 
+    <!-- Twitter Meta Tags - Otimizado para Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@f1analytics" />
+    <meta name="twitter:creator" content="@f1analytics" />
+    <meta name="twitter:title" content="F1 Analytics - Previsões Inteligentes da Fórmula 1" />
+    <meta name="twitter:description" content="Análises avançadas e previsões precisas da Fórmula 1 powered by AI. Acompanhe classificações e resultados em tempo real." />
+    <meta name="twitter:image" content="https://formula-one-oracle.vercel.app/twitter-card.svg" />
+    <meta name="twitter:image:alt" content="F1 Analytics - Sua fonte definitiva para análises da F1" />
+    
+    <!-- WhatsApp Meta Tags -->
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="400" />
+    <meta property="og:image:height" content="400" />
+    
+    <!-- LinkedIn Meta Tags -->
+    <meta property="og:type" content="article" />
+    <meta property="article:author" content="F1 Analytics Team" />
+    <meta property="article:section" content="Sports" />
+    <meta property="article:tag" content="Formula 1, F1, Análises, Previsões, AI" />
+
+    <!-- Telegram Meta Tags -->
+    <meta name="telegram:channel" content="@f1analytics" />
+    <meta name="telegram:card" content="summary_large_image" />
+
+    <!-- Discord Meta Tags -->
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="discord:card" content="summary_large_image" />
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+              
+              // Verificar se há atualizações
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      // Nova versão disponível
+                      if (confirm('Nova versão disponível! Deseja atualizar?')) {
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        window.location.reload();
+                      }
+                    }
+                  });
+                }
+              });
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+
+        // Atualizar quando o service worker tomar controle
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+      }
+
+      // Install prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Mostrar botão de instalação personalizado se desejar
+        // showInstallButton();
+      });
+
+      // Função para instalar a PWA
+      function installPWA() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('PWA instalada');
+            }
+            deferredPrompt = null;
+          });
+        }
+      }
+
+      // Detectar quando a app foi instalada
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA foi instalada');
+        // Esconder botão de instalação
+      });
+
+      // Verificar se está rodando como PWA
+      function isRunningStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone === true;
+      }
+
+      // Preload critical resources
+      if ('serviceWorker' in navigator && 'caches' in window) {
+        caches.open('formula-one-oracle-v1').then(cache => {
+          cache.addAll([
+            '/',
+            '/manifest.json',
+            '/icons/icon-192x192.png'
+          ]);
+        });
+      }
+    </script>
   </body>
 </html>

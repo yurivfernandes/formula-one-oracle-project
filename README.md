@@ -1,8 +1,75 @@
-# Welcome to your Lovable project
+# 🏎️ F1 Analytics
 
-## Project info
+> **Análises inteligentes e previsões precisas da Fórmula 1 powered by AI**
 
-**URL**: https://lovable.dev/projects/01c484f5-69d6-4f2a-934f-6a00158eac0c
+Uma Progressive Web App (PWA) moderna para fãs de Fórmula 1 que querem acompanhar classificações, resultados e previsões em tempo real.
+
+![F1 Analytics Logo](./public/Logo%20F1%20Analytics.svg)
+
+## ✨ Características
+
+- 📊 **Classificações ao vivo** - Pilotos e construtores atualizados
+- 🏆 **Previsões de campeonato** - IA avançada para predições precisas
+- 📱 **PWA completa** - Instale como app nativo no seu dispositivo
+- 🌐 **Funcionamento offline** - Acesse dados mesmo sem internet
+- 🎯 **Interface moderna** - Design responsivo e intuitivo
+- ⚡ **Performance otimizada** - Carregamento rápido e eficiente
+
+## 🚀 Tecnologias
+
+- **React 18** + **TypeScript**
+- **Vite** - Build tool moderna
+- **Tailwind CSS** - Estilização utilitária
+- **Shadcn/ui** - Componentes de UI
+- **React Router** - Navegação SPA
+- **Tanstack Query** - Gerenciamento de estado server
+- **Lucide React** - Ícones
+- **PWA** - Service Worker + Manifest
+
+## 🛠️ Instalação
+
+```sh
+# Clone o repositório
+git clone https://github.com/yurivfernandes/formula-one-oracle-project.git
+
+# Entre no diretório
+cd formula-one-oracle-project
+
+# Instale as dependências
+npm install
+
+# Execute em desenvolvimento
+npm run dev
+
+# Build para produção
+npm run build
+```
+
+## 📱 Como usar como PWA
+
+### Mobile (Android/iOS)
+1. Acesse o site no navegador
+2. Toque no menu do navegador
+3. Selecione "Adicionar à tela inicial"
+4. Confirme a instalação
+
+### Desktop (Chrome/Edge/Safari)
+1. Acesse o site
+2. Procure pelo ícone de instalação na barra de endereços
+3. Clique em "Instalar F1 Analytics"
+4. O app será adicionado ao seu sistema
+
+## 🎨 Design System
+
+### Cores Principais
+- **Vermelho F1**: `#dc2626` - Cor principal da marca
+- **Vermelho Escuro**: `#b91c1c` - Hover states
+- **Branco**: `#ffffff` - Background principal
+- **Cinzas**: `#374151`, `#6b7280`, `#9ca3af` - Textos e elementos
+
+### Tipografia
+- **Fonte Principal**: System fonts (Inter, Segoe UI, etc.)
+- **Tamanhos**: Escala responsiva com Tailwind CSS
 
 ## How can I edit this code?
 

@@ -1,5 +1,4 @@
 
-import { Flag } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const NAV_LINKS = [
@@ -15,11 +14,12 @@ export default function SiteHeader() {
     <nav className="bg-white border-b border-red-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="flex items-center gap-2 group" aria-label="Home">
-            <Flag className="h-8 w-8 text-red-600 group-hover:scale-110 transition-all" />
-            <span className="text-2xl font-bold text-red-700 group-hover:text-red-500 transition-colors">
-              F1 Analytics
-            </span>
+          <Link to="/" className="flex items-center group" aria-label="Home">
+            <img 
+              src="/Logo F1 Analytics.svg" 
+              alt="F1 Analytics Logo" 
+              className="h-10 w-auto group-hover:scale-110 transition-all duration-300" 
+            />
           </Link>
           <div className="flex items-center space-x-4">
             {NAV_LINKS.map(nav => (

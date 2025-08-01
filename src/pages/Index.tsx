@@ -1,7 +1,7 @@
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Trophy, Calendar, TrendingUp, Flag } from "lucide-react";
+import { Trophy, Calendar, TrendingUp } from "lucide-react";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
 
 // Hero principal do site
@@ -9,7 +9,11 @@ const SiteHero = () => {
   return (
     <section className="bg-white pt-20 pb-16 border-b border-red-100">
       <div className="max-w-3xl mx-auto px-4 text-center flex flex-col items-center">
-        <Flag className="h-16 w-16 text-red-600 mb-4" />
+        <img 
+          src="/Logo F1 Analytics.svg" 
+          alt="F1 Analytics Logo" 
+          className="h-20 w-auto mb-6" 
+        />
         <h1 className="text-5xl sm:text-6xl font-bold text-red-700 mb-6 leading-tight">
           F1 Analytics
         </h1>

@@ -12,3 +12,26 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://formula-one-oracle.vercel.app/sitemap.xml
+
+# Specific rules for search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Block non-essential crawlers from heavy resources
+User-agent: *
+Disallow: /api/
+Disallow: /_next/
+Disallow: /sw.js
+Disallow: /manifest.json
+
+# Allow important PWA files
+Allow: /manifest.json
+Allow: /sw.js
+Allow: /icons/
+Allow: /screenshots/

@@ -1,0 +1,102 @@
+{
+  "name": "F1 Analytics",
+  "short_name": "F1 Analytics",
+  "description": "Análises avançadas e previsões inteligentes da Fórmula 1 powered by AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["sports", "news", "entertainment"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "72x72",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "96x96",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "144x144",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "152x152",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "384x384",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon F1 Analytics.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Próxima Corrida",
+      "short_name": "Próxima",
+      "description": "Ver informações da próxima corrida",
+      "url": "/?shortcut=next-race",
+      "icons": [{ "src": "/favicon F1 Analytics.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Previsões",
+      "short_name": "Previsões",
+      "description": "Ver previsões de campeonato",
+      "url": "/prediction?shortcut=predictions",
+      "icons": [{ "src": "/favicon F1 Analytics.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Classificação",
+      "short_name": "Classificação",
+      "description": "Ver classificação atual",
+      "url": "/championship?shortcut=standings",
+      "icons": [{ "src": "/favicon F1 Analytics.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tela principal do F1 Analytics"
+    },
+    {
+      "src": "/screenshots/mobile-screenshot.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Versão mobile do F1 Analytics"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+<!-- Twitter Card Image Template - 1200x600px -->
+<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="twitterBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1d1f23;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1200" height="600" fill="url(#twitterBg)"/>
+  
+  <!-- Logo -->
+  <g transform="translate(100, 200)">
+    <circle cx="50" cy="50" r="40" fill="white" opacity="0.9"/>
+    <text x="50" y="60" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="20" font-weight="bold">F1</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="220" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">F1 Analytics</text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="280" fill="#f3f4f6" font-family="Arial, sans-serif" font-size="28">Sua fonte definitiva para análises da F1</text>
+  
+  <!-- Features -->
+  <text x="200" y="340" fill="#fef2f2" font-family="Arial, sans-serif" font-size="22">🏎️ Dados ao vivo  •  🏆 Previsões precisas  •  📊 IA avançada</text>
+  
+  <!-- CTA -->
+  <rect x="200" y="380" width="200" height="50" rx="25" fill="white"/>
+  <text x="300" y="410" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="20" font-weight="bold">Acessar agora</text>
+</svg>
