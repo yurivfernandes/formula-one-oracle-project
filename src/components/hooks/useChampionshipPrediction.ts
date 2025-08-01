@@ -75,7 +75,10 @@ function calculateDriverPredictions(currentStandings: any[], historicalData: any
   const maxByDriver = realisticMaxDriverPoints(totalRounds) + remainingSprintRounds * F1_SPRINT_POINTS[0];
 
   // Buscar dados de corridas atuais para análise de forma
-  return currentStandings.map((standing) => {
+  // Encontrar o maior número de pontos atual para calibrar a agressividade da projeção
+  const maxCurrentPoints = Math.max(...currentStandings.map(s => parseInt(s.points)));
+
+  return currentStandings.map((standing, idx) => {
     const driverId = standing.Driver.driverId;
     const currentPoints = parseInt(standing.points);
     const team = standing.Constructors[0]?.name ?? '';
@@ -89,52 +92,56 @@ function calculateDriverPredictions(currentStandings: any[], historicalData: any
       const recentYears = driverHistory.filter(h => h.year >= 2022);
       const midYears = driverHistory.filter(h => h.year >= 2020 && h.year < 2022);
       const olderYears = driverHistory.filter(h => h.year < 2020);
-      
       const avgRecent = recentYears.length ? recentYears.reduce((s, h) => s + h.points, 0) / recentYears.length : 0;
       const avgMid = midYears.length ? midYears.reduce((s, h) => s + h.points, 0) / midYears.length : 0;
       const avgOlder = olderYears.length ? olderYears.reduce((s, h) => s + h.points, 0) / olderYears.length : 0;
-      
       historicalWeight = avgRecent * 0.6 + avgMid * 0.3 + avgOlder * 0.1;
     }
 
     // Fator de performance da equipe baseado em tendências reais de 2025
     let teamMultiplier = 1.0;
     let teamTrend: Trend = "stable";
-    
     if (team === "McLaren") {
-      teamMultiplier = 1.12; // Líder atual, carro consistente
+      teamMultiplier = 1.12;
       teamTrend = "up";
     } else if (team === "Red Bull") {
-      teamMultiplier = 0.94; // Perda de performance vs 2024
+      teamMultiplier = 0.94;
       teamTrend = "down";
     } else if (team === "Ferrari") {
-      teamMultiplier = 1.06; // Melhoria técnica
+      teamMultiplier = 1.06;
       teamTrend = "up";
     } else if (team === "Mercedes") {
-      teamMultiplier = 0.96; // Ainda lutando com o carro
+      teamMultiplier = 0.96;
       teamTrend = "stable";
     } else if (team === "Aston Martin") {
-      teamMultiplier = 0.89; // Queda significativa
+      teamMultiplier = 0.89;
       teamTrend = "down";
     } else if (team === "Williams") {
-      teamMultiplier = 1.03; // Melhoria gradual
+      teamMultiplier = 1.03;
       teamTrend = "up";
     }
 
     // Análise de momentum - últimas 3 corridas vs média da temporada
     const recentPerformanceBonus = perRacePointsCurrent > (historicalWeight / totalRounds) ? 1.05 : 0.95;
 
+    // Penalização para empates irreais: se o piloto está atrás, sua projeção é menos agressiva
+    let positionPenalty = 1;
+    if (currentPoints < maxCurrentPoints) {
+      // Penaliza mais quanto maior a diferença para o líder
+      const gap = maxCurrentPoints - currentPoints;
+      positionPenalty = 1 - Math.min(0.12 + gap / 600, 0.22); // até 22% menos agressivo
+    }
+
     // Cálculo da projeção com maior precisão
     const baseProjection = perRacePointsCurrent * 0.7 + (historicalWeight / totalRounds) * 0.3;
-    const adjustedProjection = baseProjection * teamMultiplier * recentPerformanceBonus;
-    
+    const adjustedProjection = baseProjection * teamMultiplier * recentPerformanceBonus * positionPenalty;
 
-  // Limitar projeção a valores realistas
-  const predictedPerRace = Math.min(adjustedProjection, 23);
-  const futurePoints = predictedPerRace * remainingRounds;
-  // Projeção de pontos de sprint restantes (máximo possível, mas ponderado por performance)
-  const sprintPointsProjection = remainingSprintRounds * (F1_SPRINT_POINTS[0] * 0.5 + predictedPerRace * 0.2);
-  const predictedPoints = Math.min(Math.round(currentPoints + futurePoints + sprintPointsProjection), maxByDriver, 450);
+    // Limitar projeção a valores realistas
+    const predictedPerRace = Math.min(adjustedProjection, 23);
+    const futurePoints = predictedPerRace * remainingRounds;
+    // Projeção de pontos de sprint restantes (máximo possível, mas ponderado por performance)
+    const sprintPointsProjection = remainingSprintRounds * (F1_SPRINT_POINTS[0] * 0.5 + predictedPerRace * 0.2) * positionPenalty;
+    const predictedPoints = Math.min(Math.round(currentPoints + futurePoints + sprintPointsProjection), maxByDriver, 450);
 
     return {
       driver: standing.Driver,
