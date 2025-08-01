@@ -1,75 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import TeamLogo from "./TeamLogo";
 
-// --- Tipos de dados da API ---
-interface Driver {
-  driverId: string;
-  givenName: string;
-  familyName: string;
-  nationality: string;
-}
-
-interface Constructor {
-  constructorId: string;
-  name: string;
-}
-
-interface Result {
-  position: string;
-  points: string;
-  Driver: Driver;
-  Constructor: Constructor;
-}
-
-interface Race {
+// Tipos simplificados para garantir compatibilidade
+type Driver = { driverId: string; givenName: string; familyName: string; nationality: string };
+type Constructor = { constructorId: string; name: string };
+type Result = { position: string; points: string; Driver: Driver; Constructor: Constructor };
+type Race = {
   season: string;
   round: string;
   raceName: string;
-  Circuit: {
-    circuitName: string;
-    Location: {
-      country: string;
-      locality: string;
-    };
-  };
+  Circuit: { circuitName: string; Location: { country: string; locality: string } };
   Results?: Result[];
+  SprintResults?: Result[];
   date: string;
-}
-
-interface RaceResponse {
-  MRData: {
-    RaceTable: {
-      Races: Race[];
-    };
-  };
-}
-
-interface DriverStanding {
-  position: string;
-  points: string;
-  wins: string;
-  Driver: Driver;
-  Constructors: Constructor[];
-}
-
-interface StandingsList {
-  season: string;
-  round: string;
-  DriverStandings: DriverStanding[];
-}
-
-interface ErgastResponse {
-  MRData: {
-    StandingsTable: {
-      StandingsLists: StandingsList[];
-    };
-  };
-}
+};
+type StandingsList = { season: string; round: string; DriverStandings: { position: string; points: string; wins: string; Driver: Driver; Constructors: Constructor[] }[] };
 
 // --- Funções Auxiliares ---
 const getTeamLogo = (team: string) => {
@@ -169,104 +118,78 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
 // Função auxiliar pro nome e flag pt-br
 const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
 
-// --- Funções de Fetch ---
+// Busca todas as páginas de resultados de corrida
+const fetchRaceResults = async (): Promise<{ [round: string]: Result[] }> => {
+  let offset = 0;
+  const limit = 30;
+  let total = 1;
+  const raceResultsByRound: { [round: string]: Result[] } = {};
+  while (offset < total) {
+    const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${offset}&limit=${limit}`);
+    const data = await res.json();
+    total = parseInt(data.MRData.total);
+    for (const race of data.MRData.RaceTable.Races) {
+      if (race.Results) {
+        if (!raceResultsByRound[race.round]) raceResultsByRound[race.round] = [];
+        raceResultsByRound[race.round] = raceResultsByRound[race.round].concat(race.Results);
+      }
+    }
+    offset += limit;
+  }
+  return raceResultsByRound;
+};
+
+// Busca todas as páginas de resultados de sprint
+const fetchSprintResults = async (): Promise<{ [round: string]: Result[] }> => {
+  let offset = 0;
+  const limit = 30;
+  let total = 1;
+  const sprintResultsByRound: { [round: string]: Result[] } = {};
+  while (offset < total) {
+    const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/sprint/?offset=${offset}&limit=${limit}`);
+    const data = await res.json();
+    total = parseInt(data.MRData.total);
+    for (const race of data.MRData.RaceTable.Races) {
+      if (race.SprintResults) {
+        if (!sprintResultsByRound[race.round]) sprintResultsByRound[race.round] = [];
+        sprintResultsByRound[race.round] = sprintResultsByRound[race.round].concat(race.SprintResults);
+      }
+    }
+    offset += limit;
+  }
+  return sprintResultsByRound;
+};
+
 const fetchRaces = async (): Promise<Race[]> => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
-  if (!response.ok) {
-    throw new Error('Erro ao buscar calendário de corridas');
-  }
-  const data: RaceResponse = await response.json();
+  const data = await response.json();
   return data.MRData.RaceTable.Races;
-};
-
-const fetchRaceResults = async (): Promise<Race[]> => {
-  const allRaces: Race[] = [];
-  
-  for (let page = 1; page <= 6; page++) {
-    try {
-      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/results/?offset=${(page - 1) * 30}&limit=30`);
-      if (!response.ok) {
-        console.warn(`Erro ao buscar página ${page} dos resultados`);
-        continue;
-      }
-      const data: RaceResponse = await response.json();
-      const pageRaces = data.MRData.RaceTable.Races;
-      
-      if (pageRaces.length === 0) {
-        break;
-      }
-      
-      allRaces.push(...pageRaces);
-    } catch (error) {
-      console.warn(`Erro ao processar página ${page}:`, error);
-    }
-  }
-  
-  return allRaces;
-};
-
-const fetchSprintResults = async (): Promise<Race[]> => {
-  try {
-    console.log('Buscando resultados de sprint...');
-    const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprintResults/');
-    if (response.ok) {
-      const data: RaceResponse = await response.json();
-      console.log('Sprints encontrados:', data.MRData.RaceTable.Races.length);
-      return data.MRData.RaceTable.Races;
-    } else {
-      console.warn('Endpoint sprintResults não funcionou, tentando alternativo...');
-      // Tentar endpoint alternativo
-      const altResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/sprint/');
-      if (altResponse.ok) {
-        const altData: RaceResponse = await altResponse.json();
-        console.log('Sprints do endpoint alternativo:', altData.MRData.RaceTable.Races.length);
-        return altData.MRData.RaceTable.Races;
-      }
-    }
-  } catch (error) {
-    console.warn('Erro ao buscar sprintResults:', error);
-  }
-  
-  return [];
 };
 
 const fetchDriverStandings = async (): Promise<StandingsList> => {
   const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
-  if (!response.ok) {
-    throw new Error('A resposta da rede não foi bem-sucedida');
-  }
-  const data: ErgastResponse = await response.json();
-  if (!data.MRData.StandingsTable.StandingsLists.length) {
-    return { season: "2025", round: "0", DriverStandings: [] };
-  }
+  const data = await response.json();
   return data.MRData.StandingsTable.StandingsLists[0];
 };
 
+// Rounds com sprint em 2025 (conforme calendário oficial)
+const sprintRounds2025 = [
+  "2",  // China
+  "6",  // Miami
+  "13", // Bélgica
+  "19", // Austin
+  "21", // Brasil
+  "23", // Qatar
+];
+
 const RaceByRaceStandings = () => {
   const [viewType, setViewType] = useState<"all" | "completed">("completed");
-  
-  const { data: allRaces, isLoading: isLoadingRaces } = useQuery({
-    queryKey: ['races', 2025],
-    queryFn: fetchRaces,
-  });
-
-  const { data: raceResults, isLoading: isLoadingResults } = useQuery({
-    queryKey: ['raceResults', 2025],
-    queryFn: fetchRaceResults,
-  });
-
-  const { data: sprintResults, isLoading: isLoadingSprints } = useQuery({
-    queryKey: ['sprintResults', 2025],
-    queryFn: fetchSprintResults,
-  });
-
-  const { data: standingsList, isLoading: isLoadingStandings } = useQuery({
-    queryKey: ['driverStandings', 2025],
-    queryFn: fetchDriverStandings,
-  });
+  const { data: allRaces, isLoading: isLoadingRaces } = useQuery({ queryKey: ['races', 2025], queryFn: fetchRaces });
+  const { data: raceResults, isLoading: isLoadingResults } = useQuery({ queryKey: ['raceResults', 2025], queryFn: fetchRaceResults });
+  const { data: sprintResults, isLoading: isLoadingSprints } = useQuery({ queryKey: ['sprintResults', 2025], queryFn: fetchSprintResults });
+  const { data: standingsList, isLoading: isLoadingStandings } = useQuery({ queryKey: ['driverStandings', 2025], queryFn: fetchDriverStandings });
 
   const isLoading = isLoadingRaces || isLoadingResults || isLoadingSprints || isLoadingStandings;
-
   if (isLoading) {
     return (
       <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-red-800/30 overflow-hidden">
@@ -281,95 +204,76 @@ const RaceByRaceStandings = () => {
     );
   }
 
-  // Criar mapas de resultados das corridas e sprints
-  const raceResultsMap: { [round: string]: Race } = {};
-  const sprintResultsMap: { [round: string]: Race } = {};
+  // Merge dos dados: para cada round, juntar resultados de corrida e sprint
+  const rounds = allRaces?.map(r => r.round) || [];
+  // Map de pilotos: driverId -> dados
+  const driverMap: Record<string, {
+    driver: Driver;
+    constructor: Constructor;
+    racePoints: { [round: string]: number };
+    sprintPoints: { [round: string]: number };
+    totalPoints: number;
+  }> = {};
 
-  raceResults?.forEach(race => {
-    raceResultsMap[race.round] = race;
-  });
-
-  sprintResults?.forEach(sprint => {
-    sprintResultsMap[sprint.round] = sprint;
-  });
-
-  // Coletar todos os pilotos únicos
-  const allDrivers = new Set<string>();
-  const driverData: { 
-    [key: string]: { 
-      driver: Driver; 
-      constructor: Constructor; 
-      racePoints: { [round: string]: string };
-      sprintPoints: { [round: string]: string };
-      totalPoints: number;
-    } 
-  } = {};
-
-  // Primeiro, pegar os pontos totais da API de standings
-  standingsList?.DriverStandings.forEach(standing => {
-    const driverId = standing.Driver.driverId;
-    allDrivers.add(driverId);
-    
-    driverData[driverId] = {
-      driver: standing.Driver,
-      constructor: standing.Constructors[0],
+  // Inicializar com standings oficiais
+  standingsList?.DriverStandings.forEach(ds => {
+    driverMap[ds.Driver.driverId] = {
+      driver: ds.Driver,
+      constructor: ds.Constructors[0],
       racePoints: {},
       sprintPoints: {},
-      totalPoints: parseInt(standing.points)
+      totalPoints: parseFloat(ds.points)
     };
   });
 
-  // Processar resultados das corridas
-  raceResults?.forEach(race => {
-    race.Results?.forEach(result => {
-      const driverId = result.Driver.driverId;
-      allDrivers.add(driverId);
-      
-      if (!driverData[driverId]) {
-        driverData[driverId] = {
-          driver: result.Driver,
-          constructor: result.Constructor,
-          racePoints: {},
-          sprintPoints: {},
-          totalPoints: 0
-        };
+  // Preencher pontos de corrida
+  if (raceResults) {
+    for (const round of Object.keys(raceResults)) {
+      const race = raceResults[round];
+      race.forEach(result => {
+        const id = result.Driver.driverId;
+        if (!driverMap[id]) {
+          driverMap[id] = {
+            driver: result.Driver,
+            constructor: result.Constructor,
+            racePoints: {},
+            sprintPoints: {},
+            totalPoints: 0
+          };
+        }
+        driverMap[id].racePoints[round] = parseFloat(result.points);
+      });
+    }
+  }
+
+  // Preencher pontos de sprint
+  if (sprintResults) {
+    for (const round of Object.keys(sprintResults)) {
+      for (const result of sprintResults[round]) {
+        const id = result.Driver.driverId;
+        if (!driverMap[id]) {
+          driverMap[id] = {
+            driver: result.Driver,
+            constructor: result.Constructor,
+            racePoints: {},
+            sprintPoints: {},
+            totalPoints: 0
+          };
+        }
+        driverMap[id].sprintPoints[round] = parseFloat(result.points);
       }
-      
-      driverData[driverId].racePoints[race.round] = result.points;
-    });
-  });
+    }
+  }
 
-  // Processar resultados dos sprints
-  sprintResults?.forEach(sprint => {
-    sprint.Results?.forEach(result => {
-      const driverId = result.Driver.driverId;
-      allDrivers.add(driverId);
-      
-      if (!driverData[driverId]) {
-        driverData[driverId] = {
-          driver: result.Driver,
-          constructor: result.Constructor,
-          racePoints: {},
-          sprintPoints: {},
-          totalPoints: 0
-        };
-      }
-      
-      driverData[driverId].sprintPoints[sprint.round] = result.points;
-    });
-  });
+  // Ordenar pilotos pelo total oficial
+  const drivers = Object.values(driverMap).sort((a, b) => b.totalPoints - a.totalPoints);
 
-  // Ordenar pilotos pelos pontos totais da API de standings
-  const driversWithTotals = Object.entries(driverData)
-    .map(([driverId, data]) => ({ driverId, ...data }))
-    .sort((a, b) => b.totalPoints - a.totalPoints);
+  // Filtrar rounds a exibir
+  const roundsToShow = viewType === "completed"
+    ? rounds.filter(round => (raceResults && raceResults[round]) || (sprintResults && sprintResults[round]))
+    : rounds;
 
-  // Filtrar corridas para exibir
-  const racesToShow = viewType === "completed" 
-    ? allRaces?.filter(race => raceResultsMap[race.round] || sprintResultsMap[race.round]) || []
-    : allRaces || [];
-
-  // Encontrar próxima corrida
+  // Próxima corrida
   const today = new Date();
   const nextRace = allRaces?.find(race => new Date(race.date) > today);
 
@@ -427,30 +331,52 @@ const RaceByRaceStandings = () => {
               <TableHead className="text-red-700 font-bold sticky left-[220px] bg-white min-w-[100px] z-20 border-r border-red-800/30">
                 Equipe
               </TableHead>
-              {racesToShow.map((race) => {
-                const c = getCountryPTBR(race.Circuit.Location.country);
-                // Corrigir Abu Dhabi:
-                const nome = race.Circuit.Location.country === "United Arab Emirates"
-                  ? "Abu Dhabi"
-                  : c.nome;
-                const flag = race.Circuit.Location.country === "United Arab Emirates"
-                  ? "🇦🇪"
-                  : c.flag;
+              {roundsToShow.map((round) => {
+                const race = allRaces?.find(r => r.round === round);
+                const country = race.Circuit.Location.country;
+                const flag = getCountryFlag(country);
+                // Abreviações dos países
+                const countryAbbr: { [key: string]: string } = {
+                  "Australia": "AUS",
+                  "China": "CHN",
+                  "Japan": "JPN",
+                  "Bahrain": "BHR",
+                  "Saudi Arabia": "SAU",
+                  "USA": "EUA",
+                  "Italy": "ITA",
+                  "Monaco": "MON",
+                  "Spain": "ESP",
+                  "Canada": "CAN",
+                  "Austria": "AUT",
+                  "UK": "GBR",
+                  "Hungary": "HUN",
+                  "Belgium": "BEL",
+                  "Netherlands": "NED",
+                  "Azerbaijan": "AZE",
+                  "Singapore": "SGP",
+                  "Mexico": "MEX",
+                  "Brazil": "BRA",
+                  "Qatar": "QAT",
+                  "United Arab Emirates": "UAE",
+                  "Las Vegas": "LVG"
+                };
+                const abbr = countryAbbr[country] || country.slice(0, 3).toUpperCase();
+                const isSprint = sprintRounds2025.includes(round);
                 return (
                   <TableHead
-                    key={race.round}
+                    key={round}
                     className="text-red-700 font-bold text-center min-w-[120px] bg-white"
                   >
                     <div className="flex flex-col items-center py-2">
                       <span className="text-2xl mb-1">{flag}</span>
                       <span className="text-xs font-medium text-gray-500">
-                        {nome}
+                        {abbr}
                       </span>
                       <div className="flex gap-1 mt-2">
-                        {sprintResultsMap[race.round] && (
+                        {isSprint && (
                           <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
                         )}
-                        {raceResultsMap[race.round] && (
+                        {raceResults && raceResults[round] && (
                           <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
                         )}
                       </div>
@@ -467,81 +393,76 @@ const RaceByRaceStandings = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {driversWithTotals.length > 0 ? driversWithTotals.map(({ driverId, driver, constructor, racePoints, sprintPoints, totalPoints }, index) => (
-              <TableRow
-                key={driverId}
-                className="border-red-800/30 hover:bg-red-900/5 transition-colors"
-              >
-                <TableCell className="sticky left-0 bg-white text-red-900 z-10 border-r border-red-800/30 py-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
-                        index === 0 ? 'bg-yellow-500 text-black' : 
-                        index === 1 ? 'bg-gray-400 text-black' : 
-                        index === 2 ? 'bg-amber-700 text-white' : 
-                        'bg-gray-200 text-gray-900'
-                      }`}>
-                        {index + 1}
-                      </span>
-                      <span className="text-xl">{getNationalityFlag(driver.nationality)}</span>
-                    </div>
-                    <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="sticky left-[220px] bg-white z-10 border-r border-red-800/30 py-4">
-                  <TeamLogo teamName={constructor.name} />
-                </TableCell>
-                {racesToShow.map((race) => {
-                  const racePointsValue = parseInt(racePoints[race.round] || '0');
-                  const sprintPointsValue = parseInt(sprintPoints[race.round] || '0');
-                  const hasRaceResult = raceResultsMap[race.round];
-                  const hasSprintResult = sprintResultsMap[race.round];
-                  const hasAnyResult = hasRaceResult || hasSprintResult;
-                  const totalRoundPoints =
-                    (hasRaceResult ? racePointsValue : 0) +
-                    (hasSprintResult ? sprintPointsValue : 0);
-                  return (
-                    <TableCell 
-                      key={race.round} 
-                      className={`text-red-900 text-center font-medium py-4 ${
-                        !hasAnyResult && viewType === "all" ? 'text-gray-400' : ''
-                      } bg-white`}
-                    >
-                      <div className="flex flex-col gap-1 items-center">
-                        {hasSprintResult && (
-                          <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
-                            {sprintPointsValue}
-                          </span>
-                        )}
-                        {hasRaceResult && (
-                          <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
-                            {racePointsValue}
-                          </span>
-                        )}
-                        {!hasAnyResult && viewType === "all" && (
-                          <span className="text-gray-400 text-lg">-</span>
-                        )}
+            {drivers.length > 0 ? drivers.map((driverData, index) => {
+              const { driver, constructor } = driverData;
+              return (
+                <TableRow
+                  key={driver.driverId}
+                  className="border-red-800/30 hover:bg-red-900/5 transition-colors"
+                >
+                  <TableCell className="sticky left-0 bg-white text-red-900 z-10 border-r border-red-800/30 py-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
+                          index === 0 ? 'bg-yellow-500 text-black' : 
+                          index === 1 ? 'bg-gray-400 text-black' : 
+                          index === 2 ? 'bg-amber-700 text-white' : 
+                          'bg-gray-200 text-gray-900'
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <span className="text-xl">{getNationalityFlag(driver.nationality)}</span>
                       </div>
-                    </TableCell>
-                  );
-                })}
-                <TableCell className="text-red-900 font-bold text-2xl text-center sticky right-0 bg-white z-10 border-l border-red-800/30 py-4">
-                  <div className="flex flex-col items-center">
-                    <span className={`${
-                      index === 0 ? 'text-yellow-400' : 
-                      index === 1 ? 'text-gray-400' : 
-                      index === 2 ? 'text-amber-500' : 
-                      'text-red-900'
-                    }`}>
-                      {totalPoints}
-                    </span>
-                    <span className="text-xs text-gray-500 font-normal">pts</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )) : (
+                      <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="sticky left-[220px] bg-white z-10 border-r border-red-800/30 py-4">
+                    <TeamLogo teamName={constructor.name} />
+                  </TableCell>
+                  {roundsToShow.map(round => {
+                    const racePoints = driverData.racePoints[round] || 0;
+                    // Só considerar pontos de sprint se o round está em sprintRounds2025
+                    const sprintPoints = sprintRounds2025.includes(round) ? (driverData.sprintPoints[round] || 0) : 0;
+                    const hasRace = racePoints > 0;
+                    const hasSprint = sprintPoints > 0;
+                    return (
+                      <TableCell key={round} className="text-center bg-white">
+                        <div className="flex flex-col gap-1 items-center">
+                          {hasSprint && (
+                            <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                              {sprintPoints}
+                            </span>
+                          )}
+                          {hasRace && (
+                            <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                              {racePoints}
+                            </span>
+                          )}
+                          {!hasRace && !hasSprint && (
+                            <span className="text-gray-400 text-lg">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="text-red-900 font-bold text-2xl text-center sticky right-0 bg-white z-10 border-l border-red-800/30 py-4">
+                    <div className="flex flex-col items-center">
+                      <span className={`$${
+                        index === 0 ? 'text-yellow-400' : 
+                        index === 1 ? 'text-gray-400' : 
+                        index === 2 ? 'text-amber-500' : 
+                        'text-red-900'
+                      }`}>
+                        {driverData.totalPoints}
+                      </span>
+                      <span className="text-xs text-gray-500 font-normal">pts</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            }) : (
               <TableRow>
-                <TableCell colSpan={racesToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-white">
+                <TableCell colSpan={roundsToShow.length + 3} className="text-center text-gray-400 py-12 text-lg bg-white">
                   Ainda não há resultados de corridas para exibir.
                 </TableCell>
               </TableRow>

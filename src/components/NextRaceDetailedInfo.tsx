@@ -85,8 +85,6 @@ const fetchSchedule = async (round: string) => {
   return data.MRData.RaceTable.Races[0];
 };
 
-const CURRENT_ROUND = 10;
-
 const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
   // All hooks must be called at the top level
   const { data: races, isLoading: loadingRaces } = useQuery({
@@ -127,7 +125,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
   }
 
   // Cálculo pontos restantes
-  const currentRoundNum = parseInt(nextRaceObj.round ?? CURRENT_ROUND + 1);
+  const currentRoundNum = parseInt(nextRaceObj.round);
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;
   const sprintsLeft = sprints?.filter((s: any) => parseInt(s.round) >= currentRoundNum).length ?? 0;
   const pontosGrandPrix = racesLeft * 25;

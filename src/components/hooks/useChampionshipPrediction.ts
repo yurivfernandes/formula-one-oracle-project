@@ -281,15 +281,36 @@ export function useChampionshipPrediction() {
     queryKey: ['historicalData'],
     queryFn: fetchHistoricalData,
   });
-  const isLoading = isLoadingCurrent || isLoadingHistorical;
+  
+  // Buscar corridas para calcular rounds dinâmicos
+  const { data: races, isLoading: isLoadingRaces } = useQuery({
+    queryKey: ['races', 2025],
+    queryFn: async () => {
+      const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
+      if (!response.ok) throw new Error('Erro ao buscar corridas');
+      const data = await response.json();
+      return data.MRData.RaceTable.Races;
+    },
+  });
+  
+  const isLoading = isLoadingCurrent || isLoadingHistorical || isLoadingRaces;
 
   let drivers: DriverPrediction[] = [];
   let constructors: ConstructorPredictionTeam[] = [];
 
-  if (!isLoading && currentStandings && historicalData) {
-    drivers = calculateDriverPredictions(currentStandings, historicalData);
+  if (!isLoading && currentStandings && historicalData && races) {
+    // Calcular rounds dinâmicos
+    const totalRounds = races.length;
+    const now = new Date();
+    const nextRace = races.find((race: any) => {
+      const raceDate = new Date(`${race.date}T12:00:00Z`);
+      return raceDate >= now;
+    });
+    const currentRound = nextRace ? parseInt(nextRace.round) - 1 : totalRounds;
+    
+    drivers = calculateDriverPredictions(currentStandings, historicalData, totalRounds, currentRound);
     drivers = assignProbabilityAndTrend(drivers).sort((a, b) => b.predictedPoints - a.predictedPoints);
-    constructors = calculateConstructorPredictions(drivers, []);
+    constructors = calculateConstructorPredictions(drivers, currentStandings, totalRounds, currentRound);
   }
 
   return {

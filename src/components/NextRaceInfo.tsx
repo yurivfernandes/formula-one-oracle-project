@@ -79,8 +79,6 @@ const fetchSprintRaces = async () => {
   return data.MRData.RaceTable.Races;
 };
 
-const CURRENT_ROUND = 10; // fixo conforme predição
-
 const NextRaceInfo = () => {
   const { data: races, isLoading: loadingRaces } = useQuery({
     queryKey: ["races", 2025],
@@ -105,16 +103,8 @@ const NextRaceInfo = () => {
     return raceDateTime >= now;
   });
 
-  // Contar rounds futuros de corrida e sprint, usando round number (não só data)
-  const currentRoundNum = races?.find((r: any) => {
-    const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
-    return dt >= now;
-  })?.round
-    ? parseInt(races.find((r: any) => {
-        const dt = new Date(`${r.date}${r.time ? "T" + r.time : "T12:00:00Z"}`);
-        return dt >= now;
-      }).round)
-    : CURRENT_ROUND + 1;
+  // Determinar round atual baseado na próxima corrida
+  const currentRoundNum = nextRace ? parseInt(nextRace.round) : 25;
 
   // Corridas restantes incluem a próxima e todas posteriores
   const racesLeft = races?.filter((race: any) => parseInt(race.round) >= currentRoundNum).length ?? 0;

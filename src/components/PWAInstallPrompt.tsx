@@ -23,8 +23,19 @@ export const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    // Detectar dispositivo móvel e iOS
+    const checkMobile = () => {
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      setIsMobile(mobile);
+      setIsIOS(ios);
+    };
+
+    checkMobile();
     // Verificar se já está instalado
     const checkIfInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -55,6 +66,33 @@ export const PWAInstallPrompt: React.FC = () => {
       // Analytics ou notificação
       console.log('PWA foi instalada com sucesso!');
     };
+
+    // Para iOS, mostrar instruções personalizadas
+    const shouldShowiOSPrompt = () => {
+      if (!isIOS) return false;
+      if (isInstalled) return false;
+      
+      // Verificar se já foi dispensado recentemente
+      const dismissed = localStorage.getItem('ios-install-dismissed');
+      if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const dayInMs = 24 * 60 * 60 * 1000;
+        if (Date.now() - dismissedTime < dayInMs * 7) { // 7 dias
+          return false;
+        }
+      }
+      
+      return true;
+    };
+
+    // Mostrar prompt para iOS após um delay
+    if (shouldShowiOSPrompt()) {
+      const timer = setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 3000); // Mostrar após 3 segundos
+      
+      return () => clearTimeout(timer);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -87,13 +125,76 @@ export const PWAInstallPrompt: React.FC = () => {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    // Opcionalmente, salvar no localStorage para não mostrar novamente por um tempo
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    // Salvar no localStorage baseado no tipo de dispositivo
+    const dismissKey = isIOS ? 'ios-install-dismissed' : 'pwa-install-dismissed';
+    localStorage.setItem(dismissKey, Date.now().toString());
   };
 
-  // Não mostrar se já estiver instalado ou se não houver prompt disponível
-  if (isInstalled || !showInstallPrompt || !deferredPrompt) {
+  // Não mostrar se já estiver instalado
+  if (isInstalled) {
     return null;
+  }
+
+  // Não mostrar se não houver prompt E não for iOS
+  if (!showInstallPrompt || (!deferredPrompt && !isIOS)) {
+    return null;
+  }
+
+  // Componente para iOS
+  const IOSInstallPrompt = () => (
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 pr-3">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              📱 Adicionar à Tela Inicial
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 mb-2">
+              Para melhor experiência, adicione F1 Analytics à sua tela inicial:
+            </p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div className="flex items-center gap-2">
+                <span>1️⃣</span>
+                <span>Toque no botão de compartilhar</span>
+                <span className="text-blue-500">⬆️</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>2️⃣</span>
+                <span>Selecione "Adicionar à Tela Inicial"</span>
+                <span>➕</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>3️⃣</span>
+                <span>Confirme tocando em "Adicionar"</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="flex gap-2 mt-3">
+          <Button
+            onClick={handleDismiss}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            Entendi
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Se for iOS, mostrar prompt personalizado
+  if (isIOS) {
+    return <IOSInstallPrompt />;
   }
 
   return (

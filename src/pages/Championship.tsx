@@ -66,6 +66,9 @@ const Championship = () => {
 
             <TabsContent value="racebyrace" className="mt-8">
               <RaceByRaceStandings />
+              {/* Debug visual: tabela de teste */}
+              <div className="mt-12">
+              </div>
             </TabsContent>
           </Tabs>
         </div>

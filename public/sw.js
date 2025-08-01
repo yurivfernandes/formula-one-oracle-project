@@ -1,4 +1,4 @@
-const CACHE_NAME = 'formula-one-oracle-v1';
+const CACHE_NAME = 'formula-one-oracle-v2-' + Date.now();
 const urlsToCache = [
   '/',
   '/index.html',

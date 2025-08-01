@@ -24,12 +24,19 @@ const fetchConstructorStandings = async () => {
   return data.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings || [];
 };
 
-const calculateConstructorPrediction = (standings: any[]): ConstructorPrediction[] => {
-  if (!Array.isArray(standings) || standings.length === 0) {
+const calculateConstructorPrediction = (standings: any[], races: any[]): ConstructorPrediction[] => {
+  if (!Array.isArray(standings) || standings.length === 0 || !races) {
     return [];
   }
-  const currentRound = 10;
-  const totalRounds = 24;
+  
+  // Calcular rounds dinâmicos
+  const totalRounds = races.length;
+  const now = new Date();
+  const nextRace = races.find((race: any) => {
+    const raceDate = new Date(`${race.date}T12:00:00Z`);
+    return raceDate >= now;
+  });
+  const currentRound = nextRace ? parseInt(nextRace.round) - 1 : totalRounds;
   const remainingRounds = totalRounds - currentRound;
   const maxByTeam = totalRounds * (25 + 18);
 
@@ -87,9 +94,20 @@ const ConstructorsPrediction = () => {
     queryFn: fetchConstructorStandings,
   });
 
+  // Buscar corridas para cálculo dinâmico
+  const { data: races, isLoading: isLoadingRaces } = useQuery({
+    queryKey: ['races', 2025],
+    queryFn: async () => {
+      const response = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
+      if (!response.ok) throw new Error('Erro ao buscar corridas');
+      const data = await response.json();
+      return data.MRData.RaceTable.Races;
+    },
+  });
+
   const { trends, isLoading: isTrendsLoading } = useTeamRaceTrends();
 
-  if (isLoading) {
+  if (isLoading || isLoadingRaces) {
     return (
       <StandardTable
         title="Predição Construtores 2025 - Top 4"
@@ -125,7 +143,7 @@ const ConstructorsPrediction = () => {
     );
   }
 
-  const predictions = constructorStandings ? calculateConstructorPrediction(constructorStandings).slice(0, 4) : [];
+  const predictions = constructorStandings && races ? calculateConstructorPrediction(constructorStandings, races).slice(0, 4) : [];
 
   return (
     <div>
