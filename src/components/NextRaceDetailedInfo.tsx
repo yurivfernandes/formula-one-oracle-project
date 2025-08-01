@@ -74,9 +74,9 @@ const fetchRaces = async () => {
 };
 
 const fetchSprints = async () => {
-  const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/sprint/");
-  const data = await res.json();
-  return data.MRData.RaceTable.Races;
+  // Importar rounds de sprint do JSON centralizado
+  const sprintRoundsJson = await import("../data/sprint-rounds-2025.json");
+  return sprintRoundsJson.default.map((item: { round: number }) => ({ round: item.round.toString() }));
 };
 
 const fetchSchedule = async (round: string) => {
@@ -291,6 +291,8 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
           </CollapsibleContent>
         </Collapsible>
 
+
+
         {/* Colapsável: Pontos Restantes */}
         <Collapsible>
           <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-700 bg-white hover:bg-gray-100 transition rounded-none border-t border-red-200">
@@ -373,7 +375,7 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
           </div>
           {/* Grid de cronograma e pontos */}
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Cronograma completo: fundo branco, borda cinza clara */}
+            {/* Cronograma completo */}
             <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
               <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
                 <Clock className="w-6 h-6 text-red-400" />
@@ -410,7 +412,8 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                 </div>
               )}
             </div>
-            {/* Pontos restantes: fundo branco, borda cinza clara */}
+
+            {/* Pontos restantes */}
             <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
               <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
                 <Award className="w-6 h-6 text-yellow-400" />
