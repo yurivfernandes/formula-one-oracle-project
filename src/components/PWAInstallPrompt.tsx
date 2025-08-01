@@ -77,7 +77,25 @@ export const PWAInstallPrompt: React.FC = () => {
       if (dismissed) {
         const dismissedTime = parseInt(dismissed);
         const dayInMs = 24 * 60 * 60 * 1000;
-        if (Date.now() - dismissedTime < dayInMs * 7) { // 7 dias
+        if (Date.now() - dismissedTime < dayInMs * 3) { // Reduzido para 3 dias
+          return false;
+        }
+      }
+      
+      return true;
+    };
+
+    // Para Android mobile, mostrar prompt mesmo sem beforeinstallprompt
+    const shouldShowMobilePrompt = () => {
+      if (isInstalled) return false;
+      if (!isMobile) return false;
+      
+      // Verificar se já foi dispensado recentemente
+      const dismissed = localStorage.getItem('mobile-install-dismissed');
+      if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const dayInMs = 24 * 60 * 60 * 1000;
+        if (Date.now() - dismissedTime < dayInMs * 3) { // 3 dias
           return false;
         }
       }
@@ -86,10 +104,10 @@ export const PWAInstallPrompt: React.FC = () => {
     };
 
     // Mostrar prompt para iOS após um delay
-    if (shouldShowiOSPrompt()) {
+    if (shouldShowiOSPrompt() || shouldShowMobilePrompt()) {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
-      }, 3000); // Mostrar após 3 segundos
+      }, 2000); // Reduzido para 2 segundos
       
       return () => clearTimeout(timer);
     }
@@ -126,7 +144,7 @@ export const PWAInstallPrompt: React.FC = () => {
   const handleDismiss = () => {
     setShowInstallPrompt(false);
     // Salvar no localStorage baseado no tipo de dispositivo
-    const dismissKey = isIOS ? 'ios-install-dismissed' : 'pwa-install-dismissed';
+    const dismissKey = isIOS ? 'ios-install-dismissed' : 'mobile-install-dismissed';
     localStorage.setItem(dismissKey, Date.now().toString());
   };
 
@@ -135,8 +153,8 @@ export const PWAInstallPrompt: React.FC = () => {
     return null;
   }
 
-  // Não mostrar se não houver prompt E não for iOS
-  if (!showInstallPrompt || (!deferredPrompt && !isIOS)) {
+  // Não mostrar se não houver prompt E não for mobile (permite mostrar em qualquer mobile)
+  if (!showInstallPrompt || (!deferredPrompt && !isMobile)) {
     return null;
   }
 
@@ -192,9 +210,74 @@ export const PWAInstallPrompt: React.FC = () => {
     </div>
   );
 
+  // Componente para Android/Mobile genérico
+  const AndroidInstallPrompt = () => (
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 pr-3">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              📱 Instalar F1 Analytics
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 mb-2">
+              Adicione à tela inicial para acesso rápido:
+            </p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div className="flex items-center gap-2">
+                <span>1️⃣</span>
+                <span>Abra o menu do navegador (⋮)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>2️⃣</span>
+                <span>Toque em "Adicionar à tela inicial"</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>3️⃣</span>
+                <span>Confirme a instalação</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="flex gap-2 mt-3">
+          {deferredPrompt && (
+            <Button
+              onClick={handleInstallClick}
+              size="sm"
+              className="flex-1"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Instalar
+            </Button>
+          )}
+          <Button
+            onClick={handleDismiss}
+            variant="outline"
+            size="sm"
+            className={deferredPrompt ? "" : "flex-1"}
+          >
+            Entendi
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // Se for iOS, mostrar prompt personalizado
   if (isIOS) {
     return <IOSInstallPrompt />;
+  }
+
+  // Se for mobile (Android, etc.), mostrar prompt genérico
+  if (isMobile) {
+    return <AndroidInstallPrompt />;
   }
 
   return (
