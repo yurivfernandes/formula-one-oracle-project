@@ -15,23 +15,23 @@ const ChampionshipPrediction = () => {
   return (
     <div className="space-y-8">
       {/* Primeira seção - Predição dos Pilotos */}
-      <Card className="border-red-200 shadow-xl overflow-x-auto">
-        <CardHeader className="bg-gradient-to-r from-red-50 to-red-100">
+      <Card className="border-red-200 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 p-3 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-red-700 text-lg sm:text-2xl">
-            <Trophy className="h-6 w-6" />
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
             Predição Final - Campeonato de Pilotos 2025 (Top 8)
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table className="min-w-[600px]">
+            <Table className="min-w-[500px] sm:min-w-[600px]">
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <TableHead className="w-12 sm:w-16 font-bold">Pos</TableHead>
-                  <TableHead className="font-bold">Piloto</TableHead>
-                  <TableHead className="font-bold">Equipe</TableHead>
-                  <TableHead className="text-right font-bold">Pontos Preditos</TableHead>
-                  <TableHead className="text-right font-bold">Probabilidade</TableHead>
+                  <TableHead className="w-10 sm:w-16 font-bold text-xs sm:text-sm">Pos</TableHead>
+                  <TableHead className="font-bold text-xs sm:text-sm min-w-[100px] sm:min-w-[140px]">Piloto</TableHead>
+                  <TableHead className="font-bold text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]">Equipe</TableHead>
+                  <TableHead className="text-right font-bold text-xs sm:text-sm min-w-[70px] sm:min-w-[90px]">Pontos Preditos</TableHead>
+                  <TableHead className="text-right font-bold text-xs sm:text-sm min-w-[70px] sm:min-w-[90px]">Probabilidade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -46,7 +46,7 @@ const ChampionshipPrediction = () => {
                     }`}
                   >
                     <TableCell className="font-medium">
-                      <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-white text-xs sm:text-sm font-bold ${
+                      <div className={`flex items-center justify-center w-6 h-6 sm:w-10 sm:h-10 rounded-full text-white text-xs sm:text-sm font-bold ${
                         index === 0 ? "bg-gradient-to-br from-yellow-400 to-yellow-600" :
                         index === 1 ? "bg-gradient-to-br from-gray-400 to-gray-600" :
                         index === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600" :
@@ -55,17 +55,20 @@ const ChampionshipPrediction = () => {
                         {index + 1}
                       </div>
                     </TableCell>
-                    <TableCell className="font-semibold text-base sm:text-lg">
-                      {driver.driver?.givenName} {driver.driver?.familyName}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <TeamLogo teamName={driver.constructor?.name} className="w-20 h-10 sm:w-28 sm:h-14" />
+                    <TableCell className="font-semibold text-xs sm:text-lg">
+                      <div className="flex flex-col sm:flex-row sm:items-center">
+                        <span>{driver.driver?.givenName}</span>
+                        <span className="sm:ml-1">{driver.driver?.familyName}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-bold text-base sm:text-lg">{driver.predictedPoints}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <TeamLogo teamName={driver.constructor?.name} className="w-6 h-4 sm:w-28 sm:h-14" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-xs sm:text-lg">{driver.predictedPoints}</TableCell>
                     <TableCell className="text-right">
-                      <span className={`font-bold text-base sm:text-lg ${
+                      <span className={`font-bold text-xs sm:text-lg ${
                         driver.probability >= 70 ? "text-green-600" :
                         driver.probability >= 40 ? "text-yellow-600" :
                         "text-red-600"

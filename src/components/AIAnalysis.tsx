@@ -77,31 +77,31 @@ const AIAnalysis = () => {
 	};
 
 	return (
-		<div className="bg-white rounded-xl border border-red-200 shadow-xl p-4 sm:p-6">
-			<div className="flex items-center gap-2 mb-4">
-				<Sparkles className="w-7 h-7 text-red-500 animate-pulse" />
-				<h2 className="text-xl sm:text-2xl font-bold text-red-700">Análise de IA (OpenAI)</h2>
+		<div className="bg-white rounded-xl border border-red-200 shadow-xl p-2 sm:p-6">
+			<div className="flex items-center gap-2 mb-2">
+				<Sparkles className="w-5 h-5 text-red-500 animate-pulse" />
+				<h2 className="text-lg sm:text-2xl font-bold text-red-700">Análise de IA (OpenAI)</h2>
 			</div>
 			{canGenerate && !loading && (
-				<Button onClick={handleGenerate} className="mb-4 bg-red-600 hover:bg-red-700 text-white w-full flex items-center justify-center gap-2">
-					<Sparkles className="w-5 h-5" />
+				<Button onClick={handleGenerate} className="mb-2 bg-red-600 hover:bg-red-700 text-white w-full flex items-center justify-center gap-2 h-8 text-sm">
+					<Sparkles className="w-4 h-4" />
 					Gerar análise preditiva com IA
 				</Button>
 			)}
 			{loading && (
-				<div className="flex items-center gap-2 text-gray-500">
-					<Loader2 className="animate-spin w-5 h-5" />
+				<div className="flex items-center gap-2 text-gray-500 text-sm">
+					<Loader2 className="animate-spin w-4 h-4" />
 					Gerando análise preditiva com IA...
 				</div>
 			)}
-			{error && <p className="text-red-500 mt-2">{error}</p>}
+			{error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
 			{analysis && (
-				<div className="prose max-w-none text-gray-900 prose-h2:text-red-700 prose-strong:text-red-700 prose-li:mb-2">
+				<div className="prose max-w-none text-gray-900 prose-h2:text-red-700 prose-strong:text-red-700 prose-li:mb-2 text-sm">
 					<ReactMarkdown>{analysis}</ReactMarkdown>
 				</div>
 			)}
 			{!loading && !analysis && !error && !canGenerate && (
-				<p className="text-gray-500">Nenhuma análise disponível ainda.</p>
+				<p className="text-gray-500 text-sm">Nenhuma análise disponível ainda.</p>
 			)}
 		</div>
 	);

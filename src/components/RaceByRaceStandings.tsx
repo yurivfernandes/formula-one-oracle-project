@@ -274,18 +274,18 @@ const RaceByRaceStandings = () => {
 
   return (
     <div className="bg-white rounded-xl border border-red-800/70 overflow-hidden">
-      <div className="p-6 border-b border-red-800/50 bg-white">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div className="p-3 sm:p-6 border-b border-red-800/50 bg-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div>
-            <h2 className="text-3xl font-bold text-red-700 mb-2">
+            <h2 className="text-xl sm:text-3xl font-bold text-red-700 mb-1 sm:mb-2">
               Temporada F1 2025 - Corrida a Corrida
             </h2>
-            <p className="text-gray-600">Pontos por corrida e sprint de cada piloto</p>
+            <p className="text-sm sm:text-base text-gray-600">Pontos por corrida e sprint de cada piloto</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
             {nextRace && (
-              <div className="bg-red-600 border border-red-500 rounded-lg px-4 py-2">
-                <span className="text-white font-medium text-sm">
+              <div className="bg-red-600 border border-red-500 rounded-lg px-2 sm:px-4 py-1 sm:py-2">
+                <span className="text-white font-medium text-xs sm:text-sm">
                   🏎️ Próxima: {nextRace.raceName} {getCountryPTBR(nextRace.Circuit.Location.country).flag}
                 </span>
               </div>
@@ -294,19 +294,19 @@ const RaceByRaceStandings = () => {
               value={viewType}
               onValueChange={(value: "all" | "completed") => setViewType(value)}
             >
-              <SelectTrigger className="w-[200px] bg-white border-red-800/50 text-red-800">
+              <SelectTrigger className="w-full sm:w-[200px] bg-white border-red-800/50 text-red-800 text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-red-800/30 text-red-800">
                 <SelectItem
                   value="completed"
-                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5"
+                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5 text-xs sm:text-sm"
                 >
                   Apenas Realizadas
                 </SelectItem>
                 <SelectItem
                   value="all"
-                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5"
+                  className="text-red-800 hover:bg-red-900/5 focus:bg-red-900/5 text-xs sm:text-sm"
                 >
                   Calendário Completo
                 </SelectItem>
@@ -316,14 +316,14 @@ const RaceByRaceStandings = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="overflow-x-auto scrollbar-thin">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow className="border-red-800/60 bg-white">
-              <TableHead className="text-red-700 font-bold sticky left-0 bg-white min-w-[220px] z-20 border-r border-red-800/30">
+              <TableHead className="text-red-700 font-bold sticky left-0 bg-white min-w-[80px] sm:min-w-[220px] z-20 border-r border-red-800/30 text-xs sm:text-sm">
                 Piloto
               </TableHead>
-              <TableHead className="text-red-700 font-bold sticky left-[220px] bg-white min-w-[100px] z-20 border-r border-red-800/30">
+              <TableHead className="text-red-700 font-bold sticky left-[80px] sm:left-[220px] bg-white min-w-[40px] sm:min-w-[100px] z-20 border-r border-red-800/30 text-xs sm:text-sm">
                 Equipe
               </TableHead>
               {roundsToShow.map((round) => {
@@ -360,29 +360,29 @@ const RaceByRaceStandings = () => {
                 return (
                   <TableHead
                     key={round}
-                    className="text-red-700 font-bold text-center min-w-[120px] bg-white"
+                    className="text-red-700 font-bold text-center min-w-[40px] sm:min-w-[120px] bg-white text-xs sm:text-sm"
                   >
-                    <div className="flex flex-col items-center py-2">
-                      <span className="text-2xl mb-1">{flag}</span>
-                      <span className="text-xs font-medium text-gray-500">
-                        {abbr}
-                      </span>
-                      <div className="flex gap-1 mt-2">
-                        {isSprint && (
-                          <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">S</span>
-                        )}
-                        {raceResults && raceResults[round] && (
-                          <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-bold">R</span>
-                        )}
-                      </div>
+                  <div className="flex flex-col items-center py-1">
+                    <span className="text-sm sm:text-2xl mb-0 sm:mb-1">{flag}</span>
+                    <span className="text-xs font-medium text-gray-500">
+                      {abbr}
+                    </span>
+                    <div className="flex gap-0.5 sm:gap-1 mt-0.5 sm:mt-2">
+                      {isSprint && (
+                        <span className="text-xs bg-yellow-500 text-black px-1 py-0.5 rounded-full font-bold">S</span>
+                      )}
+                      {raceResults && raceResults[round] && (
+                        <span className="text-xs bg-red-500 text-white px-1 py-0.5 rounded-full font-bold">R</span>
+                      )}
                     </div>
+                  </div>
                   </TableHead>
                 );
               })}
-              <TableHead className="text-red-700 font-bold text-center min-w-[100px] sticky right-0 bg-white z-20 border-l border-red-800/30">
+              <TableHead className="text-red-700 font-bold text-center min-w-[50px] sm:min-w-[100px] sticky right-0 bg-white z-20 border-l border-red-800/30 text-xs sm:text-sm">
                 <div className="flex flex-col items-center">
-                  <span className="text-lg">🏆</span>
-                  <span className="text-sm">Total</span>
+                  <span className="text-base sm:text-lg">🏆</span>
+                  <span className="text-xs sm:text-sm">Total</span>
                 </div>
               </TableHead>
             </TableRow>
@@ -395,10 +395,10 @@ const RaceByRaceStandings = () => {
                   key={driver.driverId}
                   className="border-red-800/30 hover:bg-red-900/5 transition-colors"
                 >
-                  <TableCell className="sticky left-0 bg-white text-red-900 z-10 border-r border-red-800/30 py-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-bold min-w-[25px] h-6 flex items-center justify-center rounded-full ${
+                  <TableCell className="sticky left-0 bg-white text-red-900 z-10 border-r border-red-800/30 py-1 sm:py-4">
+                    <div className="flex items-center space-x-1 sm:space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <span className={`text-xs font-bold min-w-[16px] sm:min-w-[25px] h-4 sm:h-6 flex items-center justify-center rounded-full ${
                           index === 0 ? 'bg-yellow-500 text-black' : 
                           index === 1 ? 'bg-gray-400 text-black' : 
                           index === 2 ? 'bg-amber-700 text-white' : 
@@ -406,13 +406,16 @@ const RaceByRaceStandings = () => {
                         }`}>
                           {index + 1}
                         </span>
-                        <span className="text-xl">{getNationalityFlag(driver.nationality)}</span>
+                        <span className="text-xs sm:text-xl hidden sm:inline">{getNationalityFlag(driver.nationality)}</span>
                       </div>
-                      <span className="font-semibold whitespace-nowrap text-lg">{`${driver.givenName} ${driver.familyName}`}</span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold whitespace-nowrap text-xs sm:text-lg leading-tight">{driver.givenName}</span>
+                        <span className="font-semibold whitespace-nowrap text-xs sm:text-lg leading-tight">{driver.familyName}</span>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="sticky left-[220px] bg-white z-10 border-r border-red-800/30 py-4">
-                    <TeamLogo teamName={constructor.name} />
+                  <TableCell className="sticky left-[80px] sm:left-[220px] bg-white z-10 border-r border-red-800/30 py-1 sm:py-4">
+                    <TeamLogo teamName={constructor.name} className="w-4 h-3 sm:w-12 sm:h-8" />
                   </TableCell>
                   {roundsToShow.map(round => {
                     const racePoints = driverData.racePoints[round] || 0;
@@ -422,27 +425,27 @@ const RaceByRaceStandings = () => {
                     const hasSprint = sprintPoints > 0;
                     return (
                       <TableCell key={round} className="text-center bg-white">
-                        <div className="flex flex-col gap-1 items-center">
+                        <div className="flex flex-col gap-0.5 items-center">
                           {hasSprint && (
-                            <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            <span className="text-xs bg-yellow-500 text-black px-1 py-0.5 rounded font-bold min-w-[18px] sm:min-w-[32px]">
                               {sprintPoints}
                             </span>
                           )}
                           {hasRace && (
-                            <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-lg font-bold min-w-[32px]">
+                            <span className="text-xs bg-red-500 text-white px-1 py-0.5 rounded font-bold min-w-[18px] sm:min-w-[32px]">
                               {racePoints}
                             </span>
                           )}
                           {!hasRace && !hasSprint && (
-                            <span className="text-gray-400 text-lg">-</span>
+                            <span className="text-gray-400 text-xs sm:text-lg">-</span>
                           )}
                         </div>
                       </TableCell>
                     );
                   })}
-                  <TableCell className="text-red-900 font-bold text-2xl text-center sticky right-0 bg-white z-10 border-l border-red-800/30 py-4">
+                  <TableCell className="text-red-900 font-bold text-sm sm:text-2xl text-center sticky right-0 bg-white z-10 border-l border-red-800/30 py-1 sm:py-4">
                     <div className="flex flex-col items-center">
-                      <span className={`$${
+                      <span className={`${
                         index === 0 ? 'text-yellow-400' : 
                         index === 1 ? 'text-gray-400' : 
                         index === 2 ? 'text-amber-500' : 
@@ -450,7 +453,7 @@ const RaceByRaceStandings = () => {
                       }`}>
                         {driverData.totalPoints}
                       </span>
-                      <span className="text-xs text-gray-500 font-normal">pts</span>
+                      <span className="text-xs text-gray-500 font-normal hidden sm:inline">pts</span>
                     </div>
                   </TableCell>
                 </TableRow>

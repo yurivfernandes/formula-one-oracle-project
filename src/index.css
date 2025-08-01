@@ -45,3 +45,54 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Melhorias para tabelas responsivas */
+  .table-responsive {
+    @apply overflow-x-auto scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-gray-100;
+  }
+  
+  /* Esconde scrollbar em Webkit browsers mas mantém funcionalidade */
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-red-300 rounded-full hover:bg-red-400;
+  }
+  
+  /* Melhora para dispositivos móveis */
+  @media (max-width: 768px) {
+    .text-mobile {
+      @apply text-xs leading-tight;
+    }
+    
+    .padding-mobile {
+      @apply px-2 py-1;
+    }
+    
+    /* Força redução de elementos grandes em mobile */
+    .mobile-compact {
+      @apply text-sm px-1 py-1;
+    }
+    
+    .mobile-text {
+      @apply text-xs;
+    }
+    
+    /* Força container a não ultrapassar viewport */
+    .mobile-container {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    
+    /* Reduz espaçamentos em mobile */
+    .mobile-spacing {
+      @apply space-y-1 gap-1;
+    }
+  }
+}

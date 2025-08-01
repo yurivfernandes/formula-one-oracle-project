@@ -68,9 +68,9 @@ const ConstructorsStandings = () => {
           key={standing.Constructor.constructorId}
           className="border-red-800/70 hover:bg-red-900/10 transition-colors"
         >
-          <TableCell>
+          <TableCell className="w-10 sm:w-12">
             <span
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
                 standing.position === "1"
                   ? "bg-yellow-500 text-black"
                   : standing.position === "2"
@@ -83,13 +83,13 @@ const ConstructorsStandings = () => {
               {standing.position}
             </span>
           </TableCell>
-          <TableCell>
-            <TeamLogo teamName={standing.Constructor.name} />
+          <TableCell className="min-w-[120px] sm:min-w-[160px]">
+            <TeamLogo teamName={standing.Constructor.name} className="w-8 h-5 sm:w-12 sm:h-8" />
           </TableCell>
-          <TableCell className="text-center font-bold text-lg text-gray-900">
+          <TableCell className="text-center font-bold text-sm sm:text-lg text-gray-900 min-w-[60px]">
             {standing.points}
           </TableCell>
-          <TableCell className="text-center font-bold text-gray-900">
+          <TableCell className="text-center font-bold text-gray-900 text-sm sm:text-base min-w-[50px]">
             {standing.wins}
           </TableCell>
         </TableRow>

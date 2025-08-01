@@ -16,57 +16,57 @@
     "lang": "pt-BR",
     "icons": [
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "72x72",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "96x96",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "128x128",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "144x144",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "152x152",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "192x192",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "384x384",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "512x512",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         },
         {
-            "src": "/favicon F1 Analytics.svg",
+            "src": "/favicon-f1-analytics.png",
             "sizes": "any",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "maskable any"
         }
     ],
@@ -78,9 +78,9 @@
             "url": "/?shortcut=next-race",
             "icons": [
                 {
-                    "src": "/favicon F1 Analytics.svg",
+                    "src": "/favicon-f1-analytics.png",
                     "sizes": "192x192",
-                    "type": "image/svg+xml"
+                    "type": "image/png"
                 }
             ]
         },
@@ -91,9 +91,9 @@
             "url": "/prediction?shortcut=predictions",
             "icons": [
                 {
-                    "src": "/favicon F1 Analytics.svg",
+                    "src": "/favicon-f1-analytics.png",
                     "sizes": "192x192",
-                    "type": "image/svg+xml"
+                    "type": "image/png"
                 }
             ]
         },
@@ -104,9 +104,9 @@
             "url": "/championship?shortcut=standings",
             "icons": [
                 {
-                    "src": "/favicon F1 Analytics.svg",
+                    "src": "/favicon-f1-analytics.png",
                     "sizes": "192x192",
-                    "type": "image/svg+xml"
+                    "type": "image/png"
                 }
             ]
         }

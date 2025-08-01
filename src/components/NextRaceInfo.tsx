@@ -125,18 +125,18 @@ const NextRaceInfo = () => {
     : null;
 
   return (
-    <div className="mb-6">
-      <div className="bg-white border border-red-200 rounded-xl px-5 py-4 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="w-7 h-7 text-red-500" />
+    <div className="mb-3">
+      <div className="bg-white border border-red-200 rounded-xl px-2 py-2 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="w-5 h-5 text-red-500" />
           <div>
-            <span className="text-gray-700 font-medium text-sm">Próxima Corrida:</span>
-            <div className="flex items-center gap-2 text-lg font-bold text-red-700">
+            <span className="text-gray-700 font-medium text-xs">Próxima Corrida:</span>
+            <div className="flex items-center gap-1 text-sm font-bold text-red-700">
               {proxima ? (
                 <>
                   <span>{proxima.pais.flag}</span>
                   <span>{proxima.nome}</span>
-                  <span className="text-gray-500 text-base font-normal ml-2">
+                  <span className="text-gray-500 text-xs font-normal ml-1">
                     {proxima.data}
                   </span>
                 </>
@@ -146,25 +146,25 @@ const NextRaceInfo = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <div className="flex items-center gap-2 bg-yellow-50 rounded-lg px-3 py-2 border border-yellow-100">
-            <Award className="w-5 h-5 text-yellow-500" />
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
+          <div className="flex items-center gap-1 bg-yellow-50 rounded-lg px-2 py-1 border border-yellow-100">
+            <Award className="w-4 h-4 text-yellow-500" />
             <div className="flex flex-col text-yellow-900 text-xs">
               <span>
                 <b>Pontos pilotos restantes: </b>
-                <span className="text-red-700 text-base font-bold">{pontosPilotos}</span>
+                <span className="text-red-700 text-sm font-bold">{pontosPilotos}</span>
               </span>
               <span className="text-yellow-700">
                 ({racesLeft} corridas e {sprintsLeft} sprints)
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
-            <Award className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200">
+            <Award className="w-4 h-4 text-gray-400" />
             <div className="flex flex-col text-gray-700 text-xs">
               <span>
                 <b>Pontos construtores restantes: </b>
-                <span className="text-red-700 text-base font-bold">{pontosConstrutores}</span>
+                <span className="text-red-700 text-sm font-bold">{pontosConstrutores}</span>
               </span>
               <span className="text-gray-500">
                 ({racesLeft} corridas e {sprintsLeft} sprints)

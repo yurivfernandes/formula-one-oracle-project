@@ -109,9 +109,9 @@ const DriversStandings = () => {
           key={standing.Driver.driverId}
           className="border-red-800/70 hover:bg-red-900/10 transition-colors"
         >
-          <TableCell>
+          <TableCell className="w-10 sm:w-12">
             <span
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
                 standing.position === "1"
                   ? "bg-yellow-500 text-black"
                   : standing.position === "2"
@@ -124,19 +124,26 @@ const DriversStandings = () => {
               {standing.position}
             </span>
           </TableCell>
-          <TableCell>
-            <div className="flex items-center space-x-3">
-              <span className="text-lg">{getNationalityFlag(standing.Driver.nationality)}</span>
-              <span className="font-semibold text-gray-900">{`${standing.Driver.givenName} ${standing.Driver.familyName}`}</span>
+          <TableCell className="min-w-[120px] sm:min-w-[180px]">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="text-base sm:text-lg">{getNationalityFlag(standing.Driver.nationality)}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center">
+                <span className="font-semibold text-gray-900 text-xs sm:text-base">
+                  {standing.Driver.givenName}
+                </span>
+                <span className="font-semibold text-gray-900 text-xs sm:text-base sm:ml-1">
+                  {standing.Driver.familyName}
+                </span>
+              </div>
             </div>
           </TableCell>
-          <TableCell>
-            <TeamLogo teamName={standing.Constructors[0].name} />
+          <TableCell className="min-w-[80px] sm:min-w-[120px]">
+            <TeamLogo teamName={standing.Constructors[0].name} className="w-8 h-5 sm:w-12 sm:h-8" />
           </TableCell>
-          <TableCell className="text-center font-bold text-lg text-gray-900">
+          <TableCell className="text-center font-bold text-sm sm:text-lg text-gray-900 min-w-[60px]">
             {standing.points}
           </TableCell>
-          <TableCell className="text-center font-bold text-gray-900">
+          <TableCell className="text-center font-bold text-gray-900 text-sm sm:text-base min-w-[50px]">
             {standing.wins}
           </TableCell>
         </TableRow>

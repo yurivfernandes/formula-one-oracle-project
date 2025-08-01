@@ -148,8 +148,8 @@ const TrendsAnalysis = () => {
           key={driver.Driver.driverId}
           className="border-red-800/70 hover:bg-red-900/10 transition-colors"
         >
-          <TableCell>
-            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+          <TableCell className="w-10 sm:w-12">
+            <span className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
               driver.position === "1"
                 ? "bg-yellow-500 text-black"
                 : driver.position === "2"
@@ -161,16 +161,19 @@ const TrendsAnalysis = () => {
               {driver.position}
             </span>
           </TableCell>
-          <TableCell className="font-semibold">
-            {driver.Driver.givenName} {driver.Driver.familyName}
+          <TableCell className="font-semibold min-w-[120px] sm:min-w-[180px]">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <span className="text-xs sm:text-base">{driver.Driver.givenName}</span>
+              <span className="text-xs sm:text-base sm:ml-1">{driver.Driver.familyName}</span>
+            </div>
           </TableCell>
-          <TableCell>
-            <TeamLogo teamName={driver.Constructors[0].name} className="w-32 h-16" />
+          <TableCell className="min-w-[80px] sm:min-w-[120px]">
+            <TeamLogo teamName={driver.Constructors[0].name} className="w-8 h-5 sm:w-12 sm:h-8" />
           </TableCell>
-          <TableCell className="font-semibold">{driver.last3Points} pts</TableCell>
-          <TableCell className="font-semibold">{driver.last6Points} pts</TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2">
+          <TableCell className="font-semibold text-xs sm:text-base min-w-[60px]">{driver.last3Points} pts</TableCell>
+          <TableCell className="font-semibold text-xs sm:text-base min-w-[60px]">{driver.last6Points} pts</TableCell>
+          <TableCell className="min-w-[60px]">
+            <div className="flex items-center gap-1 sm:gap-2">
               {driver.trendIcon}
             </div>
           </TableCell>

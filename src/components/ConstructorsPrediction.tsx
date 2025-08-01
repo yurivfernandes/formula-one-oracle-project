@@ -159,61 +159,63 @@ const ConstructorsPrediction = () => {
   const predictions = constructorStandings && races ? calculateConstructorPrediction(constructorStandings, races).slice(0, 4) : [];
 
   return (
-    <StandardTable
-      title="Predição Construtores 2025 - Top 4"
-      subtitle="Análise das equipes favoritas ao título de construtores"
-      headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
-      className="bg-white border border-red-800"
-    >
-      {predictions.map((prediction, index) => (
-        <TableRow
-          key={prediction.constructor.constructorId}
-          className="border-red-800/80 hover:bg-red-900/10 transition-colors"
-        >
-          <TableCell>
-            <span
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                index === 0
-                  ? "bg-yellow-500 text-black"
-                  : index === 1
-                  ? "bg-gray-400 text-black"
-                  : index === 2
-                  ? "bg-amber-700 text-white"
-                  : "bg-gray-200 text-gray-900"
-              }`}
-            >
-              {index + 1}
-            </span>
-          </TableCell>
-          <TableCell>
-            <TeamLogo teamName={prediction.constructor.name} />
-          </TableCell>
-          <TableCell className="text-center font-bold text-lg text-gray-900">
-            {prediction.currentPoints}
-          </TableCell>
-          <TableCell className="text-center">
-            <span className="text-red-500 font-bold text-lg">
-              {prediction.predictedPoints}
-            </span>
-          </TableCell>
-          <TableCell className="text-center">
-            <div className="flex flex-col items-center space-y-2">
-              <span className="font-medium text-gray-900">
-                {prediction.probability}%
+    <div className="overflow-x-auto">
+      <StandardTable
+        title="Predição Construtores 2025 - Top 4"
+        subtitle="Análise das equipes favoritas ao título de construtores"
+        headers={["Pos", "Equipe", "Pts Atuais", "Pts Preditos", "Probabilidade", "Tendência"]}
+        className="bg-white border border-red-800 w-full"
+      >
+        {predictions.map((prediction, index) => (
+          <TableRow
+            key={prediction.constructor.constructorId}
+            className="border-red-800/80 hover:bg-red-900/10 transition-colors"
+          >
+            <TableCell className="w-10 sm:w-12">
+              <span
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
+                  index === 0
+                    ? "bg-yellow-500 text-black"
+                    : index === 1
+                    ? "bg-gray-400 text-black"
+                    : index === 2
+                    ? "bg-amber-700 text-white"
+                    : "bg-gray-200 text-gray-900"
+                }`}
+              >
+                {index + 1}
               </span>
-              <Progress value={prediction.probability} className="w-20 h-2 bg-red-900" />
-            </div>
-          </TableCell>
-          <TableCell className="text-center">
-            <div className="flex items-center justify-center">
-              {prediction.trend === "up" && <TrendingUp className="w-5 h-5 text-green-400" />}
-              {prediction.trend === "down" && <TrendingDown className="w-5 h-5 text-red-400" />}
-              {prediction.trend === "stable" && <Minus className="w-5 h-5 text-yellow-400" />}
-            </div>
-          </TableCell>
-        </TableRow>
-      ))}
-    </StandardTable>
+            </TableCell>
+            <TableCell className="min-w-[80px] sm:min-w-[120px]">
+              <TeamLogo teamName={prediction.constructor.name} className="w-8 h-5 sm:w-12 sm:h-8" />
+            </TableCell>
+            <TableCell className="text-center font-bold text-sm sm:text-lg text-gray-900 min-w-[60px]">
+              {prediction.currentPoints}
+            </TableCell>
+            <TableCell className="text-center min-w-[70px]">
+              <span className="text-red-500 font-bold text-sm sm:text-lg">
+                {prediction.predictedPoints}
+              </span>
+            </TableCell>
+            <TableCell className="text-center min-w-[80px] sm:min-w-[100px]">
+              <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                <span className="font-medium text-gray-900 text-xs sm:text-base">
+                  {prediction.probability}%
+                </span>
+                <Progress value={prediction.probability} className="w-12 sm:w-20 h-1 sm:h-2 bg-red-900" />
+              </div>
+            </TableCell>
+            <TableCell className="text-center min-w-[50px]">
+              <div className="flex items-center justify-center">
+                {prediction.trend === "up" && <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />}
+                {prediction.trend === "down" && <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />}
+                {prediction.trend === "stable" && <Minus className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />}
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </StandardTable>
+    </div>
   );
 };
 
