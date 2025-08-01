@@ -22,6 +22,7 @@ declare global {
 export const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -31,11 +32,18 @@ export const PWAInstallPrompt: React.FC = () => {
     const checkMobile = () => {
       const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      setIsMobile(mobile);
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const screenWidth = window.innerWidth <= 768;
+      
+      // Mais agressivo na detecção mobile
+      const finalMobile = mobile || isTouch || screenWidth;
+      
+      setIsMobile(finalMobile);
       setIsIOS(ios);
-    };
+    };  
 
     checkMobile();
+    
     // Verificar se já está instalado
     const checkIfInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -63,7 +71,6 @@ export const PWAInstallPrompt: React.FC = () => {
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
       
-      // Analytics ou notificação
       console.log('PWA foi instalada com sucesso!');
     };
 
@@ -72,12 +79,12 @@ export const PWAInstallPrompt: React.FC = () => {
       if (!isIOS) return false;
       if (isInstalled) return false;
       
-      // Verificar se já foi dispensado recentemente
       const dismissed = localStorage.getItem('ios-install-dismissed');
       if (dismissed) {
         const dismissedTime = parseInt(dismissed);
         const dayInMs = 24 * 60 * 60 * 1000;
-        if (Date.now() - dismissedTime < dayInMs * 3) { // Reduzido para 3 dias
+        // Não mostrar novamente por 7 dias após dismissal
+        if (Date.now() - dismissedTime < dayInMs * 7) { 
           return false;
         }
       }
@@ -89,13 +96,14 @@ export const PWAInstallPrompt: React.FC = () => {
     const shouldShowMobilePrompt = () => {
       if (isInstalled) return false;
       if (!isMobile) return false;
+      if (isIOS) return false; // iOS tem prompt próprio
       
-      // Verificar se já foi dispensado recentemente
       const dismissed = localStorage.getItem('mobile-install-dismissed');
       if (dismissed) {
         const dismissedTime = parseInt(dismissed);
         const dayInMs = 24 * 60 * 60 * 1000;
-        if (Date.now() - dismissedTime < dayInMs * 3) { // 3 dias
+        // Não mostrar novamente por 3 dias após dismissal
+        if (Date.now() - dismissedTime < dayInMs * 3) { 
           return false;
         }
       }
@@ -103,13 +111,39 @@ export const PWAInstallPrompt: React.FC = () => {
       return true;
     };
 
-    // Mostrar prompt para iOS após um delay
+    // Mostrar prompt para mobile após o usuário interagir com a página
     if (shouldShowiOSPrompt() || shouldShowMobilePrompt()) {
-      const timer = setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 2000); // Reduzido para 2 segundos
+      let interactionDetected = false;
       
-      return () => clearTimeout(timer);
+      const showPromptAfterInteraction = () => {
+        if (interactionDetected) return;
+        interactionDetected = true;
+        
+        // Mostrar após 3 segundos de interação
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 3000);
+      };
+
+      // Detectar várias formas de interação
+      const events = ['scroll', 'click', 'touchstart', 'keydown'];
+      events.forEach(event => {
+        window.addEventListener(event, showPromptAfterInteraction, { once: true });
+      });
+      
+      // Fallback: mostrar após 30 segundos se não houver interação
+      const fallbackTimer = setTimeout(() => {
+        if (!interactionDetected) {
+          setShowInstallPrompt(true);
+        }
+      }, 30000);
+      
+      return () => {
+        events.forEach(event => {
+          window.removeEventListener(event, showPromptAfterInteraction);
+        });
+        clearTimeout(fallbackTimer);
+      };
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -122,27 +156,32 @@ export const PWAInstallPrompt: React.FC = () => {
   }, [isInstalled]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    try {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('Usuário aceitou instalar a PWA');
-      } else {
-        console.log('Usuário rejeitou instalar a PWA');
+    // Se tem o prompt nativo do Android, usar ele
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('Usuário aceitou instalar a PWA');
+        } else {
+          console.log('Usuário rejeitou instalar a PWA');
+        }
+        
+        setDeferredPrompt(null);
+        setShowInstallPrompt(false);
+      } catch (error) {
+        console.error('Erro ao tentar instalar PWA:', error);
       }
-      
-      setDeferredPrompt(null);
-      setShowInstallPrompt(false);
-    } catch (error) {
-      console.error('Erro ao tentar instalar PWA:', error);
+    } else {
+      // Se não tem prompt nativo, mostrar instruções
+      setShowInstructions(true);
     }
   };
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
+    setShowInstructions(false);
     // Salvar no localStorage baseado no tipo de dispositivo
     const dismissKey = isIOS ? 'ios-install-dismissed' : 'mobile-install-dismissed';
     localStorage.setItem(dismissKey, Date.now().toString());
@@ -153,172 +192,92 @@ export const PWAInstallPrompt: React.FC = () => {
     return null;
   }
 
-  // Não mostrar se não houver prompt E não for mobile (permite mostrar em qualquer mobile)
-  if (!showInstallPrompt || (!deferredPrompt && !isMobile)) {
+  // Só mostrar em dispositivos móveis
+  if (!isMobile || !showInstallPrompt) {
     return null;
   }
 
-  // Componente para iOS
-  const IOSInstallPrompt = () => (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 dark:bg-gray-800 dark:border-gray-700">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 pr-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              📱 Adicionar à Tela Inicial
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 mb-2">
-              Para melhor experiência, adicione F1 Analytics à sua tela inicial:
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <div className="flex items-center gap-2">
-                <span>1️⃣</span>
-                <span>Toque no botão de compartilhar</span>
-                <span className="text-blue-500">⬆️</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>2️⃣</span>
-                <span>Selecione "Adicionar à Tela Inicial"</span>
-                <span>➕</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>3️⃣</span>
-                <span>Confirme tocando em "Adicionar"</span>
-              </div>
+  // Se estiver mostrando instruções, mostrar o modal
+  if (showInstructions) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-sm w-full dark:bg-gray-800">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                🏎️ Instalar F1 Analytics
+              </h3>
+              <button
+                onClick={handleDismiss}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </div>
-          <button
-            onClick={handleDismiss}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        
-        <div className="flex gap-2 mt-3">
-          <Button
-            onClick={handleDismiss}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-          >
-            Entendi
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Componente para Android/Mobile genérico
-  const AndroidInstallPrompt = () => (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 dark:bg-gray-800 dark:border-gray-700">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 pr-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              📱 Instalar F1 Analytics
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 mb-2">
-              Adicione à tela inicial para acesso rápido:
+            
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Para instalar o app na sua tela inicial:
             </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <div className="flex items-center gap-2">
-                <span>1️⃣</span>
-                <span>Abra o menu do navegador (⋮)</span>
+            
+            {isIOS ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20">
+                  <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">1</span>
+                  <span>Toque no botão <strong>Compartilhar</strong> ⬆️</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20">
+                  <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">2</span>
+                  <span>Selecione <strong>"Adicionar à Tela Inicial"</strong> ➕</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20">
+                  <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">3</span>
+                  <span>Confirme tocando em <strong>"Adicionar"</strong></span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span>2️⃣</span>
-                <span>Toque em "Adicionar à tela inicial"</span>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg dark:bg-green-900/20">
+                  <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">1</span>
+                  <span>Abra o menu do navegador <strong>(⋮)</strong></span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg dark:bg-green-900/20">
+                  <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">2</span>
+                  <span>Toque em <strong>"Adicionar à tela inicial"</strong></span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg dark:bg-green-900/20">
+                  <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">3</span>
+                  <span>Confirme a instalação</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span>3️⃣</span>
-                <span>Confirme a instalação</span>
-              </div>
-            </div>
+            )}
           </div>
-          <button
-            onClick={handleDismiss}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        
-        <div className="flex gap-2 mt-3">
-          {deferredPrompt && (
+          
+          <div className="px-6 pb-6">
             <Button
-              onClick={handleInstallClick}
-              size="sm"
-              className="flex-1"
+              onClick={handleDismiss}
+              className="w-full"
+              variant="outline"
             >
-              <Download className="h-3 w-3 mr-1" />
-              Instalar
+              Entendi! 👍
             </Button>
-          )}
-          <Button
-            onClick={handleDismiss}
-            variant="outline"
-            size="sm"
-            className={deferredPrompt ? "" : "flex-1"}
-          >
-            Entendi
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Se for iOS, mostrar prompt personalizado
-  if (isIOS) {
-    return <IOSInstallPrompt />;
-  }
-
-  // Se for mobile (Android, etc.), mostrar prompt genérico
-  if (isMobile) {
-    return <AndroidInstallPrompt />;
-  }
-
-  return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 dark:bg-gray-800 dark:border-gray-700">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 pr-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Instalar F1 Analytics
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-              Adicione à tela inicial para acesso rápido e experiência offline
-            </p>
           </div>
-          <button
-            onClick={handleDismiss}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        
-        <div className="flex gap-2 mt-3">
-          <Button
-            onClick={handleInstallClick}
-            size="sm"
-            className="flex-1"
-          >
-            <Download className="h-3 w-3 mr-1" />
-            Instalar
-          </Button>
-          <Button
-            onClick={handleDismiss}
-            variant="outline"
-            size="sm"
-          >
-            Depois
-          </Button>
         </div>
       </div>
+    );
+  }
+
+  // Botão vermelho simples
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      <Button
+        onClick={handleInstallClick}
+        className="bg-red-500 hover:bg-red-600 text-white shadow-lg"
+        size="sm"
+      >
+        <Download className="h-4 w-4 mr-2" />
+        Instalar App
+      </Button>
     </div>
   );
 };
