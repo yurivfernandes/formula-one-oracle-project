@@ -59,34 +59,7 @@ const getNationalityFlag = (nationality: string) => {
     "Brazilian": "🇧🇷",
     "Argentine": "🇦🇷"
   };
-  return flags[nationality] || "🏁";
-};
-
-const getCountryFlag = (country: string) => {
-  const flags: { [key: string]: string } = {
-    "Australia": "🇦🇺",
-    "China": "🇨🇳",
-    "Japan": "🇯🇵",
-    "Bahrain": "🇧🇭",
-    "Saudi Arabia": "🇸🇦",
-    "USA": "🇺🇸",
-    "Italy": "🇮🇹",
-    "Monaco": "🇲🇨",
-    "Spain": "🇪🇸",
-    "Canada": "🇨🇦",
-    "Austria": "🇦🇹",
-    "UK": "🇬🇧",
-    "Hungary": "🇭🇺",
-    "Belgium": "🇧🇪",
-    "Netherlands": "🇳🇱",
-    "Azerbaijan": "🇦🇿",
-    "Singapore": "🇸🇬",
-    "Mexico": "🇲🇽",
-    "Brazil": "🇧🇷",
-    "Qatar": "🇶🇦",
-    "United Arab Emirates": "🇦🇪"
-  };
-  return flags[country] || "🏁";
+  return flags[nationality] || "❓";
 };
 
 // NOVA LISTA DE NOMES PT-BR E FLAGS
@@ -111,12 +84,11 @@ const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
   "Mexico": { nome: "México", flag: "🇲🇽" },
   "Brazil": { nome: "Brasil", flag: "🇧🇷" },
   "Qatar": { nome: "Catar", flag: "🇶🇦" },
-  "United Arab Emirates": { nome: "Emirados Árabes Unidos", flag: "🇦🇪" },
-  "Las Vegas": { nome: "Las Vegas", flag: "🎲" },
+  "UAE": { nome: "Emirados Árabes Unidos", flag: "🇦🇪" },
 };
 
 // Função auxiliar pro nome e flag pt-br
-const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "🏁" };
+const getCountryPTBR = (country: string) => countryPTBR[country] || { nome: country, flag: "❓" };
 
 // Busca todas as páginas de resultados de corrida
 const fetchRaceResults = async (): Promise<{ [round: string]: Result[] }> => {
@@ -329,14 +301,14 @@ const RaceByRaceStandings = () => {
               {roundsToShow.map((round) => {
                 const race = allRaces?.find(r => r.round === round);
                 const country = race.Circuit.Location.country;
-                const flag = getCountryFlag(country);
-                // Abreviações dos países
+                const countryInfo = getCountryPTBR(country);
+                // Abreviações dos países em português
                 const countryAbbr: { [key: string]: string } = {
                   "Australia": "AUS",
-                  "China": "CHN",
-                  "Japan": "JPN",
-                  "Bahrain": "BHR",
-                  "Saudi Arabia": "SAU",
+                  "China": "CHN", 
+                  "Japan": "JAP",
+                  "Bahrain": "BAH",
+                  "Saudi Arabia": "ARS",
                   "USA": "EUA",
                   "Italy": "ITA",
                   "Monaco": "MON",
@@ -346,14 +318,13 @@ const RaceByRaceStandings = () => {
                   "UK": "GBR",
                   "Hungary": "HUN",
                   "Belgium": "BEL",
-                  "Netherlands": "NED",
+                  "Netherlands": "HOL",
                   "Azerbaijan": "AZE",
-                  "Singapore": "SGP",
+                  "Singapore": "SIN",
                   "Mexico": "MEX",
                   "Brazil": "BRA",
-                  "Qatar": "QAT",
-                  "United Arab Emirates": "UAE",
-                  "Las Vegas": "LVG"
+                  "Qatar": "CAT",
+                  "UAE": "EAU"
                 };
                 const abbr = countryAbbr[country] || country.slice(0, 3).toUpperCase();
                 const isSprint = sprintRounds2025.includes(round);
@@ -363,7 +334,7 @@ const RaceByRaceStandings = () => {
                     className="text-red-700 font-bold text-center min-w-[40px] sm:min-w-[120px] bg-white text-xs sm:text-sm"
                   >
                   <div className="flex flex-col items-center py-1">
-                    <span className="text-sm sm:text-2xl mb-0 sm:mb-1">{flag}</span>
+                    <span className="text-sm sm:text-2xl mb-0 sm:mb-1">{countryInfo.flag}</span>
                     <span className="text-xs font-medium text-gray-500">
                       {abbr}
                     </span>
