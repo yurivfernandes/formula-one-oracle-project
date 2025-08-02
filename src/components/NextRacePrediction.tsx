@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Trophy, Flag, Brain, Loader2, RefreshCw } from "lucide-react";
+import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
 import { openAIService } from "@/services/openai";
 import { useRaceTracker } from "./hooks/useRaceTracker";
@@ -462,49 +463,41 @@ Use APENAS pilotos da temporada 2025 listados acima.`;
   };
 
   const renderDriverTable = (drivers: Driver[], type: 'qualifying' | 'race') => (
-    <div className="overflow-x-auto">
-      <Table className="min-w-[500px] sm:min-w-[600px]">
-        <TableHeader>
-          <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
-            <TableHead className="w-10 sm:w-16 font-bold text-xs sm:text-sm">Pos</TableHead>
-            <TableHead className="font-bold text-xs sm:text-sm min-w-[100px] sm:min-w-[140px]">Piloto</TableHead>
-            <TableHead className="font-bold text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]">Equipe</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {drivers.map((driver, index) => (
-            <TableRow 
-              key={`${type}-${driver.position}`}
-              className={`hover:bg-gray-50 transition-colors ${
-                index === 0 ? "bg-gradient-to-r from-yellow-50 to-yellow-100" :
-                index === 1 ? "bg-gradient-to-r from-gray-50 to-gray-100" :
-                index === 2 ? "bg-gradient-to-r from-orange-50 to-orange-100" :
-                ""
-              }`}
-            >
-              <TableCell className="font-medium">
-                <div className={`flex items-center justify-center w-6 h-6 sm:w-10 sm:h-10 rounded-full text-white text-xs sm:text-sm font-bold ${
-                  index === 0 ? "bg-gradient-to-br from-yellow-400 to-yellow-600" :
-                  index === 1 ? "bg-gradient-to-br from-gray-400 to-gray-600" :
-                  index === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600" :
-                  "bg-gradient-to-br from-red-500 to-red-700"
-                }`}>
-                  {driver.position}
-                </div>
-              </TableCell>
-              <TableCell className="font-semibold text-xs sm:text-lg">
-                {driver.name}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <TeamLogo teamName={driver.team} className="w-6 h-4 sm:w-28 sm:h-14" />
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <StandardTable
+      title={type === 'qualifying' ? 'Palpite - Classificação' : 'Palpite - Resultado da Corrida'}
+      subtitle={`Top ${Math.min(drivers.length, 20)} pilotos previsto pela IA`}
+      headers={["Pos", "Piloto", "Equipe"]}
+      className="bg-white border border-red-200"
+    >
+      {drivers.map((driver, index) => (
+        <TableRow 
+          key={`${type}-${driver.position}`}
+          className={`border-red-800/30 hover:bg-red-900/5 transition-colors ${
+            index === 0 ? "bg-yellow-50" :
+            index === 1 ? "bg-gray-50" :
+            index === 2 ? "bg-orange-50" :
+            ""
+          }`}
+        >
+          <TableCell className="w-10 sm:w-12">
+            <span className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
+              index === 0 ? "bg-yellow-500 text-black" :
+              index === 1 ? "bg-gray-400 text-black" :
+              index === 2 ? "bg-amber-700 text-white" :
+              "bg-gray-200 text-gray-900"
+            }`}>
+              {driver.position}
+            </span>
+          </TableCell>
+          <TableCell className="font-semibold min-w-[120px] sm:min-w-[180px]">
+            <span className="text-xs sm:text-base">{driver.name}</span>
+          </TableCell>
+          <TableCell className="min-w-[80px] sm:min-w-[120px]">
+            <TeamLogo teamName={driver.team} className="w-8 h-5 sm:w-12 sm:h-8" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </StandardTable>
   );
 
   return (
@@ -559,7 +552,7 @@ Use APENAS pilotos da temporada 2025 listados acima.`;
           </p>
         )}
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-3 sm:p-6">
         {/* Loading state */}
         {isLoading && (
           <div className="p-8 text-center">
@@ -598,27 +591,25 @@ Use APENAS pilotos da temporada 2025 listados acima.`;
         )}
 
         {predictionData && (
-          <div className="p-4">
-            <Tabs defaultValue="qualifying" className="w-full">
-              <TabsList className="mb-4 grid w-full grid-cols-2 bg-red-50 border border-red-200 h-8 sm:h-10">
-                <TabsTrigger value="qualifying" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs sm:text-sm">
-                  <Flag className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Classificação
-                </TabsTrigger>
-                <TabsTrigger value="race" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs sm:text-sm">
-                  <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Corrida
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="qualifying">
-                {renderDriverTable(predictionData.qualifying, 'qualifying')}
-              </TabsContent>
-              <TabsContent value="race">
-                {renderDriverTable(predictionData.race, 'race')}
-              </TabsContent>
-            </Tabs>
-          </div>
+          <Tabs defaultValue="qualifying" className="w-full">
+            <TabsList className="mb-4 grid w-full grid-cols-2 bg-red-50 border border-red-200 h-8 sm:h-10">
+              <TabsTrigger value="qualifying" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs sm:text-sm">
+                <Flag className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                Classificação
+              </TabsTrigger>
+              <TabsTrigger value="race" className="text-red-700 data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs sm:text-sm">
+                <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                Corrida
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="qualifying">
+              {renderDriverTable(predictionData.qualifying, 'qualifying')}
+            </TabsContent>
+            <TabsContent value="race">
+              {renderDriverTable(predictionData.race, 'race')}
+            </TabsContent>
+          </Tabs>
         )}
       </CardContent>
     </Card>
