@@ -6,6 +6,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Trophy, Flag, Brain, Loader2, RefreshCw } from "lucide-react";
 import StandardTable from "./StandardTable";
 import TeamLogo from "./TeamLogo";
+import QualifyingResults from "./QualifyingResults";
 import { openAIService } from "@/services/openai";
 import { useRaceTracker } from "./hooks/useRaceTracker";
 
@@ -29,6 +30,7 @@ const NextRacePrediction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [qualifyingAvailable, setQualifyingAvailable] = useState<boolean>(false);
+  const [realQualifying, setRealQualifying] = useState<any[] | null>(null);
   
   const { canGenerateNewPrediction, currentRaceData, lastCompletedRace } = useRaceTracker();
 
@@ -126,9 +128,19 @@ IMPACTO NA CORRIDA: ${weather.rainChance > 40 ? "Alto risco de chuva - estratég
 
   useEffect(() => {
     // Verificar se há classificação disponível quando currentRaceData muda
-    if (currentRaceData) {
-      checkQualifyingAvailable().then(setQualifyingAvailable);
-    }
+    const fetchQualifying = async () => {
+      if (currentRaceData) {
+        const res = await fetch(`https://api.jolpi.ca/ergast/f1/2025/${currentRaceData.round}/qualifying.json`);
+        const data = await res.json();
+        const results = data.MRData.RaceTable.Races[0]?.QualifyingResults || [];
+        setQualifyingAvailable(results.length > 0);
+        setRealQualifying(results.length > 0 ? results : null);
+      } else {
+        setQualifyingAvailable(false);
+        setRealQualifying(null);
+      }
+    };
+    fetchQualifying();
   }, [currentRaceData]);
 
   // Função para verificar se há classificação disponível para a próxima corrida
@@ -152,28 +164,19 @@ IMPACTO NA CORRIDA: ${weather.rainChance > 40 ? "Alto risco de chuva - estratég
   };
 
   // Determinar se pode gerar novos palpites - melhorado para atualização imediata pós-classificação
+  // Permitir atualizar palpites apenas uma vez após a classificação
   const canGenerate = (() => {
-    // Se não tem predição alguma, pode gerar
     if (!predictionData) return true;
-    
-    // Se tem dados da corrida atual e a predição foi feita para uma corrida diferente
+    // Só permite atualizar se a predição não foi feita para a corrida atual
     if (currentRaceData && predictionData.nextRace !== currentRaceData.raceName) {
-      return true;
+      // Só permite se a classificação já aconteceu
+      if (qualifyingAvailable && realQualifying && realQualifying.length > 0) {
+        return true;
+      }
+      // Se não tem classificação, segue regra antiga
+      return !qualifyingAvailable;
     }
-    
-    // Verificar tempo desde a última predição
-    const lastPredictionTime = new Date(predictionData.lastUpdated);
-    const timeSinceLastPrediction = Date.now() - lastPredictionTime.getTime();
-    const hoursSinceLastPrediction = timeSinceLastPrediction / (1000 * 60 * 60);
-    
-    // Permitir nova geração se:
-    // 1. Passou mais de 2h da última predição (tempo mínimo para evitar spam)
-    // 2. Ou se foi gerada há mais de 7 dias (casos extremos)
-    if (hoursSinceLastPrediction > 2 || hoursSinceLastPrediction > (7 * 24)) {
-      return true;
-    }
-    
-    // Caso contrário, NÃO pode gerar (economizar créditos)
+    // Não permite atualizar novamente após já ter gerado para a corrida atual
     return false;
   })();
 
@@ -310,39 +313,29 @@ INSTRUÇÕES PARA ANÁLISE: Use todos esses dados para fazer palpites mais preci
         throw new Error('Serviço OpenAI não configurado');
       }
 
+
       const seasonSummary = await getCurrentSeasonSummary();
-      
-      const prompt = `${seasonSummary}
-
-INSTRUÇÕES PARA PALPITES ESTRATÉGICOS: 
-
-Analise TODOS os dados fornecidos:
-✅ Performance atual dos pilotos no campeonato
-✅ Histórico de abandonos/confiabilidade de cada piloto
-✅ Condições climáticas previstas para a corrida
-✅ Dados de classificação (se disponível)
-✅ Características do circuito
-✅ Forma recente das equipes
-
-IMPORTANTE: 
-- Se há dados de classificação, use-os como base principal
-- Considere abandonos frequentes de alguns pilotos
-- Adapte estratégia conforme condições climáticas
-- Priorize pilotos mais consistentes em condições adversas
-
-Retorne EXATAMENTE neste formato (sem explicações):
-
-CLASSIFICAÇÃO:
-1. Nome Piloto (Equipe)
-2. Nome Piloto (Equipe)
-[...continue até 20]
-
-CORRIDA:
-1. Nome Piloto (Equipe)
-2. Nome Piloto (Equipe)
-[...continue até 20]
-
-Use APENAS pilotos da temporada 2025 listados acima.`;
+      let prompt = seasonSummary + "\n\n";
+      if (qualifyingAvailable && realQualifying && realQualifying.length > 0 && currentRaceData) {
+        // Montar texto da classificação real
+        const realQualyText = realQualifying.slice(0, 20).map((q: any, i: number) =>
+          `${i + 1}. ${q.Driver.givenName} ${q.Driver.familyName} (${q.Constructor.name})`
+        ).join('\n');
+        prompt += `A CLASSIFICAÇÃO REAL PARA O GP (${currentRaceData.raceName}) JÁ ACONTECEU. A ORDEM DE LARGADA É:\n${realQualyText}\n\n`;
+        prompt += `INSTRUÇÃO: NÃO FAÇA PALPITE DE CLASSIFICAÇÃO. Use a ordem de largada acima como base para prever apenas o resultado final da corrida, considerando performance, clima, abandonos e estratégia.\n`;
+        prompt += `Retorne EXATAMENTE neste formato (sem explicações):\n\nCORRIDA:\n1. Nome Piloto (Equipe)\n2. Nome Piloto (Equipe)\n[...continue até 20]\n`;
+      } else {
+        prompt += `INSTRUÇÕES PARA PALPITES ESTRATÉGICOS: \n\n`;
+        prompt += `Analise TODOS os dados fornecidos:\n`;
+        prompt += `✅ Performance atual dos pilotos no campeonato\n`;
+        prompt += `✅ Histórico de abandonos/confiabilidade de cada piloto\n`;
+        prompt += `✅ Condições climáticas previstas para a corrida\n`;
+        prompt += `✅ Dados de classificação (se disponível)\n`;
+        prompt += `✅ Características do circuito\n`;
+        prompt += `✅ Forma recente das equipes\n\n`;
+        prompt += `IMPORTANTE: \n- Se há dados de classificação, use-os como base principal\n- Considere abandonos frequentes de alguns pilotos\n- Adapte estratégia conforme condições climáticas\n- Priorize pilotos mais consistentes em condições adversas\n\n`;
+        prompt += `Retorne EXATAMENTE neste formato (sem explicações):\n\nCLASSIFICAÇÃO:\n1. Nome Piloto (Equipe)\n2. Nome Piloto (Equipe)\n[...continue até 20]\n\nCORRIDA:\n1. Nome Piloto (Equipe)\n2. Nome Piloto (Equipe)\n[...continue até 20]\n`;
+      }
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -602,9 +595,12 @@ Use APENAS pilotos da temporada 2025 listados acima.`;
                 Corrida
               </TabsTrigger>
             </TabsList>
-            
             <TabsContent value="qualifying">
-              {renderDriverTable(predictionData.qualifying, 'qualifying')}
+              {qualifyingAvailable && realQualifying && realQualifying.length > 0 && currentRaceData ? (
+                <QualifyingResults round={currentRaceData.round} />
+              ) : (
+                renderDriverTable(predictionData.qualifying, 'qualifying')
+              )}
             </TabsContent>
             <TabsContent value="race">
               {renderDriverTable(predictionData.race, 'race')}
