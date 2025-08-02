@@ -1,49 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { Cloud, CloudRain, Sun, Wind, Thermometer, Droplets, Calendar } from "lucide-react";
+import { Cloud, CloudRain, Sun, Wind, Thermometer, Droplets, Calendar, Snowflake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface DayWeather {
-  day: string;
-  date: string;
-  temperature: number;
-  humidity: number;
-  windSpeed: number;
-  condition: string;
-  description: string;
-  chanceOfRain: number;
-}
+import { fetchWeatherData, WeatherData } from "@/services/weather";
 
 interface WeatherInfoProps {
   city: string;
   country: string;
   raceDate: string;
 }
-
-// Simulação de dados meteorológicos para os 3 dias
-const fetchWeatherData = async (city: string, country: string): Promise<DayWeather[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const days = [
-        { day: "Sexta-feira", date: "14/06" },
-        { day: "Sábado", date: "15/06" },
-        { day: "Domingo", date: "16/06" }
-      ];
-      
-      const weatherData = days.map(day => ({
-        ...day,
-        temperature: Math.floor(Math.random() * 15) + 15, // 15-30°C
-        humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
-        windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
-        condition: Math.random() > 0.7 ? "cloudy" : Math.random() > 0.5 ? "sunny" : "partly-cloudy",
-        description: Math.random() > 0.7 ? "Nublado" : Math.random() > 0.5 ? "Ensolarado" : "Parcialmente nublado",
-        chanceOfRain: Math.floor(Math.random() * 60) + 10 // 10-70%
-      }));
-      
-      resolve(weatherData);
-    }, 500);
-  });
-};
 
 const getWeatherIcon = (condition: string, size: string = "w-6 h-6") => {
   const iconClasses = `${size} flex-shrink-0`;
@@ -55,6 +20,8 @@ const getWeatherIcon = (condition: string, size: string = "w-6 h-6") => {
       return <Cloud className={`${iconClasses} text-gray-500`} />;
     case "rainy":
       return <CloudRain className={`${iconClasses} text-blue-500`} />;
+    case "snowy":
+      return <Snowflake className={`${iconClasses} text-blue-300`} />;
     case "partly-cloudy":
     default:
       return <Cloud className={`${iconClasses} text-gray-400`} />;
@@ -66,6 +33,7 @@ const WeatherInfo = ({ city, country, raceDate }: WeatherInfoProps) => {
     queryKey: ["weather", city, country],
     queryFn: () => fetchWeatherData(city, country),
     staleTime: 30 * 60 * 1000, // 30 minutos
+    retry: 2, // Tenta novamente 2 vezes em caso de erro
   });
 
   if (isLoading) {
@@ -114,7 +82,12 @@ const WeatherInfo = ({ city, country, raceDate }: WeatherInfoProps) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-gray-800">{day.temperature}°C</p>
+                  <div className="flex items-center gap-2 justify-end mb-1">
+                    <p className="text-2xl font-bold text-gray-800">{day.temperature}°C</p>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {day.temperatureMin}°C - {day.temperatureMax}°C
+                  </div>
                   <p className="text-sm text-gray-600">{day.description}</p>
                 </div>
               </div>

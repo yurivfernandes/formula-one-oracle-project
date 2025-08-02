@@ -2,7 +2,7 @@
 
 > **Análises inteligentes e previsões precisas da Fórmula 1 powered by AI**
 
-Uma Progressive Web App (PWA) moderna para fãs de Fórmula 1 que querem acompanhar classificações, resultados e previsões em tempo real.
+Uma Progressive Web App (PWA) moderna para fãs de Fórmula 1 que querem acompanhar classificações, resultados e previsões em tempo real com dados meteorológicos integrados.
 
 ![F1 Analytics Logo](./public/Logo%20F1%20Analytics.svg)
 
@@ -10,10 +10,22 @@ Uma Progressive Web App (PWA) moderna para fãs de Fórmula 1 que querem acompan
 
 - 📊 **Classificações ao vivo** - Pilotos e construtores atualizados
 - 🏆 **Previsões de campeonato** - IA avançada para predições precisas
+- 🌤️ **Previsão do tempo real** - Dados meteorológicos para cada GP via OpenWeatherMap API
 - 📱 **PWA completa** - Instale como app nativo no seu dispositivo
 - 🌐 **Funcionamento offline** - Acesse dados mesmo sem internet
 - 🎯 **Interface moderna** - Design responsivo e intuitivo
 - ⚡ **Performance otimizada** - Carregamento rápido e eficiente
+- 🔄 **Dados em tempo real** - APIs de F1 e meteorologia integradas
+
+## 🌤️ Novidade: Integração Meteorológica
+
+- **Previsão de 3 dias** para cada fim de semana de GP
+- **Dados reais** via OpenWeatherMap API (gratuita)
+- **Mapeamento automático** de circuitos para localização
+- **Fallback inteligente** com dados simulados se API não configurada
+- **Cache otimizado** para reduzir chamadas da API
+
+📖 **[Guia de configuração da API de meteorologia](./WEATHER-API-SETUP.md)**
 
 ## 🚀 Tecnologias
 

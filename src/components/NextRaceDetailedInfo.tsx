@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Clock, Award, MapPin, Zap } from "lucide-react";
+import { CalendarDays, Clock, Award, MapPin, Zap, Thermometer, Cloud, CloudRain, Sun, Snowflake, Wind, Droplets } from "lucide-react";
 import { format, parseISO, isAfter, isBefore, addHours, subHours } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { fetchWeatherData, WeatherData } from "@/services/weather";
 
 // Tradução de países e bandeiras
 const countryPTBR: { [key: string]: { nome: string; flag: string } } = {
@@ -61,11 +62,61 @@ const gpNamesPTBR: { [key: string]: string } = {
   "Abu Dhabi Grand Prix": "GP de Abu Dhabi"
 };
 
+// Mapeamento de circuitos para cidades meteorológicas
+const circuitToCityMap: { [key: string]: string } = {
+  "Albert Park Grand Prix Circuit": "Melbourne",
+  "Shanghai International Circuit": "Shanghai",
+  "Suzuka Circuit": "Suzuka",
+  "Bahrain International Circuit": "Sakhir",
+  "Jeddah Corniche Circuit": "Jeddah",
+  "Miami International Autodrome": "Miami",
+  "Autodromo Enzo e Dino Ferrari": "Imola",
+  "Circuit de Monaco": "Monte-Carlo",
+  "Circuit de Barcelona-Catalunya": "Barcelona",
+  "Circuit Gilles Villeneuve": "Montreal",
+  "Red Bull Ring": "Spielberg",
+  "Silverstone Circuit": "Silverstone",
+  "Hungaroring": "Budapest",
+  "Circuit de Spa-Francorchamps": "Spa-Francorchamps",
+  "Circuit Zandvoort": "Zandvoort",
+  "Autodromo Nazionale di Monza": "Monza",
+  "Baku City Circuit": "Baku",
+  "Marina Bay Street Circuit": "Singapore",
+  "Circuit of the Americas": "Austin",
+  "Autódromo Hermanos Rodríguez": "Mexico City",
+  "Autodromo Jose Carlos Pace": "São Paulo",
+  "Las Vegas Strip Circuit": "Las Vegas",
+  "Lusail International Circuit": "Lusail",
+  "Yas Marina Circuit": "Abu Dhabi"
+};
+
 const getCountryPTBR = (country: string) =>
   countryPTBR[country] || { nome: country, flag: "🏁" };
 
 const getGPNamePTBR = (raceName: string) =>
   gpNamesPTBR[raceName] || raceName;
+
+const getCityFromCircuit = (circuitName: string): string => {
+  return circuitToCityMap[circuitName] || "Montreal"; // Default para Montreal
+};
+
+const getWeatherIcon = (condition: string, size: string = "w-5 h-5") => {
+  const iconClasses = `${size} flex-shrink-0`;
+  
+  switch (condition) {
+    case "sunny":
+      return <Sun className={`${iconClasses} text-yellow-500`} />;
+    case "cloudy":
+      return <Cloud className={`${iconClasses} text-gray-500`} />;
+    case "rainy":
+      return <CloudRain className={`${iconClasses} text-blue-500`} />;
+    case "snowy":
+      return <Snowflake className={`${iconClasses} text-blue-300`} />;
+    case "partly-cloudy":
+    default:
+      return <Cloud className={`${iconClasses} text-gray-400`} />;
+  }
+};
 
 const fetchRaces = async () => {
   const res = await fetch("https://api.jolpi.ca/ergast/f1/2025/races/");
@@ -109,6 +160,20 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
     queryKey: ["raceSchedule", nextRaceObj?.round],
     queryFn: () => fetchSchedule(nextRaceObj.round),
     enabled: Boolean(nextRaceObj),
+  });
+
+  // Busca dados meteorológicos para o próximo GP
+  const weatherCity = nextRaceObj ? getCityFromCircuit(nextRaceObj.Circuit.circuitName) : null;
+  const raceDateTime = nextRaceObj?.date && nextRaceObj?.time 
+    ? `${nextRaceObj.date}T${nextRaceObj.time}` 
+    : undefined;
+    
+  const { data: weatherDays, isLoading: loadingWeather } = useQuery({
+    queryKey: ["weather", weatherCity, nextRaceObj?.Circuit.Location.country, raceDateTime],
+    queryFn: () => fetchWeatherData(weatherCity!, nextRaceObj?.Circuit.Location.country || "", raceDateTime),
+    enabled: Boolean(nextRaceObj && weatherCity),
+    staleTime: 30 * 60 * 1000, // 30 minutos
+    retry: 2,
   });
 
   // Now handle loading states and early returns
@@ -325,6 +390,79 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
             </div>
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Colapsável: Previsão do Tempo */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex justify-between items-center px-6 py-3 text-lg font-bold text-red-700 bg-white hover:bg-gray-100 transition rounded-none border-t border-red-200">
+            <span className="flex items-center gap-2">
+              <Thermometer className="w-5 h-5 text-blue-400" /> Previsão do Tempo
+            </span>
+            <ChevronDown className="w-5 h-5 text-red-200" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-6 pb-6 bg-white border-x border-b border-red-200 rounded-b-xl">
+            <div className="pt-4">
+              {loadingWeather ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : weatherDays ? (
+                <div className="space-y-3">
+                  {weatherDays.slice(0, 3).map((day: WeatherData, index: number) => (
+                    <div key={index} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          {getWeatherIcon(day.condition)}
+                          <div>
+                            <h5 className="font-semibold text-gray-800">{day.day}</h5>
+                            <p className="text-sm text-gray-600">{day.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-gray-800">{day.temperature}°C</p>
+                          <p className="text-xs text-gray-500">{day.temperatureMin}° - {day.temperatureMax}°</p>
+                          <p className="text-sm text-gray-600">{day.description}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center bg-white/60 rounded p-2">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Droplets className="w-3 h-3 text-blue-500" />
+                          </div>
+                          <p className="text-xs text-gray-600">Umidade</p>
+                          <p className="text-sm font-semibold text-gray-800">{day.humidity}%</p>
+                        </div>
+                        
+                        <div className="text-center bg-white/60 rounded p-2">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Wind className="w-3 h-3 text-green-500" />
+                          </div>
+                          <p className="text-xs text-gray-600">Vento</p>
+                          <p className="text-sm font-semibold text-gray-800">{day.windSpeed} km/h</p>
+                        </div>
+                        
+                        <div className="text-center bg-white/60 rounded p-2">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <CloudRain className="w-3 h-3 text-blue-600" />
+                          </div>
+                          <p className="text-xs text-gray-600">Chuva</p>
+                          <p className="text-sm font-semibold text-gray-800">{day.chanceOfRain}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-600">
+                  <p>Dados meteorológicos indisponíveis no momento</p>
+                  <p className="text-sm text-gray-500 mt-1">Cidade: {weatherCity}</p>
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     );
   }
@@ -358,23 +496,50 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                 </div>
               </div>
             </div>
-            {/* Próxima sessão: cor sólida branca */}
-            {nextSession && (
-              <div className="bg-white border border-yellow-300 rounded-xl p-6 shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <Zap className="w-6 h-6 text-yellow-500 animate-pulse" />
-                  <span className="text-yellow-600 font-bold text-lg">PRÓXIMA SESSÃO</span>
+            
+            {/* Área da direita: Próxima sessão + Pontos restantes */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Próxima sessão */}
+              {nextSession && (
+                <div className="bg-white border border-yellow-300 rounded-xl p-6 shadow-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Zap className="w-6 h-6 text-yellow-500 animate-pulse" />
+                    <span className="text-yellow-600 font-bold text-lg">PRÓXIMA SESSÃO</span>
+                  </div>
+                  <div className="text-red-700 font-bold text-xl">{nextSession.label}</div>
+                  <div className="flex items-center gap-2 text-yellow-700 text-lg font-semibold">
+                    <Clock className="w-5 h-5" />
+                    {nextSession.dt}
+                  </div>
                 </div>
-                <div className="text-red-700 font-bold text-xl">{nextSession.label}</div>
-                <div className="flex items-center gap-2 text-yellow-700 text-lg font-semibold">
-                  <Clock className="w-5 h-5" />
-                  {nextSession.dt}
+              )}
+
+              {/* Pontos restantes compactos */}
+              <div className="flex flex-col gap-3">
+                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-yellow-700 font-bold text-sm">Campeonato de Pilotos</span>
+                    <span className="text-2xl font-bold text-yellow-800">{pontosPilotos}</span>
+                  </div>
+                  <p className="text-xs text-yellow-700">
+                    {racesLeft} corridas • {sprintsLeft} sprints restantes
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-700 font-bold text-sm">Campeonato de Construtores</span>
+                    <span className="text-2xl font-bold text-gray-800">{pontosConstrutores}</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {racesLeft} corridas • {sprintsLeft} sprints restantes
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-          {/* Grid de cronograma e pontos */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          {/* Grid de cronograma */}
+          <div className="grid lg:grid-cols-1 gap-8">
             {/* Cronograma completo */}
             <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
               <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
@@ -411,35 +576,6 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Pontos restantes */}
-            <div className="bg-white rounded-xl p-6 border border-red-200 shadow-md">
-              <h3 className="text-xl font-bold text-red-700 mb-6 flex items-center gap-3">
-                <Award className="w-6 h-6 text-yellow-400" />
-                Pontos Restantes
-              </h3>
-              <div className="space-y-4">
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-yellow-700 font-bold text-lg">Campeonato de Pilotos</span>
-                    <span className="text-3xl font-bold text-yellow-800">{pontosPilotos}</span>
-                  </div>
-                  <p className="text-xs text-yellow-700">
-                    {racesLeft} corridas • {sprintsLeft} sprints restantes
-                  </p>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-gray-700 font-bold text-lg">Campeonato de Construtores</span>
-                    <span className="text-3xl font-bold text-gray-800">{pontosConstrutores}</span>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {racesLeft} corridas • {sprintsLeft} sprints restantes
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </CardContent>
