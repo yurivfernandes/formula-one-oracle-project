@@ -168,12 +168,18 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
     ? `${nextRaceObj.date}T${nextRaceObj.time}` 
     : undefined;
     
-  const { data: weatherDays, isLoading: loadingWeather } = useQuery({
-    queryKey: ["weather", weatherCity, nextRaceObj?.Circuit.Location.country, raceDateTime],
-    queryFn: () => fetchWeatherData(weatherCity!, nextRaceObj?.Circuit.Location.country || "", raceDateTime),
-    enabled: Boolean(nextRaceObj && weatherCity),
+  const { data: weatherDays, isLoading: loadingWeather, error: weatherError } = useQuery({
+    queryKey: ["weather", weatherCity, nextRaceObj?.Circuit.Location.country, raceDateTime, nextRaceFull?.round],
+    queryFn: () => fetchWeatherData(
+      weatherCity!, 
+      nextRaceObj?.Circuit.Location.country || "", 
+      raceDateTime,
+      nextRaceFull // Passa os dados do cronograma completo
+    ),
+    enabled: Boolean(nextRaceObj && weatherCity && nextRaceFull),
     staleTime: 30 * 60 * 1000, // 30 minutos
-    retry: 2,
+    retry: 1, // Reduz tentativas
+    retryOnMount: false,
   });
 
   // Now handle loading states and early returns
@@ -407,56 +413,87 @@ const NextRaceDetailedInfo = ({ hero }: { hero?: boolean }) => {
                     <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
                   ))}
                 </div>
-              ) : weatherDays ? (
+              ) : weatherError ? (
+                <div className="text-center py-4 text-red-600 bg-red-50 rounded-lg border border-red-200">
+                  <p className="font-semibold">⚠️ Dados meteorológicos indisponíveis</p>
+                  <p className="text-sm text-red-500 mt-1">
+                    Não foi possível carregar a previsão do tempo para {weatherCity}
+                  </p>
+                  <p className="text-xs text-red-400 mt-1">
+                    Erro: {weatherError.message}
+                  </p>
+                </div>
+              ) : weatherDays && weatherDays.length > 0 ? (
                 <div className="space-y-3">
                   {weatherDays.slice(0, 3).map((day: WeatherData, index: number) => (
-                    <div key={index} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {getWeatherIcon(day.condition)}
-                          <div>
-                            <h5 className="font-semibold text-gray-800">{day.day}</h5>
-                            <p className="text-sm text-gray-600">{day.date}</p>
+                    <div key={index} className={`rounded-lg p-4 border ${
+                      day.condition === 'unavailable' 
+                        ? 'bg-gray-50 border-gray-300' 
+                        : 'bg-blue-50 border-blue-200'
+                    }`}>
+                      {day.condition === 'unavailable' ? (
+                        <div className="text-center py-2">
+                          <h5 className="font-semibold text-gray-700">{day.day}</h5>
+                          <p className="text-sm text-gray-600">{day.date}</p>
+                          <p className="text-gray-500 mt-2">📡 {day.description}</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              {getWeatherIcon(day.condition)}
+                              <div>
+                                <h5 className="font-semibold text-gray-800">{day.day}</h5>
+                                <p className="text-sm text-gray-600">{day.date}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-gray-800">{day.temperature}°C</p>
+                              <p className="text-xs text-gray-500">{day.temperatureMin}° - {day.temperatureMax}°</p>
+                              <p className="text-sm text-gray-600">{day.description}</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-gray-800">{day.temperature}°C</p>
-                          <p className="text-xs text-gray-500">{day.temperatureMin}° - {day.temperatureMax}°</p>
-                          <p className="text-sm text-gray-600">{day.description}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-center bg-white/60 rounded p-2">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Droplets className="w-3 h-3 text-blue-500" />
+                          
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="text-center bg-white/60 rounded p-2">
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Droplets className="w-3 h-3 text-blue-500" />
+                              </div>
+                              <p className="text-xs text-gray-600">Umidade</p>
+                              <p className="text-sm font-semibold text-gray-800">{day.humidity}%</p>
+                            </div>
+                            
+                            <div className="text-center bg-white/60 rounded p-2">
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Wind className="w-3 h-3 text-green-500" />
+                              </div>
+                              <p className="text-xs text-gray-600">Vento</p>
+                              <p className="text-sm font-semibold text-gray-800">{day.windSpeed} km/h</p>
+                            </div>
+                            
+                            <div className="text-center bg-white/60 rounded p-2">
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <CloudRain className="w-3 h-3 text-blue-600" />
+                              </div>
+                              <p className="text-xs text-gray-600">Chuva</p>
+                              <p className="text-sm font-semibold text-gray-800">{day.chanceOfRain}%</p>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-600">Umidade</p>
-                          <p className="text-sm font-semibold text-gray-800">{day.humidity}%</p>
-                        </div>
-                        
-                        <div className="text-center bg-white/60 rounded p-2">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Wind className="w-3 h-3 text-green-500" />
-                          </div>
-                          <p className="text-xs text-gray-600">Vento</p>
-                          <p className="text-sm font-semibold text-gray-800">{day.windSpeed} km/h</p>
-                        </div>
-                        
-                        <div className="text-center bg-white/60 rounded p-2">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <CloudRain className="w-3 h-3 text-blue-600" />
-                          </div>
-                          <p className="text-xs text-gray-600">Chuva</p>
-                          <p className="text-sm font-semibold text-gray-800">{day.chanceOfRain}%</p>
-                        </div>
-                      </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
+              ) : weatherDays && weatherDays.length === 0 ? (
+                <div className="text-center py-6 text-orange-600 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="font-semibold">🏁 Todas as sessões já aconteceram</p>
+                  <p className="text-sm text-orange-500 mt-1">
+                    Não há mais sessões com previsão do tempo para este GP
+                  </p>
+                </div>
               ) : (
-                <div className="text-center py-4 text-gray-600">
-                  <p>Dados meteorológicos indisponíveis no momento</p>
+                <div className="text-center py-4 text-gray-600 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="font-semibold">📡 Dados meteorológicos indisponíveis</p>
                   <p className="text-sm text-gray-500 mt-1">Cidade: {weatherCity}</p>
                 </div>
               )}

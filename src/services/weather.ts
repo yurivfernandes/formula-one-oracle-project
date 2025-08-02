@@ -9,7 +9,7 @@ export interface WeatherData {
   temperatureMax: number;
   humidity: number;
   windSpeed: number;
-  condition: string;
+  condition: string; // Pode incluir 'unavailable' para dados indisponíveis
   description: string;
   chanceOfRain: number;
   icon: string;
@@ -87,14 +87,19 @@ const translateWeatherCondition = (condition: string, description: string): { co
   return { condition: 'partly-cloudy', description: 'Parcialmente nublado' };
 };
 
-// Função para buscar dados meteorológicos reais
-export const fetchWeatherData = async (cityName: string, country: string = '', raceDateTime?: string): Promise<WeatherData[]> => {
+// Função para buscar dados meteorológicos reais baseados nos horários das sessões F1
+export const fetchWeatherData = async (
+  cityName: string, 
+  country: string = '', 
+  raceDateTime?: string,
+  scheduleData?: any
+): Promise<WeatherData[]> => {
   try {
     const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
     
     if (!API_KEY) {
-      console.warn('API Key do OpenWeatherMap não configurada, usando dados simulados');
-      return generateMockWeatherData();
+      console.warn('API Key do OpenWeatherMap não configurada');
+      throw new Error('API Key não configurada');
     }
 
     const { lat, lon } = getCoordinates(cityName);
@@ -105,80 +110,180 @@ export const fetchWeatherData = async (cityName: string, country: string = '', r
     );
 
     if (!response.ok) {
-      throw new Error(`Erro na API: ${response.status}`);
+      throw new Error(`Erro na API OpenWeather: ${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('📡 Dados da API OpenWeather recebidos para:', cityName);
     
-    // Agrupa dados por dia com lógica inteligente baseada no horário da corrida
-    const dailyData: { [key: string]: any } = {};
-    const raceDate = raceDateTime ? new Date(raceDateTime) : null;
-    
-    data.list.forEach((item: any) => {
-      const date = new Date(item.dt * 1000);
-      const dateKey = date.toISOString().split('T')[0];
-      
-      if (!dailyData[dateKey]) {
-        dailyData[dateKey] = item;
-      } else {
-        const currentBest = new Date(dailyData[dateKey].dt * 1000);
-        let targetHour = 12; // Padrão meio-dia
-        
-        // Se for o dia da corrida e temos horário da corrida, usa esse horário
-        if (raceDate && dateKey === raceDate.toISOString().split('T')[0]) {
-          targetHour = raceDate.getUTCHours();
-          console.log(`🏎️ Usando horário da corrida para ${dateKey}: ${targetHour}:00 UTC`);
-        }
-        
-        // Prefere dados mais próximos do horário alvo
-        if (Math.abs(date.getHours() - targetHour) < Math.abs(currentBest.getHours() - targetHour)) {
-          dailyData[dateKey] = item;
+    if (!data.list || data.list.length === 0) {
+      throw new Error('Nenhum dado meteorológico disponível');
+    }
+
+    // Define os horários alvo para cada dia baseado nas sessões de F1
+    const getTargetHourForDay = (dayIndex: number): number => {
+      if (scheduleData) {
+        switch (dayIndex) {
+          case 0: // Sexta-feira - TL1
+            if (scheduleData.FirstPractice?.time) {
+              const time = scheduleData.FirstPractice.time;
+              return parseInt(time.split(':')[0]);
+            }
+            return 14; // 14:00 UTC padrão
+          case 1: // Sábado - Qualifying
+            if (scheduleData.Qualifying?.time) {
+              const time = scheduleData.Qualifying.time;
+              return parseInt(time.split(':')[0]);
+            }
+            return 15; // 15:00 UTC padrão
+          case 2: // Domingo - Corrida
+            if (scheduleData.time) {
+              const time = scheduleData.time;
+              return parseInt(time.split(':')[0]);
+            }
+            return 18; // 18:00 UTC padrão
+          default:
+            return 14;
         }
       }
+      // Horários padrão se não tiver dados do cronograma
+      return [14, 15, 18][dayIndex] || 14;
+    };
+
+    // Função para verificar se uma sessão já aconteceu
+    const hasSessionPassed = (sessionDate: Date, sessionHour: number): boolean => {
+      const now = new Date();
+      const sessionDateTime = new Date(sessionDate);
+      sessionDateTime.setUTCHours(sessionHour, 0, 0, 0);
+      return sessionDateTime <= now;
+    };
+
+    // Determina as datas base das sessões baseadas na data real da corrida
+    const raceDate = raceDateTime ? new Date(raceDateTime) : new Date();
+    
+    console.log('🏁 Data da corrida recebida:', raceDateTime);
+    console.log('🗓️ Data da corrida processada:', raceDate.toISOString());
+    
+    // Calcula sexta, sábado e domingo baseado na data da corrida
+    // Se a corrida é no domingo, sexta é -2 dias, sábado é -1 dia
+    const friday = new Date(raceDate);
+    friday.setDate(raceDate.getDate() - 2); // 2 dias antes da corrida
+    
+    const saturday = new Date(raceDate);
+    saturday.setDate(raceDate.getDate() - 1); // 1 dia antes da corrida
+    
+    const sunday = new Date(raceDate); // Dia da corrida
+
+    const sessionDates = [friday, saturday, sunday];
+    const days = ['Sexta-feira', 'Sábado', 'Domingo'];
+    
+    console.log('📅 Datas das sessões calculadas:', {
+      sexta: friday.toISOString().split('T')[0],
+      sabado: saturday.toISOString().split('T')[0],
+      domingo: sunday.toISOString().split('T')[0]
     });
 
-    // Converte para formato esperado pelos próximos 3 dias
-    const days = ['Sexta-feira', 'Sábado', 'Domingo'];
-    const weatherDays: WeatherData[] = [];
-    const today = new Date();
+    // Filtra apenas sessões futuras
+    const futureSessions: Array<{date: Date, day: string, index: number}> = [];
     
     for (let i = 0; i < 3; i++) {
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + i);
-      const dateKey = targetDate.toISOString().split('T')[0];
+      const sessionDate = sessionDates[i];
+      const targetHour = getTargetHourForDay(i);
       
-      const dayData = dailyData[dateKey];
+      if (!hasSessionPassed(sessionDate, targetHour)) {
+        futureSessions.push({
+          date: sessionDate,
+          day: days[i],
+          index: i
+        });
+        console.log(`✅ ${days[i]}: Sessão ainda não aconteceu (${targetHour}:00 UTC)`);
+      } else {
+        console.log(`❌ ${days[i]}: Sessão já aconteceu (${targetHour}:00 UTC)`);
+      }
+    }
+
+    if (futureSessions.length === 0) {
+      console.log('⚠️ Todas as sessões já aconteceram');
+      return [];
+    }
+    
+    // Verifica se as datas estão dentro do range da previsão (próximos 5 dias)
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const maxForecastDate = new Date(today);
+    maxForecastDate.setDate(today.getDate() + 5);
+    
+    console.log('📊 Range de previsão disponível:', {
+      hoje: todayStr,
+      maximo: maxForecastDate.toISOString().split('T')[0]
+    });
+
+    // Busca dados apenas para sessões futuras
+    const weatherDays: WeatherData[] = [];
+
+    for (const session of futureSessions) {
+      const sessionDateStr = session.date.toISOString().split('T')[0];
+      const targetHour = getTargetHourForDay(session.index);
       
-      if (dayData) {
-        const translated = translateWeatherCondition(dayData.weather[0].main, dayData.weather[0].description);
+      console.log(`🔍 Buscando dados para ${session.day} (${sessionDateStr}) às ${targetHour}:00`);
+      
+      // Busca o dado mais próximo do horário da sessão
+      let bestMatch = null;
+      let bestTimeDiff = Infinity;
+      
+      for (const item of data.list) {
+        const itemDate = new Date(item.dt * 1000);
+        const itemDateStr = itemDate.toISOString().split('T')[0];
+        
+        // Só considera dados do dia da sessão
+        if (itemDateStr === sessionDateStr) {
+          const timeDiff = Math.abs(itemDate.getUTCHours() - targetHour);
+          if (timeDiff < bestTimeDiff) {
+            bestTimeDiff = timeDiff;
+            bestMatch = item;
+          }
+        }
+      }
+
+      if (bestMatch) {
+        const translated = translateWeatherCondition(
+          bestMatch.weather[0].main, 
+          bestMatch.weather[0].description
+        );
+        
+        console.log(`✅ ${session.day}: Encontrado dado de ${new Date(bestMatch.dt * 1000).toISOString()} para sessão às ${targetHour}:00 UTC`);
         
         weatherDays.push({
-          day: days[i] || `Dia ${i + 1}`,
-          date: targetDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          temperature: Math.round(dayData.main.temp),
-          temperatureMin: Math.round(dayData.main.temp_min),
-          temperatureMax: Math.round(dayData.main.temp_max),
-          humidity: dayData.main.humidity,
-          windSpeed: Math.round(dayData.wind?.speed * 3.6) || 0, // Converte m/s para km/h
+          day: session.day,
+          date: session.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          temperature: Math.round(bestMatch.main.temp),
+          temperatureMin: Math.round(bestMatch.main.temp_min),
+          temperatureMax: Math.round(bestMatch.main.temp_max),
+          humidity: bestMatch.main.humidity,
+          windSpeed: Math.round((bestMatch.wind?.speed || 0) * 3.6), // Converte m/s para km/h
           condition: translated.condition,
           description: translated.description,
-          chanceOfRain: Math.round((dayData.pop || 0) * 100), // Probability of precipitation
-          icon: dayData.weather[0].icon
+          chanceOfRain: Math.round((bestMatch.pop || 0) * 100),
+          icon: bestMatch.weather[0].icon
         });
       } else {
-        // Dados de fallback se não houver dados da API para esse dia
+        // Se não encontrar dados para o dia
+        const isDateTooFar = session.date > maxForecastDate;
+        const message = isDateTooFar ? 'Fora do range de previsão' : 'Dados indisponíveis';
+        
+        console.warn(`⚠️ ${session.day} (${sessionDateStr}): ${message}`);
         weatherDays.push({
-          day: days[i] || `Dia ${i + 1}`,
-          date: targetDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          temperature: 22,
-          temperatureMin: 18,
-          temperatureMax: 26,
-          humidity: 65,
-          windSpeed: 12,
-          condition: 'partly-cloudy',
-          description: 'Parcialmente nublado',
-          chanceOfRain: 30,
-          icon: '02d'
+          day: session.day,
+          date: session.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          temperature: 0,
+          temperatureMin: 0,
+          temperatureMax: 0,
+          humidity: 0,
+          windSpeed: 0,
+          condition: 'unavailable',
+          description: message,
+          chanceOfRain: 0,
+          icon: ''
         });
       }
     }
@@ -186,32 +291,9 @@ export const fetchWeatherData = async (cityName: string, country: string = '', r
     return weatherDays;
     
   } catch (error) {
-    console.error('Erro ao buscar dados meteorológicos:', error);
-    return generateMockWeatherData();
+    console.error('❌ Erro ao buscar dados meteorológicos:', error);
+    throw error; // Propaga o erro para que os componentes possam tratá-lo adequadamente
   }
 };
 
-// Função para gerar dados simulados (fallback)
-const generateMockWeatherData = (): WeatherData[] => {
-  const days = ['Sexta-feira', 'Sábado', 'Domingo'];
-  const today = new Date();
-  
-  return days.map((day, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
-    
-    return {
-      day,
-      date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      temperature: Math.floor(Math.random() * 15) + 15, // 15-30°C
-      temperatureMin: Math.floor(Math.random() * 10) + 10, // 10-20°C
-      temperatureMax: Math.floor(Math.random() * 15) + 20, // 20-35°C
-      humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
-      windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
-      condition: Math.random() > 0.7 ? "cloudy" : Math.random() > 0.5 ? "sunny" : "partly-cloudy",
-      description: Math.random() > 0.7 ? "Nublado" : Math.random() > 0.5 ? "Ensolarado" : "Parcialmente nublado",
-      chanceOfRain: Math.floor(Math.random() * 60) + 10, // 10-70%
-      icon: '02d'
-    };
-  });
-};
+
