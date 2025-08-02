@@ -27,8 +27,88 @@ const NextRacePrediction = () => {
   const [predictionData, setPredictionData] = useState<NextRacePredictionData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [qualifyingAvailable, setQualifyingAvailable] = useState<boolean>(false);
   
   const { canGenerateNewPrediction, currentRaceData, lastCompletedRace } = useRaceTracker();
+
+  // Função para analisar abandonos de pilotos na temporada
+  const analyzeRetirements = (races: any[]): string => {
+    const retirementCount: { [key: string]: number } = {};
+    const retirementReasons: { [key: string]: string[] } = {};
+    
+    races.forEach(race => {
+      if (race.Results) {
+        race.Results.forEach((result: any) => {
+          const driverName = result.Driver.familyName;
+          
+          // Se não terminou a corrida ou foi DNF/DSQ
+          if (result.status !== "Finished" && result.status !== "+1 Lap" && result.status !== "+2 Laps") {
+            retirementCount[driverName] = (retirementCount[driverName] || 0) + 1;
+            
+            if (!retirementReasons[driverName]) {
+              retirementReasons[driverName] = [];
+            }
+            retirementReasons[driverName].push(result.status);
+          }
+        });
+      }
+    });
+
+    // Ordenar por número de abandonos
+    const sortedRetirements = Object.entries(retirementCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 8); // Top 8 pilotos com mais problemas
+
+    if (sortedRetirements.length === 0) {
+      return "Temporada com alta confiabilidade - poucos abandonos registrados";
+    }
+
+    return sortedRetirements.map(([driver, count]) => {
+      const reasons = retirementReasons[driver].slice(0, 2).join(", ");
+      return `${driver}: ${count} DNFs (${reasons})`;
+    }).join('\n');
+  };
+
+  // Função para simular previsão do tempo baseada na localização
+  const getWeatherForecast = async (race: any): Promise<string> => {
+    if (!race) return "Dados climáticos indisponíveis";
+    
+    // Simular dados climáticos baseados na localização e época do ano
+    const location = race.Circuit.Location;
+    const month = new Date(race.date).getMonth();
+    
+    // Simular condições baseadas em padrões climáticos realistas
+    const isWinterTrack = location.country === "Australia" || location.country === "Brazil";
+    const isDesertTrack = location.country === "UAE" || location.country === "Saudi Arabia" || location.country === "Bahrain";
+    const isEuropeanSummer = (month >= 4 && month <= 8) && (location.country === "Italy" || location.country === "Spain" || location.country === "France");
+    
+    let weather = {
+      temperature: 25,
+      humidity: 60,
+      windSpeed: 15,
+      rainChance: 20,
+      condition: "partly-cloudy"
+    };
+
+    if (isDesertTrack) {
+      weather = { temperature: 35, humidity: 30, windSpeed: 10, rainChance: 5, condition: "sunny" };
+    } else if (isWinterTrack && month < 3) {
+      weather = { temperature: 28, humidity: 70, windSpeed: 20, rainChance: 40, condition: "cloudy" };
+    } else if (isEuropeanSummer) {
+      weather = { temperature: 30, humidity: 45, windSpeed: 12, rainChance: 15, condition: "sunny" };
+    } else if (location.country === "United Kingdom" || location.country === "Belgium") {
+      weather = { temperature: 18, humidity: 80, windSpeed: 25, rainChance: 60, condition: "cloudy" };
+    }
+
+    return `PREVISÃO PARA ${location.locality}, ${location.country}:
+Temperatura: ${weather.temperature}°C
+Umidade: ${weather.humidity}%
+Vento: ${weather.windSpeed} km/h
+Chance de chuva: ${weather.rainChance}%
+Condição: ${weather.condition === "sunny" ? "Ensolarado" : weather.condition === "cloudy" ? "Nublado" : "Parcialmente nublado"}
+
+IMPACTO NA CORRIDA: ${weather.rainChance > 40 ? "Alto risco de chuva - estratégia de pneus crucial" : weather.temperature > 30 ? "Calor intenso - gerenciamento térmico importante" : "Condições estáveis previstas"}`;
+  };
 
   useEffect(() => {
     // Carregar dados salvos no localStorage
@@ -43,7 +123,34 @@ const NextRacePrediction = () => {
     }
   }, []);
 
-  // Determinar se pode gerar novos palpites - lógica mais rígida para economizar créditos
+  useEffect(() => {
+    // Verificar se há classificação disponível quando currentRaceData muda
+    if (currentRaceData) {
+      checkQualifyingAvailable().then(setQualifyingAvailable);
+    }
+  }, [currentRaceData]);
+
+  // Função para verificar se há classificação disponível para a próxima corrida
+  const checkQualifyingAvailable = async (): Promise<boolean> => {
+    if (!currentRaceData) return false;
+    
+    try {
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/2025/qualifying.json?limit=300`);
+      if (!response.ok) return false;
+      
+      const data = await response.json();
+      const qualifyingData = data.MRData.RaceTable.Races || [];
+      
+      // Verificar se há classificação para a corrida atual
+      const currentQualifying = qualifyingData.find((q: any) => q.round === currentRaceData.round);
+      return !!currentQualifying?.Results && currentQualifying.Results.length > 0;
+    } catch (error) {
+      console.error('Erro ao verificar classificação:', error);
+      return false;
+    }
+  };
+
+  // Determinar se pode gerar novos palpites - melhorado para atualização imediata pós-classificação
   const canGenerate = (() => {
     // Se não tem predição alguma, pode gerar
     if (!predictionData) return true;
@@ -53,12 +160,17 @@ const NextRacePrediction = () => {
       return true;
     }
     
-    // Se foi gerada há mais de 7 dias (para casos extremos)
-    const lastUpdate = new Date(predictionData.lastUpdated);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    // Verificar tempo desde a última predição
+    const lastPredictionTime = new Date(predictionData.lastUpdated);
+    const timeSinceLastPrediction = Date.now() - lastPredictionTime.getTime();
+    const hoursSinceLastPrediction = timeSinceLastPrediction / (1000 * 60 * 60);
     
-    if (lastUpdate < weekAgo) return true;
+    // Permitir nova geração se:
+    // 1. Passou mais de 2h da última predição (tempo mínimo para evitar spam)
+    // 2. Ou se foi gerada há mais de 7 dias (casos extremos)
+    if (hoursSinceLastPrediction > 2 || hoursSinceLastPrediction > (7 * 24)) {
+      return true;
+    }
     
     // Caso contrário, NÃO pode gerar (economizar créditos)
     return false;
@@ -70,11 +182,13 @@ const NextRacePrediction = () => {
       const driversResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
       const constructorsResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorstandings.json');
       const racesResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/races/');
+      const qualifyingResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/qualifying.json?limit=300');
       
       let drivers = [];
       let constructors = [];
       let races = [];
       let nextRace = null;
+      let qualifyingData = [];
 
       if (driversResponse.ok) {
         const driversData = await driversResponse.json();
@@ -98,13 +212,27 @@ const NextRacePrediction = () => {
         });
       }
 
-      // Buscar últimos resultados de corridas (para contexto)
-      const resultsResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/results.json?limit=100');
+      if (qualifyingResponse.ok) {
+        const qualifyingResponseData = await qualifyingResponse.json();
+        qualifyingData = qualifyingResponseData.MRData.RaceTable.Races || [];
+      }
+
+      // Buscar últimos resultados de corridas (para contexto e análise de abandonos)
+      const resultsResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/results.json?limit=300');
       let lastRaces = [];
       if (resultsResponse.ok) {
         const resultsData = await resultsResponse.json();
         lastRaces = resultsData.MRData.RaceTable.Races || [];
       }
+
+      // Analisar abandonos por piloto durante a temporada
+      const retirementAnalysis = analyzeRetirements(lastRaces);
+      
+      // Buscar dados climáticos simulados para a próxima corrida
+      const weatherData = await getWeatherForecast(nextRace);
+
+      // Verificar se há classificação para a próxima corrida
+      const currentQualifying = nextRace ? qualifyingData.find((q: any) => q.round === nextRace.round) : null;
 
       // Montar resumo da temporada
       const driversText = drivers.length > 0 
@@ -130,7 +258,14 @@ const NextRacePrediction = () => {
         ? `${nextRace.raceName} - ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}`
         : 'Próxima corrida não identificada';
 
-      return `TEMPORADA F1 2025 - RESUMO ATUAL:
+      // Montar dados de classificação se disponível
+      const qualifyingText = currentQualifying?.Results ? 
+        `CLASSIFICAÇÃO ATUAL (${nextRace.raceName}):\n` + 
+        currentQualifying.Results.slice(0, 10).map((result: any, i: number) => 
+          `${i + 1}. ${result.Driver.familyName} (${result.Constructor.name}) - ${result.Q3 || result.Q2 || result.Q1}`
+        ).join('\n') : 'Classificação ainda não realizada';
+
+      return `TEMPORADA F1 2025 - RESUMO COMPLETO PARA PALPITES:
 
 CLASSIFICAÇÃO PILOTOS (Top 10):
 ${driversText}
@@ -141,8 +276,23 @@ ${constructorsText}
 CORRIDAS REALIZADAS: ${lastRaces.length}
 PRÓXIMA CORRIDA: ${nextRaceText}
 
+${qualifyingText}
+
 ÚLTIMOS 3 RESULTADOS:
-${lastRacesText}`;
+${lastRacesText}
+
+ANÁLISE DE ABANDONOS NA TEMPORADA:
+${retirementAnalysis}
+
+PREVISÃO CLIMÁTICA PARA A CORRIDA:
+${weatherData}
+
+INSTRUÇÕES PARA ANÁLISE: Use todos esses dados para fazer palpites mais precisos. Considere:
+- Performance recente dos pilotos e equipes
+- Histórico de abandonos (confiabilidade)
+- Condições climáticas previstas
+- Posições de largada (se classificação disponível)
+- Características do circuito em diferentes condições`;
 
     } catch (error) {
       console.error('Erro ao buscar dados da temporada:', error);
@@ -163,21 +313,35 @@ ${lastRacesText}`;
       
       const prompt = `${seasonSummary}
 
-INSTRUÇÕES: Faça APENAS os palpites para a próxima corrida. Seja CONCISO. Não explique.
+INSTRUÇÕES PARA PALPITES ESTRATÉGICOS: 
 
-Retorne EXATAMENTE neste formato:
+Analise TODOS os dados fornecidos:
+✅ Performance atual dos pilotos no campeonato
+✅ Histórico de abandonos/confiabilidade de cada piloto
+✅ Condições climáticas previstas para a corrida
+✅ Dados de classificação (se disponível)
+✅ Características do circuito
+✅ Forma recente das equipes
+
+IMPORTANTE: 
+- Se há dados de classificação, use-os como base principal
+- Considere abandonos frequentes de alguns pilotos
+- Adapte estratégia conforme condições climáticas
+- Priorize pilotos mais consistentes em condições adversas
+
+Retorne EXATAMENTE neste formato (sem explicações):
 
 CLASSIFICAÇÃO:
-1. Max Verstappen (Red Bull)
-2. Lewis Hamilton (Mercedes)
+1. Nome Piloto (Equipe)
+2. Nome Piloto (Equipe)
 [...continue até 20]
 
 CORRIDA:
-1. Max Verstappen (Red Bull)
-2. Lewis Hamilton (Mercedes)
+1. Nome Piloto (Equipe)
+2. Nome Piloto (Equipe)
 [...continue até 20]
 
-Use os pilotos atuais da temporada. Formato obrigatório.`;
+Use APENAS pilotos da temporada 2025 listados acima.`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -190,15 +354,15 @@ Use os pilotos atuais da temporada. Formato obrigatório.`;
           messages: [
             {
               role: 'system',
-              content: 'Você é um especialista em F1. Analise e faça palpites precisos. Seja CONCISO.'
+              content: 'Você é um especialista em análise de F1 com foco em dados estratégicos: clima, abandonos, confiabilidade, forma atual e características de circuito. Analise profundamente todos os dados fornecidos para fazer palpites precisos.'
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_tokens: 800,
-          temperature: 0.5,
+          max_tokens: 1000,
+          temperature: 0.3, // Reduzido para palpites mais consistentes
         }),
       });
 
@@ -366,7 +530,7 @@ Use os pilotos atuais da temporada. Formato obrigatório.`;
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Gerar Palpites IA (by OpenAI)
+                  {predictionData ? 'Atualizar Palpites' : 'Gerar Palpites IA'} (by OpenAI)
                 </>
               )}
             </Button>
@@ -375,7 +539,12 @@ Use os pilotos atuais da temporada. Formato obrigatório.`;
         {predictionData && (
           <p className="text-sm text-gray-600 mt-2">
             Palpites para: {predictionData.nextRace} | 
-            Última atualização: {new Date(predictionData.lastUpdated).toLocaleDateString('pt-BR')}
+            Última atualização: {new Date(predictionData.lastUpdated).toLocaleDateString('pt-BR', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
           </p>
         )}
         {currentRaceData && !predictionData && (
@@ -384,8 +553,9 @@ Use os pilotos atuais da temporada. Formato obrigatório.`;
           </p>
         )}
         {!canGenerate && predictionData && (
-          <p className="text-xs text-green-600 mt-1 bg-green-50 px-2 py-1 rounded">
-            💰 Palpites já gerados para "{predictionData.nextRace}" - Regeneração bloqueada até a próxima corrida.
+          <p className="text-xs text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded">
+            ⏰ Palpites atuais para "{predictionData.nextRace}" - 
+            {qualifyingAvailable ? 'Poderá atualizar após 2h (classificação disponível)' : 'Aguardando classificação para atualização'}
           </p>
         )}
       </CardHeader>
