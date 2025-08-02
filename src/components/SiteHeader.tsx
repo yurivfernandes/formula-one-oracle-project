@@ -5,8 +5,9 @@ import { useState } from "react";
 
 const NAV_LINKS = [
   { to: "/championship", label: "Campeonato", shortLabel: "Camp." },
-  { to: "/prediction", label: "Predição", shortLabel: "Pred." },
-  { to: "/race-weekend", label: "Próximo GP", shortLabel: "GP" }
+  { to: "/calendar", label: "Calendário", shortLabel: "Cal." },
+  { to: "/race-weekend", label: "Próximo GP", shortLabel: "GP" },
+  { to: "/prediction", label: "Predição", shortLabel: "Pred." }
 ];
 
 export default function SiteHeader() {

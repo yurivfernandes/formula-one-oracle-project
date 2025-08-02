@@ -4,8 +4,9 @@ import { Github, Linkedin, MessageCircle } from "lucide-react";
 
 const FOOTER_LINKS = [
   { to: "/championship", label: "Campeonato" },
-  { to: "/prediction", label: "Predição" },
+  { to: "/calendar", label: "Calendário" },
   { to: "/race-weekend", label: "Próximo GP" },
+  { to: "/prediction", label: "Predição" },
 ];
 
 export default function SiteFooter() {
