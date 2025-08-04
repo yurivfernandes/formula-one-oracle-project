@@ -84,7 +84,12 @@ const ConstructorsStandings = () => {
             </span>
           </TableCell>
           <TableCell className="min-w-[120px] sm:min-w-[160px]">
-            <TeamLogo teamName={standing.Constructor.name} className="w-8 h-5 sm:w-12 sm:h-8" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <TeamLogo teamName={standing.Constructor.name} className="w-8 h-5 sm:w-12 sm:h-8" />
+              <span className="font-semibold text-gray-900 text-xs sm:text-base">
+                {standing.Constructor.name}
+              </span>
+            </div>
           </TableCell>
           <TableCell className="text-center font-bold text-sm sm:text-lg text-gray-900 min-w-[60px]">
             {standing.points}
