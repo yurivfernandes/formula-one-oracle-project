@@ -1,5 +1,6 @@
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import ShareSection from "@/components/ShareSection";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, TrendingUp } from "lucide-react";
 import NextRaceDetailedInfo from "@/components/NextRaceDetailedInfo";
@@ -119,6 +120,8 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        <ShareSection />
       </main>
       <SiteFooter />
     </div>
