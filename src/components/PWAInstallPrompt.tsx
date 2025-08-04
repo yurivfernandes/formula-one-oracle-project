@@ -83,14 +83,15 @@ export const PWAInstallPrompt: React.FC = () => {
       if (dismissed) {
         const dismissedTime = parseInt(dismissed);
         const dayInMs = 24 * 60 * 60 * 1000;
-        // Não mostrar novamente por 7 dias após dismissal
-        if (Date.now() - dismissedTime < dayInMs * 7) { 
+        // Reduzir tempo para 1 dia para teste
+        if (Date.now() - dismissedTime < dayInMs * 1) { 
           return false;
         }
       }
       
       return true;
     };
+
     const shouldShowMobilePrompt = () => {
       if (isInstalled) return false;
       if (!isMobile) return false;
@@ -100,8 +101,8 @@ export const PWAInstallPrompt: React.FC = () => {
       if (dismissed) {
         const dismissedTime = parseInt(dismissed);
         const dayInMs = 24 * 60 * 60 * 1000;
-        // Não mostrar novamente por 3 dias após dismissal
-        if (Date.now() - dismissedTime < dayInMs * 3) { 
+        // Reduzir tempo para 1 dia para teste
+        if (Date.now() - dismissedTime < dayInMs * 1) { 
           return false;
         }
       }
@@ -109,18 +110,36 @@ export const PWAInstallPrompt: React.FC = () => {
       return true;
     };
 
-    // Mostrar prompt para mobile após o usuário interagir com a página
-    if (shouldShowiOSPrompt() || shouldShowMobilePrompt()) {
+    // Mostrar prompt para desktop também (se não instalado)
+    const shouldShowDesktopPrompt = () => {
+      if (isInstalled) return false;
+      if (isMobile) return false;
+      
+      const dismissed = localStorage.getItem('desktop-install-dismissed');
+      if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const dayInMs = 24 * 60 * 60 * 1000;
+        // Reduzir tempo para 1 dia para teste
+        if (Date.now() - dismissedTime < dayInMs * 1) { 
+          return false;
+        }
+      }
+      
+      return true;
+    };
+
+    // Mostrar prompt após interação do usuário
+    if (shouldShowiOSPrompt() || shouldShowMobilePrompt() || shouldShowDesktopPrompt()) {
       let interactionDetected = false;
       
       const showPromptAfterInteraction = () => {
         if (interactionDetected) return;
         interactionDetected = true;
         
-        // Mostrar após 3 segundos de interação
+        // Mostrar após 2 segundos de interação (mais rápido)
         setTimeout(() => {
           setShowInstallPrompt(true);
-        }, 3000);
+        }, 2000);
       };
 
       // Detectar várias formas de interação
@@ -129,12 +148,12 @@ export const PWAInstallPrompt: React.FC = () => {
         window.addEventListener(event, showPromptAfterInteraction, { once: true });
       });
       
-      // Fallback: mostrar após 30 segundos se não houver interação
+      // Fallback: mostrar após 10 segundos se não houver interação (mais rápido)
       const fallbackTimer = setTimeout(() => {
         if (!interactionDetected) {
           setShowInstallPrompt(true);
         }
-      }, 30000);
+      }, 10000);
       
       return () => {
         events.forEach(event => {
@@ -181,7 +200,12 @@ export const PWAInstallPrompt: React.FC = () => {
     setShowInstallPrompt(false);
     setShowInstructions(false);
     // Salvar no localStorage baseado no tipo de dispositivo
-    const dismissKey = isIOS ? 'ios-install-dismissed' : 'mobile-install-dismissed';
+    let dismissKey = 'mobile-install-dismissed';
+    if (isIOS) {
+      dismissKey = 'ios-install-dismissed';
+    } else if (!isMobile) {
+      dismissKey = 'desktop-install-dismissed';
+    }
     localStorage.setItem(dismissKey, Date.now().toString());
   };
 
@@ -190,8 +214,8 @@ export const PWAInstallPrompt: React.FC = () => {
     return null;
   }
 
-  // Só mostrar em dispositivos móveis
-  if (!isMobile || !showInstallPrompt) {
+  // Mostrar para qualquer dispositivo se não estiver instalado
+  if (!showInstallPrompt) {
     return null;
   }
 

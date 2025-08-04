@@ -3,7 +3,23 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-      // Função para limpar cache manualmente
+      window.clearAppCache = function() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      };
+
+      // Função para resetar popup de instalação PWA
+      window.resetInstallPrompt = function() {
+        localStorage.removeItem('ios-install-dismissed');
+        localStorage.removeItem('mobile-install-dismissed');
+        localStorage.removeItem('desktop-install-dismissed');
+        console.log('Popup de instalação PWA resetado');
+      };, user-scalable=no" />
   <title>Formula One Oracle - Previsões e Análises F1</title>
   <meta name="description"
     content="Previsões e análises inteligentes da Fórmula 1 powered by AI. Acompanhe classificações, resultados e previsões dos campeonatos." />

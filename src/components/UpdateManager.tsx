@@ -39,6 +39,11 @@ export function UpdateManager() {
   const handleClearCache = async () => {
     setIsLoading(true);
     try {
+      // Limpar localStorage relacionado ao PWA install
+      localStorage.removeItem('ios-install-dismissed');
+      localStorage.removeItem('mobile-install-dismissed');
+      localStorage.removeItem('desktop-install-dismissed');
+      
       // Usar a função global definida no HTML
       if (window.clearAppCache) {
         window.clearAppCache();
@@ -126,5 +131,6 @@ declare global {
     forceUpdate?: () => void;
     updateApp?: () => void;
     dismissUpdate?: () => void;
+    resetInstallPrompt?: () => void;
   }
 }
