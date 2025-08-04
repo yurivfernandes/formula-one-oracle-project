@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import ShareAppDialog from "@/components/ShareAppDialog";
+import { UpdateManager } from "@/components/UpdateManager";
 import Index from "./pages/Index";
 import Championship from "./pages/Championship";
 import Prediction from "./pages/Prediction";
@@ -23,6 +24,7 @@ const App = () => (
       <Sonner />
       <PWAInstallPrompt />
       <ShareAppDialog />
+      <UpdateManager />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

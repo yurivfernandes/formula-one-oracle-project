@@ -1,85 +1,143 @@
-const CACHE_NAME = 'formula-one-oracle-v2-' + Date.now();
+// Versão do cache - MUDE ESTE NÚMERO QUANDO QUISER FORÇAR ATUALIZAÇÃO
+const CACHE_VERSION = 'v2.1';
+const CACHE_NAME = `formula-one-oracle-${CACHE_VERSION}-${Date.now()}`;
+const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+
 const urlsToCache = [
   '/',
   '/index.html',
-  '/src/main.tsx',
-  '/src/App.tsx',
-  '/src/App.css',
-  '/src/index.css',
   '/manifest.json',
-  // Adicione outros recursos estáticos importantes aqui
+  '/favicon-f1-analytics.png',
+  '/icons/icon-192x192.png'
+  // Não cachear arquivos JS/CSS do Vite pois eles têm hash próprio
 ];
 
 // Instalar o service worker e fazer cache dos recursos
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Service Worker: Caching static files');
         return cache.addAll(urlsToCache);
       })
-  );
-});
-
-// Interceptar requests e servir do cache quando offline
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // IMPORTANT: Clone the response. A response is a stream
-          // and because we want the browser to consume the response
-          // as well as the cache consuming the response, we need
-          // to clone it so we have two streams.
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-
-          return response;
-        }).catch(() => {
-          // Se está offline e não há cache, retorna uma página offline personalizada
-          if (event.request.destination === 'document') {
-            return caches.match('/index.html');
-          }
-        });
+      .then(() => {
+        // Forçar ativação imediata da nova versão
+        return self.skipWaiting();
       })
   );
 });
 
-// Atualizar o service worker
+// Interceptar requests com estratégia Network First para HTML, Cache First para assets
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Para navegação (páginas HTML) - sempre tentar rede primeiro
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Clonar resposta para cache
+          const responseClone = response.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Fallback para cache se offline
+          return caches.match(request).then((cached) => {
+            return cached || caches.match('/index.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // Para assets estáticos - Cache First
+  if (request.destination === 'image' || request.destination === 'font' || 
+      url.pathname.includes('/icons/') || url.pathname.includes('/favicon')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          return cached;
+        }
+        return fetch(request).then((response) => {
+          const responseClone = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Para API calls e outros recursos - Network First
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        // Só cachear respostas válidas
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseClone = response.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback para cache
+        return caches.match(request);
+      })
+  );
+});
+
+// Atualizar o service worker - limpar caches antigos
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  console.log('Service Worker: Activating...');
+  const cacheWhitelist = [STATIC_CACHE, DYNAMIC_CACHE];
 
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Limpar caches antigos
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (!cacheWhitelist.includes(cacheName)) {
+              console.log('Service Worker: Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Tomar controle imediatamente
+      self.clients.claim()
+    ])
   );
 });
 
 // Lidar com mensagens do app principal
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Skipping waiting...');
     self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log('Service Worker: Clearing all caches...');
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            return caches.delete(cacheName);
+          })
+        );
+      })
+    );
   }
 });
 

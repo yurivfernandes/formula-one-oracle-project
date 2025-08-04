@@ -125,13 +125,41 @@
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 
-  <!-- Service Worker Registration -->
+  <!-- Service Worker Registration com controle de atualização -->
   <script>
     if ('serviceWorker' in navigator) {
+      let refreshing;
+
+      // Função para limpar cache manualmente
+      window.clearAppCache = function () {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      };
+
+      // Função para forçar atualização
+      window.forceUpdate = function () {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then((registration) => {
+            if (registration) {
+              registration.update();
+            }
+          });
+        }
+      };
+
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then((registration) => {
             console.log('SW registered: ', registration);
+
+            // Verificar se há atualizações a cada 30 segundos
+            setInterval(() => {
+              registration.update();
+            }, 30000);
 
             // Verificar se há atualizações
             registration.addEventListener('updatefound', () => {
@@ -139,11 +167,8 @@
               if (newWorker) {
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // Nova versão disponível
-                    if (confirm('Nova versão disponível! Deseja atualizar?')) {
-                      newWorker.postMessage({ type: 'SKIP_WAITING' });
-                      window.location.reload();
-                    }
+                    // Nova versão disponível - mostrar notificação personalizada
+                    showUpdateAvailable(newWorker);
                   }
                 });
               }
@@ -156,8 +181,95 @@
 
       // Atualizar quando o service worker tomar controle
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
         window.location.reload();
       });
+
+      // Função para mostrar notificação de atualização
+      function showUpdateAvailable(newWorker) {
+        // Criar elemento de notificação
+        const notification = document.createElement('div');
+        notification.id = 'update-notification';
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #dc2626;
+          color: white;
+          padding: 16px 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 10000;
+          font-family: system-ui, sans-serif;
+          font-size: 14px;
+          max-width: 300px;
+          animation: slideIn 0.3s ease-out;
+        `;
+
+        notification.innerHTML = `
+          <div style="margin-bottom: 12px;">
+            <strong>🏎️ Nova versão disponível!</strong>
+          </div>
+          <div style="margin-bottom: 12px; opacity: 0.9;">
+            Atualize para ter acesso aos recursos mais recentes.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button onclick="updateApp()" style="
+              background: white;
+              color: #dc2626;
+              border: none;
+              padding: 6px 12px;
+              border-radius: 4px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 12px;
+            ">ATUALIZAR</button>
+            <button onclick="dismissUpdate()" style="
+              background: transparent;
+              color: white;
+              border: 1px solid rgba(255,255,255,0.5);
+              padding: 6px 12px;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 12px;
+            ">DEPOIS</button>
+          </div>
+        `;
+
+        // Adicionar CSS para animação
+        if (!document.getElementById('update-notification-styles')) {
+          const style = document.createElement('style');
+          style.id = 'update-notification-styles';
+          style.textContent = `
+            @keyframes slideIn {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        document.body.appendChild(notification);
+
+        // Função global para atualizar
+        window.updateApp = function () {
+          newWorker.postMessage({ type: 'SKIP_WAITING' });
+          notification.remove();
+        };
+
+        // Função global para dispensar
+        window.dismissUpdate = function () {
+          notification.remove();
+        };
+
+        // Auto-remover após 10 segundos
+        setTimeout(() => {
+          if (document.getElementById('update-notification')) {
+            notification.remove();
+          }
+        }, 10000);
+      }
     }
 
     // Install prompt
@@ -165,9 +277,6 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-
-      // Mostrar botão de instalação personalizado se desejar
-      // showInstallButton();
     });
 
     // Função para instalar a PWA
@@ -186,24 +295,12 @@
     // Detectar quando a app foi instalada
     window.addEventListener('appinstalled', () => {
       console.log('PWA foi instalada');
-      // Esconder botão de instalação
     });
 
     // Verificar se está rodando como PWA
     function isRunningStandalone() {
       return window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone === true;
-    }
-
-    // Preload critical resources
-    if ('serviceWorker' in navigator && 'caches' in window) {
-      caches.open('formula-one-oracle-v1').then(cache => {
-        cache.addAll([
-          '/',
-          '/manifest.json',
-          '/icons/icon-192x192.png'
-        ]);
-      });
     }
   </script>
 </body>
