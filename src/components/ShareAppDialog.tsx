@@ -90,18 +90,7 @@ const ShareAppDialog = () => {
           if (!canClose) e.preventDefault();
         }}
       >
-        <DialogHeader className="relative">
-          {canClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute -top-2 -right-2 h-8 w-8 rounded-full p-0"
-              onClick={handleClose}
-              aria-label="Fechar"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+        <DialogHeader>
           <div className="flex items-center justify-center mb-4">
             <div className="bg-red-100 p-3 rounded-full">
               <Share2 className="h-8 w-8 text-red-600" />
