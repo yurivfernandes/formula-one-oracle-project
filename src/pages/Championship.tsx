@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { Flag, ArrowLeft, Trophy, Users, Calendar } from "lucide-react";
+import { Flag, ArrowLeft, Trophy, Users, Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DriversStandings from "@/components/DriversStandings";
 import ConstructorsStandings from "@/components/ConstructorsStandings";
 import RaceByRaceStandings from "@/components/RaceByRaceStandings";
+import DriversEvolutionChart from "@/components/DriversEvolutionChart";
+import ConstructorsEvolutionChart from "@/components/ConstructorsEvolutionChart";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -32,7 +34,7 @@ const Championship = () => {
           </div>
           {/* Championship Tables */}
           <Tabs defaultValue="drivers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-red-800/30 mb-2 sm:mb-8 h-8 sm:h-10">
+            <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-red-800/30 mb-2 sm:mb-8 h-8 sm:h-10">
               <TabsTrigger 
                 value="drivers" 
                 className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs px-1 sm:px-3"
@@ -57,6 +59,22 @@ const Championship = () => {
                 <span className="hidden sm:inline">Corrida a Corrida</span>
                 <span className="sm:hidden">Corridas</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="drivers-evolution"
+                className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs px-1 sm:px-3"
+              >
+                <TrendingUp className="mr-0.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Evol. Pilotos</span>
+                <span className="sm:hidden">Evol.P</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="constructors-evolution"
+                className="text-white data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs px-1 sm:px-3"
+              >
+                <TrendingUp className="mr-0.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Evol. Equipes</span>
+                <span className="sm:hidden">Evol.E</span>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="drivers" className="mt-2 sm:mt-8">
@@ -72,6 +90,14 @@ const Championship = () => {
               {/* Debug visual: tabela de teste */}
               <div className="mt-12">
               </div>
+            </TabsContent>
+
+            <TabsContent value="drivers-evolution" className="mt-2 sm:mt-8">
+              <DriversEvolutionChart />
+            </TabsContent>
+
+            <TabsContent value="constructors-evolution" className="mt-2 sm:mt-8">
+              <ConstructorsEvolutionChart />
             </TabsContent>
           </Tabs>
         </div>

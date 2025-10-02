@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
-import { AlertCircle, RefreshCcw, Trash2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export function UpdateManager() {
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
@@ -36,90 +36,29 @@ export function UpdateManager() {
     }
   };
 
-  const handleClearCache = async () => {
-    setIsLoading(true);
-    try {
-      // Limpar localStorage relacionado ao PWA install
-      localStorage.removeItem('ios-install-dismissed');
-      localStorage.removeItem('mobile-install-dismissed');
-      localStorage.removeItem('desktop-install-dismissed');
-      
-      // Usar a função global definida no HTML
-      if (window.clearAppCache) {
-        window.clearAppCache();
-      } else {
-        // Fallback: limpar cache manualmente
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(
-            cacheNames.map(name => caches.delete(name))
-          );
-          window.location.reload();
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao limpar cache:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Mostrar apenas quando há atualização ou em casos específicos de desenvolvimento
-  const isDevelopment = import.meta.env.DEV;
-  const showDevTools = isDevelopment && (window.location.search.includes('debug') || window.location.hostname === 'localhost');
-  
-  if (!isUpdateAvailable && !showDevTools) {
+  // Mostrar apenas quando há atualização disponível
+  if (!isUpdateAvailable) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-      {isUpdateAvailable && (
-        <div className="bg-red-600 text-white p-3 rounded-lg shadow-lg max-w-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4" />
-            <span className="font-semibold">Nova versão disponível!</span>
-          </div>
-          <p className="text-sm mb-3 opacity-90">
-            Atualize para ter acesso aos recursos mais recentes.
-          </p>
-          <Button
-            onClick={handleForceUpdate}
-            disabled={isLoading}
-            className="w-full bg-white text-red-600 hover:bg-gray-100"
-          >
-            {isLoading ? 'Atualizando...' : 'Atualizar Agora'}
-          </Button>
+    <div className="fixed bottom-4 right-4 z-50">
+      <div className="bg-red-600 text-white p-3 rounded-lg shadow-lg max-w-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertCircle className="h-4 w-4" />
+          <span className="font-semibold">Nova versão disponível!</span>
         </div>
-      )}
-
-      {showDevTools && (
-        <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg">
-          <p className="text-sm mb-3 font-semibold">🛠️ Dev Tools</p>
-          <div className="flex gap-2">
-            <Button
-              onClick={handleForceUpdate}
-              disabled={isLoading}
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-1"
-            >
-              <RefreshCcw className="h-3 w-3" />
-              {isLoading ? 'Carregando...' : 'Forçar Atualização'}
-            </Button>
-            <Button
-              onClick={handleClearCache}
-              disabled={isLoading}
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-1"
-            >
-              <Trash2 className="h-3 w-3" />
-              Limpar Cache
-            </Button>
-          </div>
-        </div>
-      )}
+        <p className="text-sm mb-3 opacity-90">
+          Atualize para ter acesso aos recursos mais recentes.
+        </p>
+        <Button
+          onClick={handleForceUpdate}
+          disabled={isLoading}
+          className="w-full bg-white text-red-600 hover:bg-gray-100"
+        >
+          {isLoading ? 'Atualizando...' : 'Atualizar Agora'}
+        </Button>
+      </div>
     </div>
   );
 }
