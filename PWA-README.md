@@ -1,11 +1,11 @@
-# 🏎️ Formula One Oracle PWA
+# 🏎️ F1 Analytics PWA
 
 Uma Progressive Web App (PWA) para previsões e análises inteligentes da Fórmula 1 powered by AI.
 
 ## 🚀 Características PWA Implementadas
 
 ### ✅ Manifest.json
-- **Nome da app**: Formula One Oracle
+- **Nome da app**: F1 Analytics
 - **Nome curto**: F1 Oracle
 - **Modo de exibição**: Standalone
 - **Tema**: Vermelho Ferrari (#dc2626)

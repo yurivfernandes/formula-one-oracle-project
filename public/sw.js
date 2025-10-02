@@ -204,7 +204,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('Formula One Oracle', options)
+    self.registration.showNotification('F1 Analytics', options)
   );
 });
 
