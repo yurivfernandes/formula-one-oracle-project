@@ -1,8 +1,9 @@
 // Versão do cache - MUDE ESTE NÚMERO QUANDO QUISER FORÇAR ATUALIZAÇÃO
-const CACHE_VERSION = 'v2.1';
-const CACHE_NAME = `formula-one-oracle-${CACHE_VERSION}-${Date.now()}`;
-const STATIC_CACHE = `static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v3.0-drivers-validation';
+const BUILD_TIMESTAMP = Date.now();
+const CACHE_NAME = `formula-one-oracle-${CACHE_VERSION}-${BUILD_TIMESTAMP}`;
+const STATIC_CACHE = `static-${CACHE_VERSION}-${BUILD_TIMESTAMP}`;
+const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}-${BUILD_TIMESTAMP}`;
 
 const urlsToCache = [
   '/',
@@ -15,17 +16,29 @@ const urlsToCache = [
 
 // Instalar o service worker e fazer cache dos recursos
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log(`Service Worker: Installing ${CACHE_VERSION}...`);
+  
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
+    Promise.all([
+      // Limpar todos os caches existentes primeiro
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('SW Install: Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }),
+      // Criar novo cache
+      caches.open(STATIC_CACHE).then((cache) => {
         console.log('Service Worker: Caching static files');
         return cache.addAll(urlsToCache);
       })
-      .then(() => {
-        // Forçar ativação imediata da nova versão
-        return self.skipWaiting();
-      })
+    ]).then(() => {
+      // Forçar ativação imediata da nova versão
+      console.log('SW: Skipping waiting for immediate activation');
+      return self.skipWaiting();
+    })
   );
 });
 
@@ -98,12 +111,12 @@ self.addEventListener('fetch', (event) => {
 
 // Atualizar o service worker - limpar caches antigos
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log(`Service Worker: Activating ${CACHE_VERSION}...`);
   const cacheWhitelist = [STATIC_CACHE, DYNAMIC_CACHE];
 
   event.waitUntil(
     Promise.all([
-      // Limpar caches antigos
+      // Limpar TODOS os caches antigos
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -114,9 +127,20 @@ self.addEventListener('activate', (event) => {
           })
         );
       }),
+      // Limpar localStorage de predições antigas para forçar nova geração
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'CLEAR_OLD_DATA',
+            version: CACHE_VERSION
+          });
+        });
+      }),
       // Tomar controle imediatamente
       self.clients.claim()
-    ])
+    ]).then(() => {
+      console.log(`Service Worker: ${CACHE_VERSION} activated successfully`);
+    })
   );
 });
 

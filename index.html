@@ -3,13 +3,56 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-      // Função para limpar cache manualmente
+  <meta name="viewport" content="width=device-width, initial-      // Verificação de versão e limpeza automática
+      const CURRENT_VERSION = '3.0-drivers-validation';
+      const STORED_VERSION = localStorage.getItem('app-version');
+      
+      if (STORED_VERSION !== CURRENT_VERSION) {
+        console.log(`🔄 Atualizando de ${STORED_VERSION || 'versão desconhecida'} para ${CURRENT_VERSION}`);
+        
+        // Limpar dados específicos de predições que podem estar desatualizados
+        const keysToRemove = [
+          'nextRacePrediction',
+          'lastPredictionRace', 
+          'lastPredictionRaceName',
+          'championshipPrediction',
+          'constructorsPrediction'
+        ];
+        
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+          console.log(`🗑️ Removido: ${key}`);
+        });
+        
+        // Atualizar versão
+        localStorage.setItem('app-version', CURRENT_VERSION);
+        localStorage.setItem('last-update', Date.now().toString());
+        
+        console.log('✅ Dados limpos e versão atualizada');
+      }
+
+      // Função para limpar cache manualmente
       window.clearAppCache = function() {
+        console.log('🧹 Limpando cache manualmente...');
+        
+        // Limpar localStorage
+        const keysToRemove = [
+          'nextRacePrediction',
+          'lastPredictionRace', 
+          'lastPredictionRaceName',
+          'championshipPrediction',
+          'constructorsPrediction'
+        ];
+        
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
           setTimeout(() => {
             window.location.reload();
           }, 1000);
+        } else {
+          window.location.reload();
         }
       };
 
@@ -19,7 +62,31 @@
         localStorage.removeItem('mobile-install-dismissed');
         localStorage.removeItem('desktop-install-dismissed');
         console.log('Popup de instalação PWA resetado');
-      };, user-scalable=no" />
+      };
+
+      // Escutar mensagens do Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'CLEAR_OLD_DATA') {
+            console.log('📨 Service Worker solicitou limpeza de dados antigos');
+            
+            const keysToRemove = [
+              'nextRacePrediction',
+              'lastPredictionRace', 
+              'lastPredictionRaceName',
+              'championshipPrediction',
+              'constructorsPrediction'
+            ];
+            
+            keysToRemove.forEach(key => {
+              localStorage.removeItem(key);
+            });
+            
+            localStorage.setItem('app-version', event.data.version);
+            console.log('✅ Dados limpos via Service Worker');
+          }
+        });
+      }, user-scalable=no" />
   <title>Formula One Oracle - Previsões e Análises F1</title>
   <meta name="description"
     content="Previsões e análises inteligentes da Fórmula 1 powered by AI. Acompanhe classificações, resultados e previsões dos campeonatos." />
@@ -130,6 +197,13 @@
   <!-- Discord Meta Tags -->
   <meta name="theme-color" content="#dc2626" />
   <meta name="discord:card" content="summary_large_image" />
+
+  <!-- Cache Busting Headers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="app-version" content="3.0-drivers-validation" />
+  <meta name="build-timestamp" content="__BUILD_TIMESTAMP__" />
 
   <!-- Security Headers -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />

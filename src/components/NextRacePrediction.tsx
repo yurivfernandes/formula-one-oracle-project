@@ -180,8 +180,31 @@ IMPACTO NA CORRIDA: ${weather.rainChance > 40 ? "Alto risco de chuva - estratég
     return false;
   })();
 
+  // Função para buscar pilotos atuais de 2025
+  const fetchCurrentDrivers = async () => {
+    try {
+      const response = await fetch('https://api.jolpi.ca/ergast/f1/current/drivers.json');
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.MRData.DriverTable.Drivers || [];
+    } catch (error) {
+      console.error('Erro ao buscar pilotos atuais:', error);
+      return [];
+    }
+  };
+
   const getCurrentSeasonSummary = async (): Promise<string> => {
     try {
+      // Buscar pilotos atuais de 2025
+      const currentDrivers = await fetchCurrentDrivers();
+      const driversListPrompt = currentDrivers.length > 0 
+        ? `PILOTOS OFICIAIS DA TEMPORADA 2025 (${currentDrivers.length} pilotos):\n` +
+          currentDrivers.map((driver: any, index: number) => 
+            `${index + 1}. ${driver.givenName} ${driver.familyName} (#${driver.permanentNumber}, ${driver.code}) - ${driver.nationality}`
+          ).join('\n') +
+          `\n\n🚨 IMPORTANTE: Use APENAS estes pilotos nas suas predições. NÃO inclua pilotos que saíram da F1.\n\n`
+        : '';
+
       // Usar a mesma API que os outros componentes usam para 2025
       const driversResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/driverstandings.json');
       const constructorsResponse = await fetch('https://api.jolpi.ca/ergast/f1/2025/constructorstandings.json');
@@ -271,7 +294,7 @@ IMPACTO NA CORRIDA: ${weather.rainChance > 40 ? "Alto risco de chuva - estratég
 
       return `TEMPORADA F1 2025 - RESUMO COMPLETO PARA PALPITES:
 
-CLASSIFICAÇÃO PILOTOS (Top 10):
+${driversListPrompt}CLASSIFICAÇÃO PILOTOS (Top 10):
 ${driversText}
 
 CLASSIFICAÇÃO CONSTRUTORES (Top 5):
@@ -292,11 +315,14 @@ PREVISÃO CLIMÁTICA PARA A CORRIDA:
 ${weatherData}
 
 INSTRUÇÕES PARA ANÁLISE: Use todos esses dados para fazer palpites mais precisos. Considere:
+- 🚨 OBRIGATÓRIO: Use SOMENTE os pilotos listados na seção "PILOTOS OFICIAIS DA TEMPORADA 2025"
 - Performance recente dos pilotos e equipes
 - Histórico de abandonos (confiabilidade)
 - Condições climáticas previstas
 - Posições de largada (se classificação disponível)
-- Características do circuito em diferentes condições`;
+- Características do circuito em diferentes condições
+
+⚠️ ATENÇÃO: NÃO inclua Pérez, Ricciardo, Bottas, Zhou ou outros pilotos que não estão na lista oficial de 2025!`;
 
     } catch (error) {
       console.error('Erro ao buscar dados da temporada:', error);
